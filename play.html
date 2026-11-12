@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kasus Turunan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700..800&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="core/style.css">
+</head>
+<body>
+<canvas id="world" tabindex="-1" aria-label="Kampung tempat kasus berlangsung"></canvas>
+
+<div id="hud" hidden><div class="card"><b id="chap">Bab 1: Surat Tilang</b><span id="obj"></span></div></div>
+<div id="hud-r" hidden>
+  <button class="link" id="b-fs" type="button" hidden>Layar penuh</button>
+  <button class="link" id="b-snd" type="button" aria-pressed="true">Suara: nyala</button>
+  <button class="link" id="b-board" type="button">Papan Bukti<i id="b-count">0</i></button>
+</div>
+<div id="toast" hidden></div>
+
+<div id="dlg" class="card" hidden>
+  <canvas id="dlg-face" width="144" height="144"></canvas>
+  <div><div class="who" id="dlg-who"></div><p id="dlg-text"></p></div>
+  <button class="btn" id="dlg-next" type="button">Lanjut</button>
+</div>
+
+<div id="gp" class="modal" hidden>
+  <div class="mcard">
+    <div class="mhead"><h2 id="gp-title">Lensa</h2><button class="btn alt" id="gp-close" type="button">Tutup</button></div>
+    <div class="tabs" id="gp-tabs"></div>
+    <canvas id="gp-cv" tabindex="0" aria-label="Grafik jarak terhadap waktu. Geser titik A dan B dengan pointer atau tombol panah."></canvas>
+    <div class="read"><div id="gp-num">0<small>km/jam</small></div><div id="gp-read"></div></div>
+    <div class="mfoot">
+      <span class="tip" id="gp-tip"></span>
+      <button class="btn alt" id="gp-split" type="button">Pisahkan titik B</button>
+      <button class="btn" id="gp-pin" type="button">Tandai di peta</button>
+      <button class="btn" id="gp-save" type="button">Simpan bukti</button>
+    </div>
+  </div>
+</div>
+
+<div id="board" class="modal" hidden>
+  <div class="mcard">
+    <div class="mhead"><h2>Papan Bukti</h2><button class="btn alt" id="bd-close" type="button">Tutup</button></div>
+    <div class="sus" id="bd-sus"></div>
+    <div id="bd-list"></div>
+    <p class="msg" id="bd-hint" style="color:var(--ink)"></p>
+    <div class="mfoot"><span class="tip">Petunjuk mengurangi 60 poin.</span><button class="btn alt" id="bd-hintbtn" type="button">Minta petunjuk</button></div>
+  </div>
+</div>
+
+<div id="accuse" class="modal" hidden>
+  <div class="mcard">
+    <div class="mhead"><h2 id="ac-title">Laporan</h2><button class="btn alt" id="ac-close" type="button">Batal</button></div>
+    <h3 style="margin-top:4px" id="ac-q"></h3>
+    <div id="ac-who"></div>
+    <h3>Bukti kuncimu</h3>
+    <div id="ac-why"></div>
+    <p class="msg" id="ac-msg"></p>
+    <div class="mfoot"><span class="tip">Salah mengurangi 100 poin.</span><button class="btn big" id="ac-go" type="button">Ajukan ke Pak Anto</button></div>
+  </div>
+</div>
+<section class="screen" id="start">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow" id="st-eyebrow"></p>
+      <h1 id="st-title"></h1>
+      <p class="lede" id="st-lede"></p>
+    </div>
+    <div class="card">
+      <h2>Mulai penyelidikan</h2>
+      <p class="note" id="st-who"></p>
+      <div class="cols">
+        <div><b>Keyboard</b><br><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> atau panah: jalan<br><kbd>Shift</kbd> jalan pelan<br><kbd>E</kbd> bicara atau periksa<br><kbd>B</kbd> papan bukti</div>
+        <div><b>Layar sentuh</b><br>Setengah kiri: joystick analog.<br>Setengah kanan: ketuk untuk aksi.</div>
+      </div>
+      <button class="btn big" id="b-start" type="button">Mulai</button>
+      <a class="link2" href="./index.html" style="display:block;text-align:center;margin-top:10px">Kembali ke daftar kasus</a>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="end" hidden>
+  <div class="wrap">
+    <div class="card">
+      <p class="eyebrow">Kasus terpecahkan</p>
+      <div class="big-score" id="e-score">0</div>
+      <dl class="bd" id="e-break"></dl>
+      <button class="btn big" id="e-again" type="button">Main lagi</button>
+      <a class="link2" href="./index.html" style="display:block;text-align:center;margin-top:10px">Daftar kasus</a>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Yang kamu pakai tanpa sadar</h3>
+      <div id="e-learn"></div>
+      <h3>Ranking kelas <span class="note" id="rank-note">(contoh data)</span></h3>
+      <ol class="rank" id="e-rank"></ol>
+      <div class="teaser" id="end-teaser"></div>
+    </div>
+  </div>
+</section>
+<script type="module">
+import {start} from './core/engine.js';
+const id=new URLSearchParams(location.search).get('kasus')||'';
+if(!/^[a-z0-9-]+\/[a-z0-9-]+$/.test(id)){location.replace('./index.html');}
+else{
+  try{const m=await import('./cases/'+id+'.js');start(m.default);}
+  catch(e){document.body.insertAdjacentHTML('beforeend','<p style="position:fixed;inset:20px;z-index:9">Kasus tidak ditemukan. <a href="./index.html">Kembali</a></p>');}
+}
+</script>
+</body>
+</html>

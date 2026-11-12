@@ -34,3 +34,15 @@ Kunci yang ada di kode adalah publishable key, memang aman terlihat publik. **Se
 - NIM berfungsi sebagai PIN dan hanya terbaca oleh dosen pemilik sesi (Row Level Security).
 - Satu NIM = satu akun, username unik.
 - Skor dihitung di peramban dan dibatasi maksimal 1000 oleh server. Belum cukup untuk penilaian bertaruhan tinggi; verifikasi skor di server adalah pekerjaan lanjutan.
+
+## Struktur kode
+
+- `index.html`: portal (token, username, NIM, pilih kasus).
+- `play.html?kasus=<semesta>/<kasus>`: halaman game, memuat modul kasus secara dinamis.
+- `core/engine.js`: mesin umum (dunia kanvas, input, dialog, Lensa, papan bukti, tuduhan, skor, jaringan).
+- `core/net.js`: Supabase RPC dan sesi; `core/style.css`: gaya bersama.
+- `cases/<semesta>/<kasus>.js`: data dan aturan satu kasus (`export default function create(E)`).
+- `cases/daftar.js`: daftar kasus untuk portal.
+
+Menambah kasus: buat modul baru di `cases/`, daftarkan di `cases/daftar.js`.
+Uji lokal: `python3 -m http.server` (modul ES tidak jalan lewat `file://`).
