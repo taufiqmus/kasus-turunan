@@ -3,7 +3,44 @@
    saling meniadakan di puncak (h' = 0), membedakan lemparan dari dua turunan (h' dan x'),
    lalu menangkap bungkusan dalam gelap dengan simetri waktu naik = waktu turun. */
 export default function create(E){
-const {w2s,S,P,G,K,T,V,$,clamp,f0,f1,rngSeed,INK,PAPER,SUN,CORAL,ALERT,BLUE,GOOD,FD,FU,say,toast,addEv,card,sfx,openAccuse,gpOpen,endCine,endCase}=E;
+const {teori,w2s,S,P,G,K,T,V,$,clamp,f0,f1,rngSeed,INK,PAPER,SUN,CORAL,ALERT,BLUE,GOOD,FD,FU,say,toast,addEv,card,sfx,openAccuse,gpOpen,endCine,endCase}=E;
+const FR=(a,b)=>'<span class="fr"><span>'+a+'</span><span>'+b+'</span></span>';
+const THEORY={
+  'k2-dasar':{t:'Mengulang: turunan = kemiringan sesaat',sub:'dari Semesta 1',h:
+    '<p>Turunan <b>f′(t)</b> adalah kemiringan garis singgung grafik f di waktu t, yaitu laju perubahan f di satu momen.</p>'+
+    '<span class="eq">'+FR('d','dt')+' c = 0 &nbsp;&nbsp; '+FR('d','dt')+' tⁿ = n·tⁿ⁻¹ &nbsp;&nbsp; (c·f)′ = c·f′ &nbsp;&nbsp; (f ± g)′ = f′ ± g′</span>'+
+    '<p>Di semesta ini fungsinya bukan posisi di jalan, tapi <b>ketinggian h(t)</b> dan <b>jarak mendatar x(t)</b> benda yang dilempar.</p>'},
+  'k2-puncak':{t:'Tinggi lemparan dan puncaknya',sub:'h′(t) = 0',h:
+    '<p>Benda yang dilempar ke atas dengan kecepatan awal <b>v↑</b> (m/s) dan ditarik gravitasi <b>g = 9,8 m/s²</b> punya ketinggian:</p>'+
+    '<span class="eq">h(t) = v↑·t − ½·g·t² = v↑·t − 4,9t²</span>'+
+    '<p>Turunkan suku demi suku: turunan v↑·t adalah v↑, dan turunan 4,9t² adalah 4,9·2t = 9,8t.</p>'+
+    '<span class="eq">h′(t) = v↑ − 9,8t</span>'+
+    '<p>Di <b>puncak</b>, benda berhenti naik dan belum mulai turun, jadi <b>h′(t) = 0</b>. Itulah kenapa ia terlihat "melayang".</p>'+
+    '<span class="eq">v↑ − 9,8·t<sub>p</sub> = 0 &nbsp;⇒&nbsp; t<sub>p</sub> = '+FR('v↑','9,8')+' &nbsp;⇒&nbsp; v↑ = 9,8·t<sub>p</sub></span>'+
+    '<div class="ex"><b>Contoh.</b> v↑ = 19,6 m/s: puncak di t<sub>p</sub> = 2 dtk, setinggi h(2) = 39,2 − 19,6 = 19,6 m. Sebaliknya, kalau kamu <b>mengukur</b> puncak di t<sub>p</sub> detik, dorongan awalnya pasti 9,8·t<sub>p</sub>.</div>'},
+  'k2-linear':{t:'Gerak mendatar: fungsi linear',sub:'x′(t) tetap',h:
+    '<p>Tidak ada gaya yang menarik benda ke samping, jadi jarak mendatarnya bertambah rata:</p>'+
+    '<span class="eq">x(t) = v→·t &nbsp;&nbsp;⇒&nbsp;&nbsp; x′(t) = v→</span>'+
+    '<p>Grafiknya garis lurus. Pada garis lurus, <b>garis potong dan garis singgung sama</b>: Δx/Δt di selang mana pun sama dengan x′ di titik mana pun.</p>'+
+    '<div class="ex"><b>Contoh.</b> x(1) = 6 m dan x(2) = 12 m: v→ = (12 − 6)/(2 − 1) = 6 m/s, dan x′(t) = 6 m/s di setiap saat.</div>'},
+  'k2-selisih':{t:'Panah hijau, merah, kuning: aturan selisih',sub:'(f − g)′ = f′ − g′',h:
+    '<p>Pecah tinggi lemparan menjadi dua bagian:</p>'+
+    '<span class="eq">h(t) = f(t) − g(t), &nbsp; f(t) = v↑·t (dorongan), &nbsp; g(t) = 4,9t² (penurunan)</span>'+
+    '<span class="eq">f′(t) = v↑ &nbsp;(panah hijau, tetap)<br>g′(t) = 9,8t &nbsp;(panah merah, makin panjang)<br>h′(t) = f′(t) − g′(t) = v↑ − 9,8t &nbsp;(panah kuning)</span>'+
+    '<p>Turunan selisih adalah selisih turunan. Di awal, panah hijau menang dan benda naik. Panah merah tumbuh 9,8 m/s tiap detik. Saat keduanya sama panjang, panah kuning nol: puncak. Setelah itu merah menang dan benda turun.</p>'+
+    '<div class="ex"><b>Pembahasan rekonstruksi.</b> Baca waktu puncak rekaman (saat garis singgung h datar), lalu v↑ = 9,8 × t<sub>p</sub>. Baca kemiringan grafik x untuk v→. Atur ketapel dengan dua angka itu.</div>'},
+  'k2-dua':{t:'Satu turunan tidak cukup',sub:'sidik jari lemparan',h:
+    '<p>Sebuah lemparan ditentukan oleh <b>dua</b> turunan di awal: h′(0) = v↑ dan x′ = v→.</p>'+
+    '<span class="eq">lemparan A: h = 14,7t − 4,9t², x = 8t<br>lemparan B: h = 14,7t − 4,9t², x = 12t</span>'+
+    '<p>Keduanya punya h′ sama, jadi puncaknya sama waktu dan sama tinggi. Tapi x′ berbeda (8 dan 12 m/s), jadi B bergerak mendatar lebih cepat dan jatuh lebih jauh.</p>'+
+    '<div class="ex"><b>Pembahasan.</b> Ukur puncak (h′ = 0) <b>dan</b> kemiringan x untuk tiap lemparan uji. Lemparan yang cocok dengan hantu harus cocok di keduanya.</div>'},
+  'k2-simetri':{t:'Waktu naik = waktu turun',sub:'akar h(t) = 0',h:
+    '<p>Benda mendarat saat h(t) = 0. Faktorkan:</p>'+
+    '<span class="eq">h(t) = t·(v↑ − 4,9t) = 0 &nbsp;⇒&nbsp; t = 0 &nbsp;atau&nbsp; t = '+FR('v↑','4,9')+' = 2·'+FR('v↑','9,8')+' = 2·t<sub>p</sub></span>'+
+    '<p>Waktu mendarat tepat dua kali waktu puncak. Karena x(t) linear:</p>'+
+    '<span class="eq">x(2·t<sub>p</sub>) = v→·2t<sub>p</sub> = 2·x(t<sub>p</sub>)</span>'+
+    '<div class="ex"><b>Pembahasan kejar dalam gelap.</b> Saat lampu padam, benda tepat di puncak. Ukur jarak dari gang ke titik di bawah puncak, sebut d. Bungkusan akan jatuh sejauh <b>2d</b> dari gang. Larilah ke sana sebelum ia menyentuh tanah.</div>'}
+};
 
 /* ---------- fisika ---------- */
 const GR=9.8,HV=18;                 // HV: piksel per meter ketinggian (tampilan)
@@ -147,7 +184,7 @@ const AIM={vy:10,vx:5,drag:null,go:null,no:null};
 let RES=null;
 function startAim(){S.ui='aim';K.u=K.d=K.l=K.r=false;T.x=T.y=0;}
 function throwSelf(){
-  S.recThrows=(S.recThrows||0)+1;
+  S.recThrows=(S.recThrows||0)+1;teori('k2-selisih');
   launch('self','kamu',AIM.vy,AIM.vx,JX,JY,.7,true);S.ui='cine';CINE.mode='self';sfx.shot();
 }
 function showResult(){
@@ -178,6 +215,7 @@ function finishDemo(){
   S.flags['demo_'+who]=true;
   addEv({id:'demo-'+who,type:'doc',title:'Lemparan uji '+DEM[who].n,text:'Terekam di terminal kamera: grafik h(t) dan x(t) milik '+DEM[who].n+'.'});
   toast('Rekaman baru di terminal: '+DEM[who].n);
+  if(demosDone())setTimeout(()=>teori('k2-dua'),3000);
 }
 const demosDone=()=>['joko','dimas','rini'].every(w=>S.flags['demo_'+w]);
 
@@ -252,7 +290,7 @@ function talkAnto(){
     say([['anto','Jadi dalangnya akan melempar lagi malam ini, dari sebuah gang. Gang warung soto paling dekat ke titik buta kamera.','curiga'],
       ['anto','Siaga di mulut gang. Begitu benda naik, perhatikan baik-baik, terutama puncaknya.'],
       ['anto','Kalau bungkusan itu menghantam tanah, isinya bisa hancur. TANGKAP sebelum jatuh.']],
-      ()=>{f.siaga=true;toast('Siaga di mulut gang warung soto');sfx.ev();});
+      ()=>{f.siaga=true;teori('k2-simetri');toast('Siaga di mulut gang warung soto');sfx.ev();});
   }else if(!f.paket){
     say([['anto','Siaga di mulut gang. Puncak adalah kuncinya: waktu naik sama dengan waktu turun.']]);
   }else if(!f.gerobak){
@@ -264,6 +302,7 @@ function talkAnto(){
 
 /* ---------- terminal (Lensa) ---------- */
 function openTerminal(){
+  teori('k2-puncak');
   const gh=t=>hAt(GHOST.vy,t),gxx=t=>GHOST.vx*t,gaps=[[0,.6,'tertutup atap'],[2.4,3.6,'tertutup pohon']];
   const ser={
     'rek-h':{name:'Hantu h',col:'#7c4dbd',pts:sampleR(gh,.6,2.4),kind:'ball',sym:'h',ylab:'h (meter)',Smax:14,gaps},
@@ -281,6 +320,7 @@ function onLensSave(i,GP){
     if(i.kind!=='inst'){addEv({id:'ha-'+who,type:'meas',title:nm+': rata-rata',text:'Antara '+f1(i.t1)+' dan '+f1(i.t2)+' dtk: Δh/Δt = '+f1(i.m)+' m/s.',meta:{kind:'havg'}});return 'saved';}
     addEv({id:'h-'+who,type:'meas',title:nm+': garis singgung',text:'Di t = '+(Math.round(i.t*100)/100).toFixed(2).replace('.',',')+' dtk, h = '+f1(i.s)+' m, h′ = '+f1(i.m)+' m/s.',meta:{kind:'h',who,t:i.t,m:i.m}});
   }else{
+    teori('k2-linear');
     addEv({id:'x-'+who,type:'meas',title:nm+': kemiringan',text:(i.kind==='inst'?'Garis singgung':'Garis potong')+': x′ = '+f1(i.m)+' m/s.',meta:{kind:'x',who,m:i.m}});
   }
   return 'saved';
@@ -546,6 +586,7 @@ function cineEnd(){if(CINE.mode==='intro'){FL=null;card('BAB 1','BENDA MELAYANG'
 if(window.__TEST__)window.__C={get FL(){return FL;},AIM,get RES(){return RES;},startWatch,flX,GHOST,DEM};
 
 return {
+  THEORY,THEORY_START:['k2-dasar'],
   id:'melayang-1',judul:'Benda di Atas Pasar',eyebrow:'Semesta 2, Lemparan. Kasus 1',
   lede:'Tengah malam. Kamera Pasar merekam benda bercahaya naik, diam di udara, lalu hilang. Pasar heboh: hantu. Kamu tidak percaya hantu.',
   teaser:'<b>Pagi hari.</b> Harga cabai naik dua kali lipat, tapi para pedagang justru rugi. Seseorang memainkan angka di pasar. <b>Kasus 3 segera.</b>',

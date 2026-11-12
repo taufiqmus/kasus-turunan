@@ -112,3 +112,18 @@ ol.rank li.me{background:var(--sun);border:2px solid var(--ink)}
   #hud-r{right:auto;left:calc(env(safe-area-inset-left,0px) + 10px)}
 }
 @media (prefers-reduced-motion:reduce){.btn:active{transform:none}}
+
+/* kartu teori */
+.te details{border:3px solid var(--ink);border-radius:12px;background:#fff;margin:10px 0;box-shadow:3px 3px 0 var(--ink)}
+.te summary{cursor:pointer;padding:10px 12px;font:800 16px var(--display);list-style:none}
+.te summary::-webkit-details-marker{display:none}
+.te summary::before{content:"+ ";color:var(--coral)}
+.te details[open] summary::before{content:"- "}
+.te summary small{font:600 12px var(--ui);color:#5a6272;margin-left:6px}
+.te .bd{padding:0 14px 12px;line-height:1.5;font-size:15px}
+.te .eq{display:block;background:#fff8e6;border:2px solid var(--ink);border-radius:8px;padding:8px 12px;margin:8px 0;font:600 17px/1.7 "Cambria Math","Times New Roman",serif;overflow-x:auto;white-space:nowrap}
+.te .fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.2}
+.te .fr>span+span{border-top:2px solid var(--ink)}
+.te .ex{border-left:5px solid var(--sun);padding:4px 10px;margin:8px 0;background:#fffdf6}
+.te .new{background:var(--coral);color:#fff;border-radius:999px;padding:0 8px;font:700 11px var(--ui);margin-left:6px}
+#t-new{background:var(--good,#2f9e5b)}

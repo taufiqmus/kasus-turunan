@@ -1,7 +1,40 @@
 /* Semesta 1, Kasus 1: Tilang Salah Alamat. Seluruh data, dunia, dialog, dan aturan kasus ada di sini.
    Mesin umum (core/engine.js) memanggil objek yang dikembalikan create(E). */
 export default function create(E){
-const {S,P,G,K,T,V,$,clamp,lerp,f0,f1,rngSeed,INK,PAPER,SUN,CORAL,ALERT,BLUE,GOOD,FD,FU,say,toast,addEv,card,sfx,openAccuse,gpOpen,endCine,endCase}=E;
+const {teori,S,P,G,K,T,V,$,clamp,lerp,f0,f1,rngSeed,INK,PAPER,SUN,CORAL,ALERT,BLUE,GOOD,FD,FU,say,toast,addEv,card,sfx,openAccuse,gpOpen,endCine,endCase}=E;
+const FR=(a,b)=>'<span class="fr"><span>'+a+'</span><span>'+b+'</span></span>';
+const THEORY={
+  'k1-dasar':{t:'Posisi dan kecepatan',sub:'fungsi s(t)',h:
+    '<p>Gerak motor dicatat sebagai fungsi <b>s(t)</b>: posisi (meter dari Pos A) pada waktu <b>t</b> (detik). Grafiknya kurva s terhadap t.</p>'+
+    '<p>Kecepatan adalah <b>laju perubahan posisi</b>: berapa meter bertambah tiap detik. Di grafik, itu terlihat sebagai <b>kemiringan</b>. Kurva curam berarti cepat, kurva landai berarti lambat, kurva datar berarti diam.</p>'+
+    '<div class="ex">Pertanyaan kasus ini: kamera mencatat kecepatan di <b>satu momen</b>. Bagaimana mengukur kemiringan di satu titik, bukan di sepanjang perjalanan?</div>'},
+  'k1-rata':{t:'Laju rata-rata = kemiringan garis potong',sub:'Δs/Δt',h:
+    '<p>Ambil dua titik di grafik: A di waktu t₁ dan B di waktu t₂. Garis yang menghubungkan keduanya disebut <b>garis potong</b> (sekan). Kemiringannya:</p>'+
+    '<span class="eq">v<sub>rata</sub> = '+FR('Δs','Δt')+' = '+FR('s(t₂) − s(t₁)','t₂ − t₁')+'</span>'+
+    '<div class="ex"><b>Contoh.</b> Kamu lari dari 0 m ke 20 m dalam 5 detik: v<sub>rata</sub> = 20/5 = 4 m/s. Tapi mungkin kamu ngebut di awal lalu berhenti di tengah. Rata-rata menyembunyikan itu.</div>'},
+  'k1-limit':{t:'Dari garis potong ke garis singgung',sub:'definisi turunan',h:
+    '<p>Geser B makin dekat ke A. Selang waktunya, sebut <b>h = t₂ − t₁</b>, mengecil menuju nol. Garis potong berubah menjadi <b>garis singgung</b>, dan kemiringannya menjadi <b>kecepatan sesaat</b>. Inilah <b>turunan</b>:</p>'+
+    '<span class="eq">s′(t) = '+FR('ds','dt')+' = lim<sub>h→0</sub> '+FR('s(t + h) − s(t)','h')+'</span>'+
+    '<p>Notasi <b>s′(t)</b> (dibaca "s aksen") dan <b>ds/dt</b> (notasi Leibniz) berarti hal yang sama.</p>'+
+    '<div class="ex"><b>Contoh, s(t) = t².</b><br>'+FR('(t + h)² − t²','h')+' = '+FR('2th + h²','h')+' = 2t + h<br>Saat h → 0, hasilnya <b>s′(t) = 2t</b>. Di t = 3 dtk, kecepatannya 6 m/s.</div>'},
+  'k1-aturan':{t:'Aturan turunan untuk rekaman sensor',sub:'pangkat, kelipatan, jumlah',h:
+    '<p>Menghitung limit setiap kali itu melelahkan. Hasilnya bisa diringkas jadi aturan:</p>'+
+    '<span class="eq">'+FR('d','dt')+' c = 0 &nbsp;&nbsp; '+FR('d','dt')+' tⁿ = n·tⁿ⁻¹ &nbsp;&nbsp; (c·f)′ = c·f′ &nbsp;&nbsp; (f ± g)′ = f′ ± g′</span>'+
+    '<p>Rekaman sensor ketiga motor (s dalam meter, t dalam detik):</p>'+
+    '<span class="eq">merah: s = 8t + 0,45t² → s′ = 8 + 0,9t<br>biru: s = 22t − 0,25t² → s′ = 22 − 0,5t<br>hijau: s = 14t → s′ = 14</span>'+
+    '<p>Contoh menurunkan motor biru: turunan 22t adalah 22 (pangkat 1 menjadi pangkat 0). Turunan 0,25t² adalah 0,25·2t = 0,5t. Lalu dikurangkan (aturan selisih).</p>'+
+    '<div class="ex"><b>Pembahasan motor hijau.</b> Kapan di garis kamera? 14t = 250, jadi t ≈ 17,86 dtk. Kecepatan di sana s′ = 14 m/s, tetap sepanjang jalan. Untuk merah dan biru, cari dulu t saat s(t) = 250 (pakai Lensa atau rumus kuadrat), lalu masukkan ke s′(t).</div>'},
+  'k1-satuan':{t:'Dari m/s ke km/jam',sub:'×3,6',h:
+    '<p>Turunan s′(t) bersatuan meter per detik. Kamera memakai km/jam.</p>'+
+    '<span class="eq">1 m/s = '+FR('1/1000 km','1/3600 jam')+' = 3,6 km/jam</span>'+
+    '<div class="ex">Motor hijau: 14 m/s × 3,6 = 50,4 km/jam. Bandingkan dengan batas 60 dan catatan kamera 82.</div>'+
+    '<p><b>Jebakan rata-rata.</b> Motor biru: dari Pos A ke kamera, Δs/Δt ≈ 18,6 m/s ≈ 67 km/jam. Tapi tepat di garis kamera s′(t) jauh lebih kecil, karena ia sedang mengerem. Kamera hanya peduli s′ di satu momen itu.</p>'},
+  'k1-tanda':{t:'Tanda turunan bercerita',sub:'s′ > 0, s′ = 0, s′ < 0',h:
+    '<p>Turunan tidak hanya memberi besar kecepatan, tapi juga <b>arah</b>:</p>'+
+    '<span class="eq">s′(t) &gt; 0 : menjauh dari Pos A (kurva naik)<br>s′(t) = 0 : berhenti (kurva datar)<br>s′(t) &lt; 0 : kembali ke arah Pos A (kurva turun)</span>'+
+    '<p>Untuk mencari tempat motor berhenti, cari waktu ketika <b>s′(t) = 0</b>, lalu baca posisinya <b>s(t)</b> pada waktu itu. Bagian kurva yang datar cukup lama berarti motor diam di tempat itu.</p>'+
+    '<div class="ex"><b>Contoh.</b> s(t) = 20t − t². Maka s′(t) = 20 − 2t = 0 saat t = 10 dtk, di posisi s(10) = 100 m. Setelah itu s′ negatif: benda berbalik.</div>'}
+};
 
 const CAM_S=250,STOP_S=330,END_S=110;
 const BR_A=23.3*23.3/(2*(STOP_S-266.05)),BR_T=23.3/BR_A;
@@ -206,7 +239,7 @@ function talkAnto(){
       ['anto','Tunggu. Sensor jalan masih merekam setelah kamera. Kubuka REKAMAN LANJUTAN motor merah di terminal.'],
       ['anto','Lensamu ku-upgrade. Sekarang ia melukis jejak kemiringan, s′(t). Di atas nol: maju. Tepat nol: berhenti. Di bawah nol... cari tahu sendiri.'],
       ['anto','Temukan di mana motor itu berhenti, tandai di peta, lalu datangi tempatnya. Patok jarak di pinggir jalan akan membantumu.']],
-      ()=>{f.ext=true;toast('Upgrade Lensa: Jejak Kemiringan');sfx.ev();});
+      ()=>{f.ext=true;teori('k1-tanda');toast('Upgrade Lensa: Jejak Kemiringan');sfx.ev();});
   }else if(!f.motorFound){
     say([['anto','Motornya belum ketemu. Baca lagi rekamannya: di mana kurvanya datar?']]);
   }else{
@@ -262,12 +295,14 @@ function openSensor(){
     gpOpen({src:'ext',title:'Rekaman lanjutan: motor merah',series:{merah:{name:'Motor merah',col:MOTORS.merah.col,pts:MOTORS.merah.ext,tc:0}},cur:'merah',Tmax:70,Smax:350,camS:CAM_S,gmin:-60,gmax:100,startLocked:true,
       tip:'Seret titik A menyusuri kurva. Jejak kemiringan terlukis di bawah. Di titik berhenti, tekan Tandai di peta.'});return;
   }
+  teori('k1-aturan');
   const ser={};for(const k in MOTORS)ser[k]={name:MOTORS[k].name,col:MOTORS[k].col,pts:MOTORS[k].pts,tc:MOTORS[k].tc};
   gpOpen({src:'sensor',title:'Terminal Sensor Jalan',series:ser,cur:'biru',Tmax:20,Smax:300,camS:CAM_S,gmin:0,gmax:100,startLocked:!!S.flags.sensorSeen,
     tip:'Bandingkan: rata-rata dari Pos A (titik berjauhan) dengan kecepatan tepat di garis kamera (titik menempel).'});
   S.flags.sensorSeen=true;
 }
 function openTrial(){
+  teori('k1-rata');
   const pts=TRIAL.data.slice(),te=pts[pts.length-1][0];
   gpOpen({src:'trial',title:'Grafik larimu',series:{run:{name:'Larimu',col:'#c25a1c',pts,kind:'run'}},cur:'run',Tmax:Math.max(4,Math.ceil(te)),Smax:20,camS:null,gmin:-25,gmax:25,startLocked:false,
     tip:'Titik A dan B berjauhan memberi rata-rata. Tarik B mendekati A dan lihat apa yang terjadi.'});
@@ -309,10 +344,11 @@ function onAccuseOk(n){
 function onLensSave(i,GP){
   if(GP.src==='trial'){
     if(i.kind!=='inst'){toast('Tempelkan dulu titik B ke titik A sampai terkunci');return 'stay';}
-    S.flags.trialDone=true;addEv({id:'trial',type:'meas',title:'Latihan Lensa',text:'Di t = '+f1(i.t)+' dtk kecepatan larimu '+f1(i.m)+' m/s. Garis potong yang menyempit menjadi garis singgung.',meta:{kind:'trial'}});
+    S.flags.trialDone=true;teori('k1-limit');addEv({id:'trial',type:'meas',title:'Latihan Lensa',text:'Di t = '+f1(i.t)+' dtk kecepatan larimu '+f1(i.m)+' m/s. Garis potong yang menyempit menjadi garis singgung.',meta:{kind:'trial'}});
     GP.tip='Tersimpan. Tutup, lalu kembali ke Pak Anto.';return 'tip';
   }
   const mid=GP.cur,mo=MOTORS[mid];
+  if(i.kind==='inst')teori('k1-satuan');
   if(i.kind==='inst')addEv({id:'inst-'+mid+(i.atCam?'-cam':'-x'),type:'meas',title:mo.name+': kecepatan sesaat',text:'Garis singgung di s = '+f1(i.s)+' m ('+(i.atCam?'tepat di garis kamera':'bukan di garis kamera')+'): '+f0(i.m*3.6)+' km/jam.',meta:{kind:'inst',motor:mid,atCam:i.atCam,kmh:i.m*3.6}});
   else addEv({id:'avg-'+mid+(i.fromStart?'-ruas':'-x'),type:'meas',title:mo.name+': kecepatan rata-rata',text:(i.fromStart?'Dari Pos A sampai garis kamera: ':'Antara t = '+f1(i.t1)+' dan '+f1(i.t2)+' dtk: ')+f0(i.m*3.6)+' km/jam.',meta:{kind:'avg',motor:mid,fromStart:i.fromStart,kmh:i.m*3.6}});
   return 'saved';
@@ -418,6 +454,7 @@ function jitter(it){return(it.ch==='djo'&&S.flags.alibi)?Math.sin(G.T*30)*1.2:0;
 function cineEnd(){card('BAB 1','SURAT TILANG');}
 
 return {
+  THEORY,THEORY_START:['k1-dasar'],
   id:'tilang-1',judul:'Tilang Salah Alamat',eyebrow:'Semesta 1, Jalan Raya. Kasus 1',
   lede:'08.14 pagi. Kamera Pasar menjepret motor 82 km/jam. Platnya buram. Satu kampung saling tuduh, dan tidak ada yang seperti kelihatannya.',
   teaser:'<b>Tengah malam.</b> Kamera Pasar menyala lagi. Tidak ada motor yang lewat. Yang terekam: sesuatu melayang di atas pasar. <b>Kasus 2 segera.</b>',

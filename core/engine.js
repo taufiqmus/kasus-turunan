@@ -272,6 +272,25 @@ function renderBoard(){
   $('bd-hint').textContent=S.hintShown?('Petunjuk: '+S.hintShown):'';
 }
 $('b-board').addEventListener('click',()=>{if(S.ui==='none')openBoard();});
+/* ================= TEORI ================= */
+const TEO={got:[],seen:new Set()};
+function teori(id,quiet){
+  const th=C.THEORY&&C.THEORY[id];if(!th||TEO.got.includes(id))return;
+  TEO.got.push(id);
+  if(!quiet){$('t-new').hidden=false;toast('Teori baru: '+th.t+(G.coarse?' (ketuk Teori)':' (tekan T)'));sfx.ev();}else TEO.seen.add(id);
+}
+function openTeori(){
+  S.ui='teori';$('teori').hidden=false;$('toast').hidden=true;$('t-new').hidden=true;
+  const L=$('te-list');L.innerHTML='';
+  const ids=Object.keys(C.THEORY||{}).filter(k=>TEO.got.includes(k)),lastNew=TEO.got[TEO.got.length-1];
+  if(!ids.length){L.innerHTML='<p>Belum ada teori terbuka.</p>';}
+  for(const k of ids){const th=C.THEORY[k],d=document.createElement('details');if(k===lastNew)d.open=true;
+    d.innerHTML='<summary>'+th.t+(th.sub?'<small>'+th.sub+'</small>':'')+(TEO.seen.has(k)?'':'<span class="new">baru</span>')+'</summary><div class="bd">'+th.h+'</div>';L.append(d);TEO.seen.add(k);}
+  const lk=L.querySelector('details[open]');if(lk)setTimeout(()=>lk.scrollIntoView({block:'nearest'}),30);
+}
+function closeTeori(){$('teori').hidden=true;S.ui='none';}
+$('b-teori').addEventListener('click',()=>{if(S.ui==='none')openTeori();});
+$('te-close').addEventListener('click',closeTeori);
 $('bd-close').addEventListener('click',()=>{$('board').hidden=true;S.ui='none';});
 $('bd-hintbtn').addEventListener('click',()=>{const h=C.stageHint();if(!S.hinted[h[0]]){S.hinted[h[0]]=true;S.hints++;}S.hintShown=h[1];renderBoard();});
 
@@ -342,8 +361,9 @@ window.addEventListener('keydown',e=>{
     else if(k==='e'||k==='E'){actionPress();e.preventDefault();}
     else if(k==='Enter'||k===' '){if(tag!=='BUTTON'){actionPress();e.preventDefault();}}
     else if((k==='b'||k==='B')&&S.ui==='none')openBoard();
+    else if((k==='t'||k==='T')&&S.ui==='none')openTeori();
   }
-  if(k==='Escape'){if(S.ui==='gp')closeGp();else if(S.ui==='board'){$('board').hidden=true;S.ui='none';}else if(S.ui==='accuse'){$('accuse').hidden=true;S.ui='none';}}
+  if(k==='Escape'){if(S.ui==='gp')closeGp();else if(S.ui==='board'){$('board').hidden=true;S.ui='none';}else if(S.ui==='teori')closeTeori();else if(S.ui==='accuse'){$('accuse').hidden=true;S.ui='none';}}
 });
 window.addEventListener('keyup',e=>{const k=e.key;
   if(k==='ArrowUp'||k==='w'||k==='W')K.u=false;else if(k==='ArrowDown'||k==='s'||k==='S')K.d=false;
@@ -540,8 +560,9 @@ function begin(name){
 function endCineHook(){endCine();}
 /* ---- rakit objek E untuk modul kasus ---- */
 const w2s=(x,y)=>[(x-cam.x)*Z,(y-cam.y)*Z];
-const E={w2s,S,P,G,K,T,V,$,clamp,lerp,f0,f1,rngSeed,INK,PAPER,SUN,CORAL,ALERT,BLUE,GOOD,FD,FU,say,toast,addEv,card,sfx,openAccuse,gpOpen,endCine:endCineHook,endCase,plate};
+const E={teori,w2s,S,P,G,K,T,V,$,clamp,lerp,f0,f1,rngSeed,INK,PAPER,SUN,CORAL,ALERT,BLUE,GOOD,FD,FU,say,toast,addEv,card,sfx,openAccuse,gpOpen,endCine:endCineHook,endCase,plate};
 C=createCase(E);
+for(const id of (C.THEORY_START||[]))teori(id,true);
 WW=C.WW;WH=C.WH;SOLIDS=C.SOLIDS;LAMPS=C.LAMPS;
 $('chap').textContent=C.chapter;
 const sesi=bacaSesi();

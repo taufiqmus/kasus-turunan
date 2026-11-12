@@ -16,6 +16,7 @@
 <div id="hud-r" hidden>
   <button class="link" id="b-fs" type="button" hidden>Layar penuh</button>
   <button class="link" id="b-snd" type="button" aria-pressed="true">Suara: nyala</button>
+  <button class="link" id="b-teori" type="button">Teori<i id="t-new" hidden>baru</i></button>
   <button class="link" id="b-board" type="button">Papan Bukti<i id="b-count">0</i></button>
 </div>
 <div id="toast" hidden></div>
@@ -38,6 +39,14 @@
       <button class="btn" id="gp-pin" type="button">Tandai di peta</button>
       <button class="btn" id="gp-save" type="button">Simpan bukti</button>
     </div>
+  </div>
+</div>
+
+<div id="teori" class="modal" hidden>
+  <div class="mcard">
+    <div class="mhead"><h2>Teori dan pembahasan</h2><button class="btn alt" id="te-close" type="button">Tutup</button></div>
+    <p class="tip" id="te-tip">Kartu teori bertambah setiap kamu melakukan aksi penting. Gratis, tidak mengurangi poin.</p>
+    <div class="te" id="te-list"></div>
   </div>
 </div>
 
@@ -73,7 +82,7 @@
       <h2>Mulai penyelidikan</h2>
       <p class="note" id="st-who"></p>
       <div class="cols">
-        <div><b>Keyboard</b><br><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> atau panah: jalan<br><kbd>Shift</kbd> jalan pelan<br><kbd>E</kbd> bicara atau periksa<br><kbd>B</kbd> papan bukti</div>
+        <div><b>Keyboard</b><br><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> atau panah: jalan<br><kbd>Shift</kbd> jalan pelan<br><kbd>E</kbd> bicara atau periksa<br><kbd>B</kbd> papan bukti<br><kbd>T</kbd> teori</div>
         <div><b>Layar sentuh</b><br>Setengah kiri: joystick analog.<br>Setengah kanan: ketuk untuk aksi.</div>
       </div>
       <button class="btn big" id="b-start" type="button">Mulai</button>
