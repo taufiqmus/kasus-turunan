@@ -72,14 +72,14 @@ function buildWorld(){
 /* ---------- engkol mesin (overlay) ---------- */
 const EK={a:0,drag:null,ok:null,no:null,rs:null,c:null};
 function openEngkol(){S.ui='engkol';K.u=K.d=K.l=K.r=false;T.x=T.y=0;teori('k6-rantai');}
-function panel(maxW,maxH){const {W,H,hs}=V,top=W<=600?8:Math.min(96,H*.16),w=Math.min(maxW*hs,W-16),h=Math.min(maxH*hs,H-top-8);return {w,h,x:(W-w)/2,y:top+Math.max(0,(H-top-8-h)/2),hs};}
+function panel(maxW,maxH){const {W,H,hs}=V,top=8,w=Math.min(maxW*hs,W-16),h=Math.min(maxH*hs*(W<600?1.5:1),H-top-8);return {w,h,x:(W-w)/2,y:top+Math.max(0,(H-top-8-h)/2),hs};}
 function dial(ctx,cx,cy,r,turns,label,col,hs){
   ctx.fillStyle='#fff';ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();ctx.stroke();
   for(let i=0;i<12;i++){const a=i/12*2*Math.PI;ctx.beginPath();ctx.moveTo(cx+Math.sin(a)*r*.82,cy-Math.cos(a)*r*.82);ctx.lineTo(cx+Math.sin(a)*r,cy-Math.cos(a)*r);ctx.stroke();}
   const a=turns*2*Math.PI;ctx.strokeStyle=col;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.sin(a)*r*.75,cy-Math.cos(a)*r*.75);ctx.stroke();
   ctx.fillStyle=INK;ctx.beginPath();ctx.arc(cx,cy,5,0,7);ctx.fill();
-  KT.txt(ctx,label,cx,cy+r+18*hs,'700 '+Math.round(12*hs)+'px '+FU,INK,'center');
-  KT.txt(ctx,fx(turns,2)+' putaran',cx,cy+r+36*hs,'800 '+Math.round(14*hs)+'px '+FU,col,'center');
+  KT.txt(ctx,label,cx,cy+r+18*hs,'700 '+Math.round(12*hs)+'px '+FU,PAPER,'center');
+  KT.txt(ctx,fx(turns,2)+' putaran',cx,cy+r+36*hs,'800 '+Math.round(14*hs)+'px '+FU,col===BLUE?'#9cc8ff':'#8fe3a0','center');
 }
 function engkolPanel(ctx){
   const {w,h,x,y,hs}=panel(820,430),f=Math.round(14*hs);KT.box(ctx,x,y,w,h);
@@ -96,12 +96,12 @@ function engkolPanel(ctx){
   KT.txt(ctx,'poros A (motor)',ax,yy+r*1.1+18*hs,'700 '+Math.round(12*hs)+'px '+FU,INK,'center');
   KT.txt(ctx,fx(tA,2)+' putaran',ax,yy+r*1.1+36*hs,'800 '+Math.round(14*hs)+'px '+FU,CORAL,'center');
   // rumah roda gigi
-  const bx=x+w*.32,bw=w*.62;ctx.fillStyle='#4a4f5c';ctx.fillRect(bx,yy-r*1.5,bw,r*3);ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.strokeRect(bx,yy-r*1.5,bw,r*3);
-  ctx.strokeStyle='rgba(255,255,255,.15)';for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(bx+i*bw/8,yy-r*1.5);ctx.lineTo(bx+i*bw/8+20,yy+r*1.5);ctx.stroke();}
+  const bx=x+w*.32,bw=w*.62,bt=yy-r*1.3,bhh=r*2.3+44*hs;ctx.fillStyle='#4a4f5c';ctx.fillRect(bx,bt,bw,bhh);ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.strokeRect(bx,bt,bw,bhh);
+  ctx.strokeStyle='rgba(255,255,255,.15)';for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(bx+i*bw/8,bt);ctx.lineTo(bx+i*bw/8+20,bt+bhh);ctx.stroke();}
   dial(ctx,bx+bw*.3,yy,r,tB,'poros B dan C',BLUE,hs);
   dial(ctx,bx+bw*.75,yy,r,tD,'drum D',GOOD,hs);
-  KT.txt(ctx,'Manual: A 12 gigi, B 36, C 16, D 32. C seporos dengan B.',x+14,y+h-64*hs,'700 '+Math.round(12.5*hs)+'px '+FU);
-  KT.txt(ctx,G.coarse?'Putar gagang merah melingkar.':'Putar gagang merah (seret), atau panah ←→.',x+14,y+h-46*hs,'600 '+Math.round(11.5*hs)+'px '+FU);
+  KT.txt(ctx,'Manual: A 12 gigi, B 36, C 16, D 32. C seporos dengan B.',x+14,y+h-74*hs,'700 '+Math.round(12.5*hs)+'px '+FU);
+  KT.txt(ctx,G.coarse?'Putar gagang merah melingkar.':'Putar gagang merah (seret), atau panah ←→.',x+14,y+h-55*hs,'600 '+Math.round(11.5*hs)+'px '+FU);
   const bh=36*hs;EK.no=KT.btn(ctx,{x:x+14,y:y+h-bh-8,w:90*hs,h:bh},'Tutup',false,f);EK.rs=KT.btn(ctx,{x:x+24+90*hs,y:y+h-bh-8,w:90*hs,h:bh},'Nol-kan',false,f);
   EK.ok=KT.btn(ctx,{x:x+w-160*hs-14,y:y+h-bh-8,w:160*hs,h:bh},'Catat jarum',true,f);
 }

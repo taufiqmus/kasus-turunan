@@ -1,0 +1,20 @@
+import sys;import os;sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
+from lib import *
+with sync_playwright() as p:
+    r=Run(p,'pantai/bianglala-1');r.wait(1200);r.shot('b1');r.skipcine()
+    r.talk('anto');r.talk('lastri');r.talk('roda');print('ui',r.ui())
+    for _ in range(3):r.pg.keyboard.press('Shift+ArrowRight')
+    r.wait(100);r.shot('b2');r.pg.keyboard.press('e');r.pg.keyboard.press('Escape');print('sudut',r.ev('__G.S.evidence.find(e=>e.id=="sudut").meta.th'))
+    r.talk('nia');r.talk('anto');print(r.accuse(1,2));print(r.accuse(2,1));r.clr()
+    r.talk('anto');r.clr();print('twist',r.ev('__G.S.flags.twist'));r.wait(2900)
+    r.talk('rem');print('ui',r.ui());r.wait(2500);r.shot('b3')
+    # sengaja gagal di puncak
+    r.pg.wait_for_function('(()=>{const m=((__C.RM.th%(2*Math.PI))+2*Math.PI)%(2*Math.PI);return Math.abs(m-Math.PI)<0.12})()',timeout=20000);r.pg.keyboard.press('e');r.wait(200);r.shot('b4');print('msg',r.ev('__C.RM.msg'))
+    r.wait(1800)
+    r.pg.wait_for_function('(()=>{const m=((__C.RM.th%(2*Math.PI))+2*Math.PI)%(2*Math.PI);return __C.RM.pause<=0&&Math.min(m,2*Math.PI-m)<0.12})()',timeout=20000);r.pg.keyboard.press('e');r.wait(200)
+    print('ui',r.ui(),'remPts',r.ev('__G.S.remPts'));r.clr();print('tangkap',r.ev('__G.S.flags.tangkap'))
+    r.talk('darsono');r.talk('kevin');r.talk('sensor');r.wait(200)
+    print(r.lock(45));print(r.lock(130));r.shot('b5');r.pg.click('#gp-close');print('omega',r.ev('__G.S.flags.omega'))
+    print('teori',r.teori())
+    r.talk('anto');print(r.accuse(1,1))
+    print('score',r.finish(),'errs',r.errs);r.shot('b6')

@@ -87,13 +87,13 @@ function buildWorld(){
 
 /* ---------- meja praktikum (overlay) ---------- */
 const MJ={vs:12,run:null,ok:null,no:null,go:null,drag:null,tries:0};
-function panel(maxW,maxH){const {W,H,hs}=V,top=W<=600?8:Math.min(96,H*.16),w=Math.min(maxW*hs,W-16),h=Math.min(maxH*hs,H-top-8);return {w,h,x:(W-w)/2,y:top+Math.max(0,(H-top-8-h)/2),hs};}
+function panel(maxW,maxH){const {W,H,hs}=V,top=8,w=Math.min(maxW*hs,W-16),h=Math.min(maxH*hs*(W<600?1.5:1),H-top-8);return {w,h,x:(W-w)/2,y:top+Math.max(0,(H-top-8-h)/2),hs};}
 function openMeja(){S.ui='meja';K.u=K.d=K.l=K.r=false;T.x=T.y=0;MJ.run=null;teori('k7-daya');}
 function mejaPanel(ctx){
   const {w,h,x,y,hs}=panel(820,440),f=Math.round(14*hs);KT.box(ctx,x,y,w,h);
   KT.txt(ctx,'MEJA 2: REPLIKA INSIDEN',x+14,y+24*hs,'800 '+Math.round(16*hs)+'px '+FD);
-  KT.txt(ctx,'R = 1 kΩ, C = 1000 µF (τ = 1 s), batas kapasitor 25 V',x+w-14,y+24*hs,'700 '+Math.round(12*hs)+'px '+FU,INK,'right');
-  const gx=x+50*hs,gy=y+44*hs,gw=w*.62,gh=h-150*hs;
+  const nar=w<560;KT.txt(ctx,'R = 1 kΩ, C = 1000 µF (τ = 1 s), batas kapasitor 25 V',nar?x+14:x+w-14,nar?y+42*hs:y+24*hs,'700 '+Math.round(12*hs)+'px '+FU,INK,nar?'left':'right');
+  const gx=x+50*hs,gy=y+(nar?60:44)*hs,gw=nar?w-70*hs:w*.62,gh=nar?(h-200*hs)*.6:h-170*hs;
   const scope=KT.samp(vOf,0,TBOOM,120),cur=MJ.run?MJ.run.pts:[];
   const m=KT.plot(ctx,gx,gy,gw,gh,0,3,0,40,[{pts:scope,col:'#a879e0',w:7},{pts:cur,col:CORAL,w:3}],'v (volt)');
   ctx.strokeStyle=ALERT;ctx.setLineDash([6,5]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(gx,m.Y(VMAX));ctx.lineTo(gx+gw,m.Y(VMAX));ctx.stroke();ctx.setLineDash([]);
@@ -102,14 +102,14 @@ function mejaPanel(ctx){
   for(const t of [0,1,2,3])KT.txt(ctx,String(t),m.X(t),gy+gh+14*hs,'600 '+Math.round(10*hs)+'px '+FU,INK,'center');
   KT.txt(ctx,'ungu tebal: rekaman osiloskop   oranye: replikamu',gx,gy+gh+30*hs,'600 '+Math.round(11*hs)+'px '+FU);
   // kapasitor
-  const cx=x+w*.83,cy=y+h*.38,boom=MJ.run&&MJ.run.boom;
+  const cx=nar?x+w*.5:x+w*.83,cy=nar?gy+gh+90*hs:y+h*.38,boom=MJ.run&&MJ.run.boom;
   if(!boom){const bul=MJ.run?clamp((MJ.run.v-18)/7,0,1):0;ctx.fillStyle='#2f5aa8';ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(cx,cy,26*hs+bul*8,46*hs,0,0,7);ctx.fill();ctx.stroke();ctx.fillStyle=PAPER;ctx.fillRect(cx-6,cy-40*hs,12,10*hs);}
   else{for(let i=0;i<14;i++){const a=i/14*6.28;KT.arrow(ctx,cx,cy,Math.cos(a)*50*hs,Math.sin(a)*50*hs,i%2?SUN:ALERT,3);}KT.txt(ctx,'DOR!',cx,cy+8,'800 '+Math.round(28*hs)+'px '+FD,ALERT,'center');}
   KT.txt(ctx,'v = '+fx(MJ.run?MJ.run.v:0,1)+' V',cx,cy+70*hs,'800 '+f+'px '+FU,INK,'center');
   // kenop
-  KT.txt(ctx,'Catu daya Vs = '+fx(MJ.vs,1)+' V',x+14,y+h-62*hs,'800 '+Math.round(17*hs)+'px '+FU,'#c25a1c');
-  KT.txt(ctx,G.coarse?'Geser kiri/kanan untuk mengubah Vs.':'Seret atau panah ←→ (Shift: 5 V). E: nyalakan.',x+14,y+h-42*hs,'600 '+Math.round(11.5*hs)+'px '+FU);
-  const bh=38*hs;MJ.no=KT.btn(ctx,{x:x+w-300*hs-24,y:y+h-bh-10,w:110*hs,h:bh},'Tutup',false,f);MJ.go=KT.btn(ctx,{x:x+w-180*hs-14,y:y+h-bh-10,w:180*hs,h:bh},'Nyalakan saklar',true,f);
+  KT.txt(ctx,'Catu daya Vs = '+fx(MJ.vs,1)+' V',x+14,y+h-86*hs,'800 '+Math.round(17*hs)+'px '+FU,'#c25a1c');
+  KT.txt(ctx,G.coarse?'Geser kiri/kanan untuk mengubah Vs.':'Seret atau panah ←→ (Shift: 5 V). E: nyalakan.',x+14,y+h-64*hs,'600 '+Math.round(11.5*hs)+'px '+FU);
+  const bh=38*hs;MJ.no=KT.btn(ctx,{x:nar?x+14:x+w-300*hs-24,y:y+h-bh-10,w:110*hs,h:bh},'Tutup',false,f);MJ.go=KT.btn(ctx,{x:x+w-180*hs-14,y:y+h-bh-10,w:180*hs,h:bh},'Nyalakan saklar',true,f);
 }
 function nyalakan(){if(MJ.run&&!MJ.run.done)return;MJ.tries++;MJ.run={t:0,v:0,pts:[[0,0]],boom:false,done:false,vs:MJ.vs};sfx.blip();}
 function mejaTick(dt){

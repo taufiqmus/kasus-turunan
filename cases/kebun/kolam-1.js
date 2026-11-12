@@ -98,12 +98,12 @@ function buildWorld(){
 const DR={d:0,drag:null,no:null};
 const JD={d:11,drag:null,ok:null,no:null,res:null};
 function openDrone(){S.ui='drone';K.u=K.d=K.l=K.r=false;T.x=T.y=0;S.flags.droneSeen=true;}
-function panel(V,maxW,maxH){const {W,H,hs}=V,top=W<=600?8:Math.min(96,H*.16),w=Math.min(maxW*hs,W-16),h=Math.min(maxH*hs,H-top-8);return {w,h,x:(W-w)/2,y:top+Math.max(0,(H-top-8-h)/2),hs};}
+function panel(V,maxW,maxH){const {W,H,hs}=V,top=8,w=Math.min(maxW*hs,W-16),h=Math.min(maxH*hs*(W<600?1.5:1),H-top-8);return {w,h,x:(W-w)/2,y:top+Math.max(0,(H-top-8-h)/2),hs};}
 function dronePanel(ctx){
   const {w,h,x,y,hs}=panel(V,700,430),f=Math.round(14*hs);KT.box(ctx,x,y,w,h);
   KT.txt(ctx,'ARSIP FOTO DRONE: KOLAM DESA',x+14,y+24*hs,'800 '+Math.round(16*hs)+'px '+FD);
   const A=Aof(DR.d);
-  KT.txt(ctx,'hari ke-'+f1(DR.d)+'   tutupan '+f1(A)+'%',x+w-14,y+24*hs,'800 '+Math.round(15*hs)+'px '+FU,INK,'right');
+  const nar=w<560;KT.txt(ctx,'hari ke-'+f1(DR.d)+'   tutupan '+f1(A)+'%',nar?x+14:x+w-14,nar?y+46*hs:y+24*hs,'800 '+Math.round(15*hs)+'px '+FU,INK,nar?'left':'right');
   const cx=x+w/2,cy=y+h*.46,rx=Math.min(w*.42,(h*.62)*1.6),ry=rx*.52;
   pond(ctx,cx,cy,rx,ry,A,false);
   const sx0=x+30*hs,sx1=x+w-30*hs,sy=y+h-70*hs;

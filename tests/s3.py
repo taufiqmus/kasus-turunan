@@ -1,0 +1,18 @@
+import sys;import os;sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
+from lib import *
+with sync_playwright() as p:
+    r=Run(p,'pasar/cabai-1');r.wait(1200);r.shot('c1');r.skipcine()
+    r.talk('anto');print('case',r.ev('__G.S.flags'))
+    r.talk('narti');r.goto('lapak');r.pg.keyboard.press('e');r.wait(200);print('ui',r.ui());r.shot('c2')
+    for _ in range(4):r.pg.keyboard.press('Shift+ArrowLeft')
+    r.wait(100);print('p',r.ev('__C.LP.p'));r.pg.keyboard.press('e');r.wait(100);r.shot('c3');r.pg.keyboard.press('Escape')
+    print('opt',r.ev('__G.S.flags.opt'))
+    r.talk('haji');r.talk('anto')
+    print(r.accuse(2,2));print(r.accuse(1,1));r.clr()
+    r.talk('darto');r.wait(2900);print('twist',r.ev('__G.S.flags.twist'))
+    r.talk('buku');r.wait(200)
+    print(r.lock(3.0));print(r.lock(4.6));r.shot('c4');r.pg.click('#gp-close')
+    print('found',r.ev('__G.S.flags.found'))
+    r.talk('timbangan');r.talk('jum');r.talk('log');print('teori',r.teori());print(r.board()[:200])
+    r.talk('anto');print(r.accuse(3,2));print(r.accuse(1,1))
+    print('score',r.finish(),'errs',r.errs);r.shot('c5')

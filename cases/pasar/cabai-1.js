@@ -102,13 +102,13 @@ function saveLapak(){
   if(Math.abs(p-P_OPT)<=1.5&&!fl.opt){fl.opt=true;sfx.ev();teori('k3-maks');toast('Hijau = merah. Di sini pendapatan berhenti naik.');}
 }
 function lapakPanel(ctx){
-  const {W,H,hs}=V,top=W<=600?8:Math.min(96,H*.16),w=Math.min(820*hs,W-16),h=Math.min(430*hs,H-top-8),x=(W-w)/2,y=top+Math.max(0,(H-top-8-h)/2),narrow=w<560;
+  const {W,H,hs}=V,top=8,w=Math.min(820*hs,W-16),h=Math.min(430*hs*(W<600?1.5:1),H-top-8),x=(W-w)/2,y=top+Math.max(0,(H-top-8-h)/2),narrow=w<560;
   KT.box(ctx,x,y,w,h);
   const f=Math.round(14*hs);
   KT.txt(ctx,'PAPAN LAPAK BU NARTI',x+14,y+24*hs,'800 '+Math.round(16*hs)+'px '+FD);
-  KT.txt(ctx,'harga p = '+f1(LP.p)+' rb/kg',x+w-14,y+24*hs,'800 '+Math.round(16*hs)+'px '+FU,INK,'right');
+  KT.txt(ctx,'harga p = '+f1(LP.p)+' rb/kg',narrow?x+14:x+w-14,narrow?y+46*hs:y+24*hs,'800 '+Math.round(16*hs)+'px '+FU,INK,narrow?'left':'right');
   // persegi panjang pendapatan
-  const ax=x+46*hs,ay=y+44*hs,aw=narrow?w-70*hs:w*.52,ah=narrow?(h-170*hs)*.55:h-120*hs;
+  const ax=x+46*hs,ay=y+(narrow?64:44)*hs,aw=narrow?w-70*hs:w*.52,ah=narrow?(h-170*hs)*.55:h-120*hs;
   const PX=v=>ax+v/100*aw,QY=v=>ay+ah-v/125*ah;
   const p=LP.p,q=qOf(p),dq=1.2*DP;
   ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax,ay+ah);ctx.lineTo(ax+aw,ay+ah);ctx.stroke();

@@ -1,0 +1,18 @@
+import sys;import os;sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
+from lib import *
+with sync_playwright() as p:
+    r=Run(p,'bengkel/gigi-1');r.wait(1200);r.shot('g1');r.skipcine()
+    r.talk('anto');r.talk('harun');r.talk('mesin');print('ui',r.ui())
+    r.pg.keyboard.press('e');print('belum',r.ev('__G.S.flags.ukur'))
+    for _ in range(6):r.pg.keyboard.press('Shift+ArrowRight')
+    r.wait(100);r.shot('g2');r.pg.keyboard.press('e');r.pg.keyboard.press('Escape');print('ukur',r.ev('__G.S.flags.ukur'),r.board()[-120:])
+    r.talk('anto');print(r.accuse(2,1));print(r.accuse(1,1));r.clr()
+    r.talk('anto');r.clr();print('twist',r.ev('__G.S.flags.twist'));r.wait(2900)
+    r.talk('sepeda');print('ui',r.ui());r.shot('g3')
+    r.ev('()=>{__C.SP.f=44;__C.SP.r=14}');r.pg.keyboard.press('e');r.wait(3000);r.shot('g4')
+    r.pg.wait_for_function('__G.S.ui==="sepeda"',timeout=30000);print('msg',r.ev('__C.SP.msg'))
+    r.ev('()=>{__C.SP.f=32;__C.SP.r=14}');r.pg.keyboard.press('e');r.wait(9000);r.shot('g5')
+    r.pg.wait_for_function('__G.S.ui!=="balap"',timeout=30000);r.clr();print('tangkap',r.ev('__G.S.flags.tangkap'),r.ev('__G.S.racePts'))
+    print('teori',r.teori())
+    r.talk('anto');print(r.accuse(1,1))
+    print('score',r.finish(),'errs',r.errs);r.shot('g6')

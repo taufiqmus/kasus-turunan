@@ -424,6 +424,8 @@ function update(dt){
   }
   const tcx=clamp(fx-vw/2,0,Math.max(0,WW-vw)),tcy=clamp(fy-vh/2,0,Math.max(0,WH-vh)),ck=Math.min(1,dt*(S.ui==='cine'?3:7));
   cam.x+=(tcx-cam.x)*ck;cam.y+=(tcy-cam.y)*ck;
+  {const std=['none','dlg','cine','gp','board','accuse','teori','end'],hide=!std.includes(S.ui);
+   if(hide!==!!G.hudHidden){G.hudHidden=hide;$('hud').hidden=hide;$('hud-r').hidden=hide;if(!hide)placeHud();}}
   const ob=C.objective();if(ob.t!==lastObj){lastObj=ob.t;$('obj').textContent=ob.t;placeHud();}
 }
 function placeHud(){const h=$('hud'),r=$('hud-r');if(W<=600&&!h.hidden){r.style.top=(h.getBoundingClientRect().bottom+8)+'px';}else r.style.top='';}

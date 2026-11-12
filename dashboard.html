@@ -79,7 +79,7 @@ th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;
     </div>
     <div class="stat" id="d-stat"></div>
     <div class="wrapt"><table>
-      <thead><tr><th>#</th><th>Username</th><th>NIM</th><th>Skor</th><th>Waktu</th><th>Selisih ukur (km/jam)</th><th>Petunjuk</th><th>Salah</th><th>Masuk</th></tr></thead>
+      <thead><tr><th>#</th><th>Username</th><th>NIM</th><th>Skor</th><th>Waktu</th><th>Skor per semesta</th><th>Petunjuk</th><th>Salah</th><th>Masuk</th></tr></thead>
       <tbody id="d-rows"></tbody>
     </table></div>
     <p class="note" id="d-note"></p>
@@ -167,28 +167,30 @@ async function loadDetail(quiet){
   }catch(e){if(!quiet)$('d-note').textContent=e.message;}
 }
 let LAST=[];
+const KAS=[['tilang-1','S1'],['melayang-1','S2'],['cabai-1','S3'],['kolam-1','S4'],['bianglala-1','S5'],['gigi-1','S6'],['lab-1','S7']];
 function render(ps,hs){
   $('d-title').textContent=CUR.token+' | '+CUR.nama;
   $('b-toggle').textContent=CUR.status==='open'?'Tutup token':'Buka token';
   $('b-toggle').className='btn '+(CUR.status==='open'?'red':'');
   const by={};for(const h of hs){(by[h.nim]=by[h.nim]||[]).push(h);}
   const rows=ps.map(p=>{
-    const r=by[p.nim]||[],skor=r.reduce((a,b)=>a+b.skor,0),det=r.reduce((a,b)=>a+b.detik,0),rin=(r[0]&&r[0].rincian)||{};
-    return{nim:p.nim,user:p.mahasiswa&&p.mahasiswa.username||'?',skor:r.length?skor:null,det:r.length?det:null,rin,masuk:p.masuk_pada};
+    const r=by[p.nim]||[],skor=r.reduce((a,b)=>a+b.skor,0),det=r.reduce((a,b)=>a+b.detik,0),per={};let hint=0,wrong=0;
+    for(const h of r){per[h.kasus]=h.skor;const x=h.rincian||{};hint+=x.petunjuk||0;wrong+=x.salah||0;}
+    return{nim:p.nim,user:p.mahasiswa&&p.mahasiswa.username||'?',skor:r.length?skor:null,det:r.length?det:null,per,hint,wrong,n:r.length,masuk:p.masuk_pada};
   }).sort((a,b)=>(b.skor??-1)-(a.skor??-1)||(a.det??1e9)-(b.det??1e9));
   LAST=rows;
   const done=rows.filter(r=>r.skor!=null);
   const avg=done.length?Math.round(done.reduce((a,b)=>a+b.skor,0)/done.length):0;
-  const worst=done.filter(r=>r.rin.akurasi&&Object.values(r.rin.akurasi).some(v=>v!=null&&v>8)).length;
-  $('d-stat').innerHTML='<div><b>'+rows.length+'</b>masuk</div><div><b>'+done.length+'</b>selesai</div><div><b>'+avg+'</b>rata-rata skor</div><div><b>'+worst+'</b>ukuran masih meleset</div>';
+  const kasus=done.reduce((a,b)=>a+b.n,0);
+  $('d-stat').innerHTML='<div><b>'+rows.length+'</b>masuk</div><div><b>'+done.length+'</b>selesai</div><div><b>'+avg+'</b>rata-rata skor</div><div><b>'+kasus+'</b>kasus diselesaikan</div>';
   const tb=$('d-rows');tb.innerHTML='';
   rows.forEach((r,i)=>{
-    const a=r.rin.akurasi||{},sel=['merah','biru','hijau'].map(k=>a[k]==null?'-':a[k].toFixed(1)).join(' / ');
+    const sel=KAS.filter(k=>r.per[k[0]]!=null).map(k=>k[1]+' '+r.per[k[0]]).join(' · ')||'-';
     const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+(r.skor!=null?i+1:'')+'</td><td><b>'+esc(r.user)+'</b></td><td>'+esc(r.nim)+'</td><td>'+(r.skor??'bermain')+'</td><td>'+(r.det!=null?Math.floor(r.det/60)+':'+String(r.det%60).padStart(2,'0'):'')+'</td><td'+(Object.values(a).some(v=>v!=null&&v>8)?' class="bad"':'')+'>'+sel+'</td><td>'+(r.rin.petunjuk??'')+'</td><td>'+(r.rin.salah??'')+'</td><td>'+new Date(r.masuk).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'</td>';
+    tr.innerHTML='<td>'+(r.skor!=null?i+1:'')+'</td><td><b>'+esc(r.user)+'</b></td><td>'+esc(r.nim)+'</td><td>'+(r.skor??'bermain')+'</td><td>'+(r.det!=null?Math.floor(r.det/60)+':'+String(r.det%60).padStart(2,'0'):'')+'</td><td>'+sel+'</td><td>'+(r.n?r.hint:'')+'</td><td>'+(r.n?r.wrong:'')+'</td><td>'+new Date(r.masuk).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'</td>';
     tb.append(tr);
   });
-  $('d-note').textContent='Selisih ukur dalam urutan motor merah / biru / hijau. Merah berarti masih meleset lebih dari 8 km/jam. Data diperbarui otomatis tiap 8 detik.';
+  $('d-note').textContent='Skor total adalah jumlah skor terbaik tiap semesta (maks 1000 per semesta). Data diperbarui otomatis tiap 8 detik.';
 }
 async function toggle(){
   const to=CUR.status==='open'?'closed':'open';
@@ -197,8 +199,8 @@ async function toggle(){
 }
 function csv(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const lines=[['peringkat','username','nim','skor','detik','selisih_merah','selisih_biru','selisih_hijau','petunjuk','salah'].join(',')];
-  LAST.forEach((r,i)=>{const a=r.rin.akurasi||{};lines.push([r.skor!=null?i+1:'',r.user,r.nim,r.skor,r.det,a.merah,a.biru,a.hijau,r.rin.petunjuk,r.rin.salah].map(q).join(','));});
+  const lines=[['peringkat','username','nim','skor_total','detik',...KAS.map(k=>k[1]),'petunjuk','salah'].join(',')];
+  LAST.forEach((r,i)=>{lines.push([r.skor!=null?i+1:'',r.user,r.nim,r.skor,r.det,...KAS.map(k=>r.per[k[0]]),r.hint,r.wrong].map(q).join(','));});
   const b=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
   a.href=URL.createObjectURL(b);a.download='hasil-'+CUR.token+'.csv';a.click();
 }

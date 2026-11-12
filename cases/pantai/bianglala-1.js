@@ -88,7 +88,7 @@ function buildWorld(){
 const RD={th:0,drag:false,ok:null,no:null,c:null};
 const r1=v=>Math.round(v);
 function openRoda(){S.ui='roda';K.u=K.d=K.l=K.r=false;T.x=T.y=0;teori('k5-turunan');}
-function panel(maxW,maxH){const {W,H,hs}=V,top=W<=600?8:Math.min(96,H*.16),w=Math.min(maxW*hs,W-16),h=Math.min(maxH*hs,H-top-8);return {w,h,x:(W-w)/2,y:top+Math.max(0,(H-top-8-h)/2),hs};}
+function panel(maxW,maxH){const {W,H,hs}=V,top=8,w=Math.min(maxW*hs,W-16),h=Math.min(maxH*hs*(W<600?1.5:1),H-top-8);return {w,h,x:(W-w)/2,y:top+Math.max(0,(H-top-8-h)/2),hs};}
 function rodaPanel(ctx){
   const {w,h,x,y,hs}=panel(820,440),f=Math.round(14*hs);KT.box(ctx,x,y,w,h);
   KT.txt(ctx,'REKONSTRUKSI: DI MANA KAMERA?',x+14,y+24*hs,'800 '+Math.round(16*hs)+'px '+FD);

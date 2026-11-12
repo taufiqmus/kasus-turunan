@@ -46,3 +46,22 @@ Kunci yang ada di kode adalah publishable key, memang aman terlihat publik. **Se
 
 Menambah kasus: buat modul baru di `cases/`, daftarkan di `cases/daftar.js`.
 Uji lokal: `python3 -m http.server` (modul ES tidak jalan lewat `file://`).
+
+## Tujuh semesta
+
+| Semesta | Kasus | Konsep turunan | Aksi utama |
+|---|---|---|---|
+| 1 Jalan Raya | Tilang Salah Alamat | kecepatan sesaat, limit, pangkat, tanda turunan | Lensa garis potong ke singgung, Lintasan Uji |
+| 2 Lemparan | Benda di Atas Pasar | puncak h′ = 0, selisih, linear, simetri | ketapel rekonstruksi, tangkap dalam gelap |
+| 3 Warung dan Pasar | Cabai Dua Kali Lipat | perkalian, pembagian, kebalikan | papan lapak R = p·q, rata-rata U/G |
+| 4 Kebun dan Kolam | Kolam Menghijau | eksponen, ln, akar | arsip drone, jadwal aerator, umur bercak |
+| 5 Pantai dan Taman Hiburan | Foto dari Bianglala | sin, cos, tan, uji turunan pertama | rekonstruksi sudut, rem dalam gelap |
+| 6 Bengkel Roda Gigi | Mesin yang Mengamuk | aturan rantai | engkol mesin, kejar sepeda pilih gigi |
+| 7 Teknik | Lab yang Terbakar | gabungan (RC, daya, pendinginan) | replika meja, bank kapasitor |
+
+Kit bersama untuk modul kasus: `core/kit.js` (bangunan, pohon, panel, tombol, panah, grafik kecil).
+
+## Teori per kasus
+
+Modul kasus mengekspor `THEORY` (kartu berisi judul dan HTML) dan `THEORY_START`.
+Panggil `teori('id')` saat aksi terkait terjadi; kartu terbuka, tombol Teori diberi tanda "baru".
