@@ -96,6 +96,8 @@ ol.rank li{display:grid;grid-template-columns:26px 1fr auto;gap:8px;padding:4px 
 ol.rank li.me{background:var(--sun);border:2px solid var(--ink)}
 .learn{border:2px solid var(--ink);border-radius:10px;padding:8px 10px;margin:6px 0;background:#fff;font-size:14px;line-height:1.45}
 .learn code{font:700 14px var(--ui);background:var(--sun);border-radius:6px;padding:0 6px}
+.link2{background:none;border:0;font:700 14px var(--ui);text-decoration:underline;cursor:pointer;color:var(--ink);padding:8px 0;margin-top:6px}
+.fmsg{min-height:1.3em;font-weight:700;color:var(--alert);margin:8px 0 0;font-size:14px}
 .teaser{background:var(--ink);color:var(--paper);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.45;margin-top:10px}
 .teaser b{color:var(--sun)}
 @media (prefers-reduced-motion:reduce){.btn:active{transform:none}}
@@ -163,14 +165,19 @@ ol.rank li.me{background:var(--sun);border:2px solid var(--ink)}
     </div>
     <div class="card">
       <h2>Mulai penyelidikan</h2>
-      <label class="f" for="in-name">Nama detektif</label>
-      <input type="text" id="in-name" maxlength="14" spellcheck="false" value="">
+      <label class="f" for="in-token">Token sesi dari dosen</label>
+      <input type="text" id="in-token" maxlength="20" spellcheck="false" autocapitalize="characters" autocomplete="off" placeholder="contoh: JLN-7K2">
+      <label class="f" for="in-name">Username (nama di ranking)</label>
+      <input type="text" id="in-name" maxlength="14" spellcheck="false" autocomplete="off">
+      <label class="f" for="in-nim">NIM lengkap (rahasia, hanya terlihat dosen)</label>
+      <input type="text" id="in-nim" inputmode="numeric" maxlength="20" autocomplete="off">
       <div class="cols">
         <div><b>Keyboard</b><br><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> atau panah: jalan<br><kbd>Shift</kbd> jalan pelan<br><kbd>E</kbd> bicara atau periksa<br><kbd>B</kbd> papan bukti</div>
         <div><b>Layar sentuh</b><br>Setengah kiri: joystick analog.<br>Setengah kanan: ketuk untuk aksi.</div>
       </div>
-      <button class="btn big" id="b-start" type="button">Mulai</button>
-      <p class="note">Prototipe satu kasus, sekitar 10 menit. Portal kelas dan ranking terhubung belakangan.</p>
+      <button class="btn big" id="b-start" type="button">Masuk dan mulai</button>
+      <p class="fmsg" id="st-msg" role="alert"></p>
+      <button class="link2" id="b-demo" type="button">Coba tanpa token (skor tidak tersimpan)</button>
     </div>
   </div>
 </section>
@@ -186,7 +193,7 @@ ol.rank li.me{background:var(--sun);border:2px solid var(--ink)}
     <div class="card">
       <h3 style="margin-top:0">Yang kamu pakai tanpa sadar</h3>
       <div id="e-learn"></div>
-      <h3>Ranking kelas <span class="note">(contoh data)</span></h3>
+      <h3>Ranking kelas <span class="note" id="rank-note">(contoh data)</span></h3>
       <ol class="rank" id="e-rank"></ol>
       <div class="teaser"><b>Tengah malam.</b> Kamera Pasar menyala lagi. Tidak ada motor yang lewat. Yang terekam: sesuatu melayang di atas pasar. <b>Kasus 2 segera.</b></div>
     </div>
@@ -797,6 +804,9 @@ function endCase(){
     const err=Math.min(...evs.map(e=>Math.abs(e.meta.kmh-tru))),p=Math.round(100*clamp(1-(err-2)/13,0,1));acc+=p;
     sub.push([MOTORS[k].name+': selisih '+f1(err)+' km/jam',p]);
   }
+  const detail={detik:el,akurasi:{},pA:S.pA,pB:S.pB,petunjuk:S.hints,salah:S.wrong,digs:S.digs};
+  for(const k of ['merah','biru','hijau']){const e2=S.evidence.filter(e=>e.type==='meas'&&e.meta.kind==='inst'&&e.meta.atCam&&e.meta.motor===k);detail.akurasi[k]=e2.length?+Math.min(...e2.map(e=>Math.abs(e.meta.kmh-MOTORS[k].vInst*3.6))).toFixed(2):null;}
+  detail.rataBiru=S.evidence.some(e=>e.type==='meas'&&e.meta.kind==='avg'&&e.meta.motor==='biru');
   const items=[['Ketepatan ukur di kamera (maks 300)',acc,sub],['Membaca grafik: dua titik berhenti (maks 300)',S.pA+S.pB],['Penalaran: dua tuduhan benar (maks 400)',400],['Petunjuk ('+S.hints+')',-60*S.hints],['Salah tuduh ('+S.wrong+')',-100*S.wrong]];
   const total=Math.max(0,items.reduce((a,b)=>a+b[1],0));
   $('e-score').textContent=total.toLocaleString('id-ID');
@@ -805,6 +815,8 @@ function endCase(){
   for(const it of items){row(it[0],it[1]);if(it[2])for(const s of it[2])row(s[0],s[1],'sub');}
   {const dt=document.createElement('dt'),dd=document.createElement('dd');dt.className=dd.className='tot';dt.textContent='Total';dd.textContent=total.toLocaleString('id-ID');bd.append(dt,dd);}
   {const p=document.createElement('p');p.className='note';p.style.gridColumn='1/-1';p.textContent='Waktu '+tstr+' hanya menentukan urutan jika skor sama.';bd.append(p);}
+  {const p=document.createElement('p');p.className='note';p.id='save-note';p.style.gridColumn='1/-1';p.textContent=NET.kunci?'Menyimpan skor...':'Mode coba: skor tidak disimpan.';bd.append(p);}
+  if(NET.kunci){saveResult(total,detail).then(()=>pollRank());}
   const L=$('e-learn');L.innerHTML='';
   for(const h of [
     'Dua titik berjauhan memberi rata-rata: <code>Δs/Δt</code>. Motor biru rata-rata '+f0(MOTORS.biru.vAvg*3.6)+' km/jam, tapi di kamera cuma '+f0(MOTORS.biru.vInst*3.6)+'.',
@@ -812,8 +824,7 @@ function endCase(){
     'Tanda turunan bercerita: <code>s′ &gt; 0</code> maju, <code>s′ = 0</code> berhenti, <code>s′ &lt; 0</code> balik arah. Begitulah kamu menemukan motornya.'
   ]){const d=document.createElement('div');d.className='learn';d.innerHTML=h;L.append(d);}
   const list=[['Raka',960],['Dinda',900],['Bima',840],['Salsa',760],['Fajar',660],['Nayla',540]].map(b=>({n:b[0],s:b[1]}));list.push({n:S.name,s:total,me:true});list.sort((a,b)=>b.s-a.s);
-  const ol=$('e-rank');ol.innerHTML='';
-  list.forEach((p,i)=>{const li=document.createElement('li');if(p.me)li.className='me';const a=document.createElement('span'),b=document.createElement('span'),c=document.createElement('span');a.textContent=String(i+1);b.textContent=p.n+(p.me?' (kamu)':'');c.textContent=p.s.toLocaleString('id-ID');li.append(a,b,c);ol.append(li);});
+  renderRank(list,'(contoh data)');
 }
 $('e-again').addEventListener('click',()=>{location.reload();});
 
@@ -1027,6 +1038,34 @@ function draw(){
   }
 }
 
+/* ================= JARINGAN (Supabase) ================= */
+const SB={url:'https://xktcstifwufjpvqoeixn.supabase.co',key:'sb_publishable_0fZkEaMFUbR9KXA3DccyvA_pZFzd9iN'};
+const NET={kunci:null,token:null,user:null,rank:0};
+const KASUS_ID='tilang-1';
+async function rpc(fn,body){
+  let r;
+  try{r=await fetch(SB.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:{'apikey':SB.key,'Content-Type':'application/json'},body:JSON.stringify(body)});}
+  catch(e){throw new Error('Tidak bisa terhubung ke server. Periksa jaringan, atau pakai mode coba.');}
+  let j=null;try{j=await r.json();}catch(e){}
+  if(!r.ok)throw new Error((j&&j.message)||'Server menolak permintaan.');
+  return j;
+}
+async function saveResult(total,det){
+  const m=$('save-note');
+  try{await rpc('simpan_hasil',{p_kunci:NET.kunci,p_token:NET.token,p_kasus:KASUS_ID,p_skor:total,p_detik:Math.round(det.detik),p_rincian:det});m.textContent='Skor tersimpan di sesi kelas.';}
+  catch(e){m.textContent='Skor belum tersimpan: '+e.message;}
+}
+function renderRank(list,note){
+  $('rank-note').textContent=note;
+  const ol=$('e-rank');ol.innerHTML='';
+  list.forEach((p,i)=>{const li=document.createElement('li');if(p.me)li.className='me';const a=document.createElement('span'),b=document.createElement('span'),c=document.createElement('span');a.textContent=String(i+1);b.textContent=p.n+(p.me?' (kamu)':'');c.textContent=p.s.toLocaleString('id-ID');li.append(a,b,c);ol.append(li);});
+}
+async function pollRank(){
+  if(!NET.kunci||S.ui!=='end')return;
+  try{const r=await rpc('ranking',{p_token:NET.token});renderRank(r.map(x=>({n:x.username,s:x.skor,me:x.username.toLowerCase()===NET.user.toLowerCase()})),'(langsung dari kelas)');}catch(e){}
+  setTimeout(pollRank,6000);
+}
+
 /* ================= MULAI ================= */
 let last=0;
 function frame(ts){const dt=Math.min(0.033,((ts-last)/1000)||0.016);last=ts;update(dt);draw();requestAnimationFrame(frame);}
@@ -1036,14 +1075,31 @@ function init(){
   for(let i=0;i<7;i++)traffic.push({x:R()*WW,y:i%2?ROAD.y+105:ROAD.y+35,sp:(i%2?-1:1)*(70+R()*110),col:cols[i%cols.length],k:i%3===2?'motor':'mobil'});
   requestAnimationFrame(frame);
 }
-$('b-start').addEventListener('click',()=>{
-  S.name=($('in-name').value.trim()||'Detektif').slice(0,14);
+function begin(name){
+  S.name=name;
   try{const AC=window.AudioContext||window.webkitAudioContext;if(AC)AU.ctx=new AC();}catch(e){}
   S.playing=true;S.t0=Date.now();$('start').hidden=true;
   P.x=TG.polisi.x+70;P.y=TG.polisi.y+14;S.ui='cine';CINE.t=0;CINE.shot=false;
   cam.x=clamp(CAMX-60-W/Z/2,0,WW);cam.y=clamp(ROAD.y+20-H/Z/2,0,WH);
+}
+let joining=false;
+$('b-start').addEventListener('click',async()=>{
+  if(joining)return;
+  const tok=$('in-token').value.trim().toUpperCase(),usr=$('in-name').value.trim(),nim=$('in-nim').value.trim(),msg=$('st-msg');
+  msg.textContent='';
+  if(!tok||!usr||!nim){msg.textContent='Isi token, username, dan NIM.';return;}
+  joining=true;$('b-start').disabled=true;$('b-start').textContent='Memeriksa...';
+  try{
+    const r=await rpc('masuk',{p_token:tok,p_username:usr,p_nim:nim});
+    NET.kunci=r.kunci;NET.token=tok;NET.user=r.username;
+    try{localStorage.setItem('kt-token',tok);localStorage.setItem('kt-user',r.username);}catch(e){}
+    begin(r.username);
+  }catch(e){msg.textContent=e.message;}
+  joining=false;$('b-start').disabled=false;$('b-start').textContent='Masuk dan mulai';
 });
-$('in-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.stopPropagation();$('b-start').click();}});
+$('b-demo').addEventListener('click',()=>{begin(($('in-name').value.trim()||'Detektif').slice(0,14));});
+try{$('in-token').value=localStorage.getItem('kt-token')||'';$('in-name').value=localStorage.getItem('kt-user')||'';}catch(e){}
+for(const id of ['in-token','in-name','in-nim'])$(id).addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')$('b-start').click();});
 init();
 if(window.__TEST__)window.__G={S,P,TG,TRIAL,MOTORS,GP,gpDraw,tryLock,endCine,sx,tp:(x,y)=>{P.x=x;P.y=y;P.vx=P.vy=0;cam.x=clamp(x-W/Z/2,0,WW);cam.y=clamp(y-H/Z/2,0,WH);}};
 })();

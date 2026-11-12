@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Dosen | Kasus Turunan</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700..800&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c2230;--paper:#fff6e4;--apricot:#ffd9a3;--coral:#ff6f47;--sun:#ffc83d;--alert:#e5392b;--blue:#2f7fc1;--good:#2f9e5b;
+  --display:"Bricolage Grotesque","Arial Black",sans-serif;--ui:"Chakra Petch","Trebuchet MS",sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--apricot);color:var(--ink);font:500 15px/1.45 var(--ui);min-height:100vh}
+main{max-width:1060px;margin:0 auto;padding:18px 14px 60px}
+h1{font:800 clamp(30px,6vw,46px)/1 var(--display);margin:0 0 4px}
+h2{font:800 20px/1.1 var(--display);margin:0 0 10px}
+.card{background:var(--paper);border:3px solid var(--ink);border-radius:16px;box-shadow:6px 6px 0 var(--ink);padding:14px;margin:16px 0}
+.btn{font:700 14px var(--ui);padding:8px 13px;border:3px solid var(--ink);border-radius:12px;background:var(--sun);color:var(--ink);box-shadow:0 3px 0 var(--ink);cursor:pointer}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.btn.alt{background:#fff}.btn.red{background:var(--coral);color:#fff}
+input,textarea{font:600 15px var(--ui);padding:8px 10px;border:3px solid var(--ink);border-radius:10px;background:#fff;color:var(--ink);width:100%}
+textarea{min-height:90px;font-family:ui-monospace,monospace}
+label{display:block;font-weight:700;font-size:13px;margin:10px 0 3px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.sesi{border:3px solid var(--ink);border-radius:12px;padding:10px;background:#fff;cursor:pointer}
+.sesi.on{background:var(--sun)}
+.sesi b{font:800 22px var(--display);letter-spacing:.03em}
+.pill{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:0 9px;font-size:12px;font-weight:700;color:#fff}
+.pill.open{background:var(--good)}.pill.closed{background:var(--alert)}
+.msg{color:var(--alert);font-weight:700;min-height:1.3em}
+.ok{color:var(--good)}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 8px;border-bottom:2px solid rgba(28,34,48,.15);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;top:0;background:var(--paper)}
+.wrapt{overflow:auto;max-height:60vh}
+.bad{color:var(--alert);font-weight:700}
+.stat{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+.stat div{border:3px solid var(--ink);border-radius:12px;padding:6px 12px;background:#fff}
+.stat b{display:block;font:800 24px var(--display)}
+.note{font-size:13px;opacity:.85}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<h1>Dashboard Dosen</h1>
+<p class="note">Kasus Turunan. NIM hanya tampil di halaman ini. Jangan bagikan layar ke mahasiswa.</p>
+
+<section class="card" id="login">
+  <h2>Masuk</h2>
+  <label for="em">Email dosen</label><input id="em" type="email" autocomplete="username">
+  <label for="pw">Kata sandi</label><input id="pw" type="password" autocomplete="current-password">
+  <p class="msg" id="lg-msg"></p>
+  <button class="btn" id="b-login" type="button">Masuk</button>
+  <p class="note">Akun dosen dibuat manual di Supabase (Authentication, Users). Pendaftaran publik sebaiknya dimatikan.</p>
+</section>
+
+<div id="app" hidden>
+  <div class="row" style="justify-content:space-between"><span class="note" id="who"></span><button class="btn alt" id="b-out" type="button">Keluar</button></div>
+
+  <section class="card">
+    <h2>Sesi</h2>
+    <div class="row">
+      <div style="flex:2 1 220px"><label for="n-nama">Nama sesi</label><input id="n-nama" placeholder="Matematika 1 kelas A, pertemuan 8"></div>
+      <div style="flex:1 1 140px"><label for="n-token">Token (kosongkan = acak)</label><input id="n-token" maxlength="20" placeholder="JLN-7K2"></div>
+      <button class="btn" id="b-new" type="button" style="margin-top:20px">Buat sesi</button>
+    </div>
+    <p class="msg" id="n-msg"></p>
+    <div class="grid" id="sesi-list"></div>
+  </section>
+
+  <section class="card" id="detail" hidden>
+    <div class="row" style="justify-content:space-between">
+      <h2 id="d-title" style="margin:0"></h2>
+      <div class="row">
+        <button class="btn" id="b-toggle" type="button"></button>
+        <button class="btn alt" id="b-csv" type="button">Unduh CSV</button>
+      </div>
+    </div>
+    <div class="stat" id="d-stat"></div>
+    <div class="wrapt"><table>
+      <thead><tr><th>#</th><th>Username</th><th>NIM</th><th>Skor</th><th>Waktu</th><th>Selisih ukur (km/jam)</th><th>Petunjuk</th><th>Salah</th><th>Masuk</th></tr></thead>
+      <tbody id="d-rows"></tbody>
+    </table></div>
+    <p class="note" id="d-note"></p>
+    <details style="margin-top:12px"><summary><b>Batasi peserta dengan daftar NIM</b></summary>
+      <label for="w-list">Tempel daftar NIM (satu per baris, atau dipisah koma)</label>
+      <textarea id="w-list" placeholder="2201001&#10;2201002"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="b-wl-save" type="button">Simpan daftar dan aktifkan pembatasan</button>
+        <button class="btn alt" id="b-wl-off" type="button">Matikan pembatasan</button>
+      </div>
+      <p class="msg" id="w-msg"></p>
+    </details>
+  </section>
+</div>
+</main>
+
+<script>
+(()=>{
+'use strict';
+const SB={url:'https://xktcstifwufjpvqoeixn.supabase.co',key:'sb_publishable_0fZkEaMFUbR9KXA3DccyvA_pZFzd9iN'};
+const $=id=>document.getElementById(id);
+const AUTH={at:null,rt:null,email:''};
+let SESI=[],CUR=null,timer=0;
+
+async function req(path,opt){
+  opt=opt||{};
+  const h={'apikey':SB.key,'Content-Type':'application/json'};
+  if(AUTH.at)h['Authorization']='Bearer '+AUTH.at;
+  Object.assign(h,opt.headers||{});
+  let r;
+  try{r=await fetch(SB.url+path,{method:opt.method||'GET',headers:h,body:opt.body?JSON.stringify(opt.body):undefined});}
+  catch(e){throw new Error('Tidak bisa terhubung ke server.');}
+  if(r.status===401&&AUTH.rt&&!opt._retry){if(await refresh())return req(path,Object.assign({},opt,{_retry:true}));}
+  let j=null;try{j=await r.json();}catch(e){}
+  if(!r.ok)throw new Error((j&&(j.message||j.msg||j.error_description))||('Galat '+r.status));
+  return j;
+}
+async function refresh(){
+  try{const r=await fetch(SB.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{'apikey':SB.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:AUTH.rt})});
+    if(!r.ok)return false;const j=await r.json();AUTH.at=j.access_token;AUTH.rt=j.refresh_token;store();return true;}catch(e){return false;}
+}
+function store(){try{sessionStorage.setItem('kt-auth',JSON.stringify(AUTH));}catch(e){}}
+async function login(){
+  $('lg-msg').textContent='';
+  try{
+    const j=await req('/auth/v1/token?grant_type=password',{method:'POST',body:{email:$('em').value.trim(),password:$('pw').value}});
+    AUTH.at=j.access_token;AUTH.rt=j.refresh_token;AUTH.email=j.user&&j.user.email||$('em').value.trim();store();$('pw').value='';start();
+  }catch(e){$('lg-msg').textContent=/invalid/i.test(e.message)?'Email atau kata sandi salah.':e.message;}
+}
+function logout(){AUTH.at=AUTH.rt=null;try{sessionStorage.removeItem('kt-auth');}catch(e){}clearInterval(timer);$('app').hidden=true;$('login').hidden=false;}
+async function start(){
+  $('login').hidden=true;$('app').hidden=false;$('who').textContent='Masuk sebagai '+AUTH.email;
+  await loadSesi();clearInterval(timer);timer=setInterval(()=>{if(CUR)loadDetail(true);},8000);
+}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function loadSesi(){
+  try{SESI=await req('/rest/v1/sesi?select=*&order=dibuat.desc');}catch(e){$('n-msg').textContent=e.message;return;}
+  const L=$('sesi-list');L.innerHTML='';
+  if(!SESI.length)L.innerHTML='<p class="note">Belum ada sesi. Buat yang pertama di atas.</p>';
+  for(const s of SESI){
+    const d=document.createElement('div');d.className='sesi'+(CUR&&CUR.id===s.id?' on':'');d.tabIndex=0;
+    d.innerHTML='<b>'+esc(s.token)+'</b> <span class="pill '+s.status+'">'+(s.status==='open'?'terbuka':'ditutup')+'</span><br>'+esc(s.nama)+(s.batasi_nim?'<br><span class="note">dibatasi daftar NIM</span>':'');
+    const go=()=>{CUR=s;loadSesi();loadDetail();$('detail').hidden=false;$('detail').scrollIntoView({behavior:'smooth'});};
+    d.addEventListener('click',go);d.addEventListener('keydown',e=>{if(e.key==='Enter')go();});L.append(d);
+  }
+}
+function rand(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let t='';for(let i=0;i<3;i++)t+=a[Math.floor(Math.random()*a.length)];return 'JLN-'+t+a[Math.floor(Math.random()*a.length)];}
+async function newSesi(){
+  const nama=$('n-nama').value.trim(),m=$('n-msg');m.textContent='';m.className='msg';
+  if(!nama){m.textContent='Isi nama sesi.';return;}
+  const tok=($('n-token').value.trim().toUpperCase())||rand();
+  try{await req('/rest/v1/sesi',{method:'POST',body:{token:tok,nama},headers:{'Prefer':'return=minimal'}});
+    $('n-nama').value='';$('n-token').value='';m.className='msg ok';m.textContent='Sesi dibuat. Token: '+tok;await loadSesi();}
+  catch(e){m.textContent=/duplicate|unique/i.test(e.message)?'Token itu sudah dipakai, pilih yang lain.':e.message;}
+}
+async function loadDetail(quiet){
+  if(!CUR)return;const id=CUR.id;
+  try{
+    const [fresh,ps,hs]=await Promise.all([
+      req('/rest/v1/sesi?id=eq.'+id+'&select=*'),
+      req('/rest/v1/peserta?sesi_id=eq.'+id+'&select=nim,masuk_pada,mahasiswa(username)&order=masuk_pada.asc'),
+      req('/rest/v1/hasil?sesi_id=eq.'+id+'&select=nim,kasus,skor,detik,rincian')]);
+    if(fresh[0])CUR=fresh[0];
+    render(ps,hs);
+  }catch(e){if(!quiet)$('d-note').textContent=e.message;}
+}
+let LAST=[];
+function render(ps,hs){
+  $('d-title').textContent=CUR.token+' | '+CUR.nama;
+  $('b-toggle').textContent=CUR.status==='open'?'Tutup token':'Buka token';
+  $('b-toggle').className='btn '+(CUR.status==='open'?'red':'');
+  const by={};for(const h of hs){(by[h.nim]=by[h.nim]||[]).push(h);}
+  const rows=ps.map(p=>{
+    const r=by[p.nim]||[],skor=r.reduce((a,b)=>a+b.skor,0),det=r.reduce((a,b)=>a+b.detik,0),rin=(r[0]&&r[0].rincian)||{};
+    return{nim:p.nim,user:p.mahasiswa&&p.mahasiswa.username||'?',skor:r.length?skor:null,det:r.length?det:null,rin,masuk:p.masuk_pada};
+  }).sort((a,b)=>(b.skor??-1)-(a.skor??-1)||(a.det??1e9)-(b.det??1e9));
+  LAST=rows;
+  const done=rows.filter(r=>r.skor!=null);
+  const avg=done.length?Math.round(done.reduce((a,b)=>a+b.skor,0)/done.length):0;
+  const worst=done.filter(r=>r.rin.akurasi&&Object.values(r.rin.akurasi).some(v=>v!=null&&v>8)).length;
+  $('d-stat').innerHTML='<div><b>'+rows.length+'</b>masuk</div><div><b>'+done.length+'</b>selesai</div><div><b>'+avg+'</b>rata-rata skor</div><div><b>'+worst+'</b>ukuran masih meleset</div>';
+  const tb=$('d-rows');tb.innerHTML='';
+  rows.forEach((r,i)=>{
+    const a=r.rin.akurasi||{},sel=['merah','biru','hijau'].map(k=>a[k]==null?'-':a[k].toFixed(1)).join(' / ');
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+(r.skor!=null?i+1:'')+'</td><td><b>'+esc(r.user)+'</b></td><td>'+esc(r.nim)+'</td><td>'+(r.skor??'bermain')+'</td><td>'+(r.det!=null?Math.floor(r.det/60)+':'+String(r.det%60).padStart(2,'0'):'')+'</td><td'+(Object.values(a).some(v=>v!=null&&v>8)?' class="bad"':'')+'>'+sel+'</td><td>'+(r.rin.petunjuk??'')+'</td><td>'+(r.rin.salah??'')+'</td><td>'+new Date(r.masuk).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+'</td>';
+    tb.append(tr);
+  });
+  $('d-note').textContent='Selisih ukur dalam urutan motor merah / biru / hijau. Merah berarti masih meleset lebih dari 8 km/jam. Data diperbarui otomatis tiap 8 detik.';
+}
+async function toggle(){
+  const to=CUR.status==='open'?'closed':'open';
+  try{await req('/rest/v1/sesi?id=eq.'+CUR.id,{method:'PATCH',body:{status:to},headers:{'Prefer':'return=minimal'}});CUR.status=to;await loadSesi();loadDetail();}
+  catch(e){$('d-note').textContent=e.message;}
+}
+function csv(){
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const lines=[['peringkat','username','nim','skor','detik','selisih_merah','selisih_biru','selisih_hijau','petunjuk','salah'].join(',')];
+  LAST.forEach((r,i)=>{const a=r.rin.akurasi||{};lines.push([r.skor!=null?i+1:'',r.user,r.nim,r.skor,r.det,a.merah,a.biru,a.hijau,r.rin.petunjuk,r.rin.salah].map(q).join(','));});
+  const b=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='hasil-'+CUR.token+'.csv';a.click();
+}
+async function wlSave(){
+  const m=$('w-msg');m.className='msg';m.textContent='';
+  const nims=[...new Set($('w-list').value.split(/[\s,;]+/).map(s=>s.trim()).filter(Boolean))];
+  const bad=nims.filter(n=>!/^[0-9]{6,20}$/.test(n));
+  if(!nims.length){m.textContent='Daftar kosong.';return;}
+  if(bad.length){m.textContent='NIM tidak valid: '+bad.slice(0,5).join(', ');return;}
+  try{
+    await req('/rest/v1/daftar_nim',{method:'POST',body:nims.map(n=>({sesi_id:CUR.id,nim:n})),headers:{'Prefer':'resolution=ignore-duplicates,return=minimal'}});
+    await req('/rest/v1/sesi?id=eq.'+CUR.id,{method:'PATCH',body:{batasi_nim:true},headers:{'Prefer':'return=minimal'}});
+    CUR.batasi_nim=true;m.className='msg ok';m.textContent=nims.length+' NIM disimpan. Pembatasan aktif.';loadSesi();
+  }catch(e){m.textContent=e.message;}
+}
+async function wlOff(){
+  try{await req('/rest/v1/sesi?id=eq.'+CUR.id,{method:'PATCH',body:{batasi_nim:false},headers:{'Prefer':'return=minimal'}});CUR.batasi_nim=false;$('w-msg').className='msg ok';$('w-msg').textContent='Pembatasan dimatikan.';loadSesi();}
+  catch(e){$('w-msg').textContent=e.message;}
+}
+$('b-login').addEventListener('click',login);
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+$('b-out').addEventListener('click',logout);
+$('b-new').addEventListener('click',newSesi);
+$('b-toggle').addEventListener('click',toggle);
+$('b-csv').addEventListener('click',csv);
+$('b-wl-save').addEventListener('click',wlSave);
+$('b-wl-off').addEventListener('click',wlOff);
+try{const a=JSON.parse(sessionStorage.getItem('kt-auth')||'null');if(a&&a.rt){Object.assign(AUTH,a);start();}}catch(e){}
+})();
+</script>
+</body>
+</html>
