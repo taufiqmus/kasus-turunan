@@ -13,5 +13,5 @@ export const SEMESTA=[
   {id:'bengkel',nama:'Semesta 6: Bengkel Roda Gigi',kasus:[
     {id:'bengkel/gigi-1',judul:'Mesin yang Mengamuk',ringkas:'Mesin parut berputar terlalu cepat. Satu roda gigi ditukar.',ready:true}]},
   {id:'teknik',nama:'Semesta 7: Teknik',kasus:[
-    {id:'teknik/lab-1',judul:'Lab yang Terbakar',ringkas:'Kapasitor meledak di lab elektronika.',ready:false}]}
+    {id:'teknik/lab-1',judul:'Lab yang Terbakar',ringkas:'Kapasitor meledak di lab elektronika.',ready:true}]}
 ];
