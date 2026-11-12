@@ -129,6 +129,7 @@ function tick(dt){
     if(FL.mode==='intro'&&FL.after>.9&&S.ui==='cine')endCine();
     else if(FL.mode==='self'&&FL.after>.6&&S.ui==='cine')showResult();
     else if(FL.mode==='demo'&&FL.after>.6&&S.ui==='cine')finishDemo();
+    else if(FL.mode==='replay'&&FL.after>.6&&S.ui==='cine'){FL=null;S.ui='none';}
   }
 }
 function onLand(){
@@ -173,7 +174,9 @@ function closeResult(){
 /* ---------- peragaan tersangka ---------- */
 function launchDemo(who){const d=DEM[who];launch('demo',who,d.vy,d.vx,JX,JY,.7,true);S.ui='cine';CINE.mode='demo';sfx.shot();}
 function finishDemo(){
-  const who=FL.who;FL=null;S.ui='none';S.flags['demo_'+who]=true;
+  const who=FL.who;FL=null;S.ui='none';
+  if(S.flags['demo_'+who])return;
+  S.flags['demo_'+who]=true;
   addEv({id:'demo-'+who,type:'doc',title:'Lemparan uji '+DEM[who].n,text:'Terekam di terminal kamera: grafik h(t) dan x(t) milik '+DEM[who].n+'.'});
   toast('Rekaman baru di terminal: '+DEM[who].n);
 }
@@ -205,6 +208,7 @@ const INTS=[
   {id:'anto',ch:'anto',t:TG.anto,label:'Bicara dengan Pak Anto',act:talkAnto},
   {id:'ketapel',t:TG.ketapel,label:'Pakai ketapel rekonstruksi',icon:'Y',when:()=>S.flags.case&&!S.flags.twist,act:startAim},
   {id:'rekaman',t:TG.rekaman,label:'Buka terminal rekaman',act:()=>{if(!S.flags.case){say([['Terminal','Terkunci. Butuh izin Pak Anto.']]);return;}openTerminal();}},
+  {id:'ulang',t:{x:TG.rekaman.x-90,y:TG.rekaman.y},label:'Putar ulang rekaman hantu',icon:'▶',when:()=>S.flags.case&&!S.flags.twist,act:()=>{launch('replay','hantu',GHOST.vy,GHOST.vx,JX,JY,.7,true);S.ui='cine';CINE.mode='replay';}},
   {id:'joko',ch:'joko',t:TG.joko,label:'Bicara dengan Joko',act:()=>{
     const f=S.flags;
     if(f.acc1&&!f.twist){sfx.twist();
@@ -212,17 +216,17 @@ const INTS=[
         ()=>{f.twist=true;addEv({id:'w-joko2',type:'witness',title:'Pengakuan Joko',text:'Joko melempar atas suruhan orang bertopeng. Malam ini orang itu akan melempar sisa barang dari sebuah gang.'});card('BAB 2','LAMPU PADAM');$('chap').textContent='Bab 2: Lampu Padam';});}
     else if(f.twist)say([['joko','Cepat, Detektif. Dia bisa lempar kapan saja.','panik']]);
     else if(f.case&&!f.demo_joko)say([['joko','Lempar? Aku cuma tukang parkir... ya sudah, kuperagakan dari titik lempar. Sekali saja.','panik']],()=>launchDemo('joko'));
-    else say([['joko','Sudah kuperagakan. Aku boleh pergi?','panik']]);}},
+    else say([['joko','Lagi? Ya sudah, perhatikan baik-baik.','panik']],()=>launchDemo('joko'));}},
   {id:'dimas',ch:'dimas',t:TG.dimas,label:'Bicara dengan Dimas',act:()=>{
     const f=S.flags;
     if(f.case&&!f.demo_dimas)say([['dimas','Rekor lempar sekolah, Detektif. Lihat ini, tingginya PERSIS seperti hantu itu!','senyum']],()=>launchDemo('dimas'));
-    else if(f.case)say([['dimas','Puncakku sama tingginya, kan? Tapi malam itu aku tidur, sumpah.','senyum']]);
+    else if(f.case)say([['dimas','Mau lihat lagi? Siap! Malam itu aku tidur, sumpah.','senyum']],()=>launchDemo('dimas'));
     else say([['dimas','Ada apa, Detektif?']]);}},
   {id:'rini',ch:'rini',t:TG.rini,label:'Bicara dengan Bu Rini',act:()=>{
     const f=S.flags;
     if(f.paket)say([['rini','Itu... bukan punyaku. Aku nggak tahu apa-apa!','panik']]);
     else if(f.case&&!f.demo_rini)say([['rini','Aduh, tanganku cuma kuat angkat panci. Ya sudah, kucoba.','senyum']],()=>launchDemo('rini'));
-    else if(f.case)say([['rini','Tuh kan, nggak sampai jauh.','senyum']]);
+    else if(f.case)say([['rini','Lagi? Tuh kan, nggak sampai jauh.','senyum']],()=>launchDemo('rini'));
     else say([['rini','Sotonya masih hangat, Detektif.','senyum']]);}},
   {id:'pantau',t:TG.pantau,label:'Siaga di mulut gang',icon:'!',when:()=>S.flags.siaga&&!S.flags.paket&&!FL,act:startWatch},
   {id:'gerobak',t:TG.gerobak,label:'Periksa gerobak soto',icon:'?',when:()=>S.flags.paket&&!S.flags.gerobak,act:()=>{
@@ -535,6 +539,7 @@ function drawCine(ctx){
     ctx.fillStyle=PAPER;ctx.font='600 '+Math.round(12*hs)+'px '+FU;ctx.textAlign='right';ctx.fillText(G.coarse?'ketuk untuk lewati':'tekan E untuk lewati',W-14,H*.89+20*hs);
   }else if(CINE.mode==='self')small('Lemparanmu. Perhatikan panah kuning di dekat puncak.',H*.11+30*hs);
   else if(CINE.mode==='demo'&&FL)small('Lemparan uji: '+DEM[FL.who].n,H*.11+30*hs);
+  else if(CINE.mode==='replay')small('Rekaman hantu, diputar ulang dengan panah gaya',H*.11+30*hs);
   else if(CINE.mode==='watch'){big('JANGAN BERKEDIP',H*.11+50*hs,40,SUN);small('Bungkusan melesat dari gang. Perhatikan puncaknya.',H*.11+78*hs);}
 }
 function drawHud(ctx){}
