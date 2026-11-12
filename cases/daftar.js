@@ -7,7 +7,7 @@ export const SEMESTA=[
   {id:'pasar',nama:'Semesta 3: Warung dan Pasar',kasus:[
     {id:'pasar/cabai-1',judul:'Cabai Dua Kali Lipat',ringkas:'Harga naik, pedagang bangkrut. Ada yang bermain angka.',ready:true}]},
   {id:'kebun',nama:'Semesta 4: Kebun dan Kolam',kasus:[
-    {id:'kebun/kolam-1',judul:'Kolam Menghijau',ringkas:'Lumut menelan kolam dalam semalam.',ready:false}]},
+    {id:'kebun/kolam-1',judul:'Kolam Menghijau',ringkas:'Lumut menelan kolam dalam semalam.',ready:true}]},
   {id:'pantai',nama:'Semesta 5: Pantai dan Taman Hiburan',kasus:[
     {id:'pantai/bianglala-1',judul:'Foto dari Bianglala',ringkas:'Satu foto, satu bianglala, satu pencuri.',ready:false}]},
   {id:'bengkel',nama:'Semesta 6: Bengkel Roda Gigi',kasus:[

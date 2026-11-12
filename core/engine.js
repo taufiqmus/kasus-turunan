@@ -95,7 +95,7 @@ function toast(m){const t=$('toast');t.textContent=m;t.hidden=false;clearTimeout
 /* ================= LENSA (alat grafik) ================= */
 const GP={src:null,series:{},cur:null,A:0,B:0,locked:false,act:0,Tmax:20,Smax:300,camS:null,gmin:0,gmax:100,cw:600,ch:300,sh:54,ph:220,vh:0,fx:0,trace:new Map(),info:null,tip:''};
 const ML=46,MR=14,MB=30;
-const gx=t=>ML+(t/GP.Tmax)*(GP.cw-ML-MR),gxi=x=>(x-ML)/(GP.cw-ML-MR)*GP.Tmax;
+const gx=t=>ML+((t-GP.T0)/(GP.Tmax-GP.T0))*(GP.cw-ML-MR),gxi=x=>GP.T0+(x-ML)/(GP.cw-ML-MR)*(GP.Tmax-GP.T0);
 const gy=s=>GP.sh+GP.ph-MB-(s/GP.Smax)*(GP.ph-MB-10);
 function slopeAt(pts,t){
   const win=0.3;let n=0,a=0,b=0,c=0,d=0;
@@ -116,7 +116,7 @@ function gpLayout(){
   c.style.width=w+'px';c.style.height=GP.ch+'px';c.width=Math.round(w*dpr);c.height=Math.round(GP.ch*dpr);gpDraw();
 }
 function gpOpen(cfg){
-  Object.assign(GP,{xs:'t',xu:'dtk',yu:'m',ru:'m/s',xlab:'t (detik)',pinOK:false,flat:false,k:3.6,unit:'km/jam',sym:'s',ylab:'s (meter)',pinWhere:'Pos A'},cfg);GP.trace=new Map();GP.fx=0;S.ui='gp';$('gp').hidden=false;
+  Object.assign(GP,{T0:0,xs:'t',xu:'dtk',yu:'m',ru:'m/s',xlab:'t (detik)',pinOK:false,flat:false,k:3.6,unit:'km/jam',sym:'s',ylab:'s (meter)',pinWhere:'Pos A'},cfg);GP.trace=new Map();GP.bT0=GP.T0;GP.bTmax=GP.Tmax;GP.fx=0;S.ui='gp';$('gp').hidden=false;
   $('gp-title').textContent=cfg.title;
   const tabs=$('gp-tabs');tabs.innerHTML='';const ids=Object.keys(GP.series);tabs.hidden=ids.length<2;
   for(const id of ids){
@@ -137,7 +137,7 @@ function tryLock(){
   if(!GP.locked&&Math.abs(gx(GP.A)-gx(GP.B))<9){GP.locked=true;GP.B=GP.A;GP.fx=1;sfx.snap();}
 }
 function gpDraw(){
-  const ser=GP.series[GP.cur];if(!ser)return;const pts=ser.pts,SYM=ser.sym||GP.sym,XS=ser.xs||GP.xs,XU=ser.xu||GP.xu,YU=ser.yu||GP.yu,RU=ser.ru||GP.ru;if(ser.Smax)GP.Smax=ser.Smax;
+  const ser=GP.series[GP.cur];if(!ser)return;const pts=ser.pts,SYM=ser.sym||GP.sym,XS=ser.xs||GP.xs,XU=ser.xu||GP.xu,YU=ser.yu!=null?ser.yu:GP.yu,RU=ser.ru||GP.ru,DP=ser.dp!=null?ser.dp:(GP.dp!=null?GP.dp:1),fm=v=>(Math.round(v*Math.pow(10,DP))/Math.pow(10,DP)).toFixed(DP).replace('.',',');if(ser.Smax)GP.Smax=ser.Smax;GP.T0=ser.T0!=null?ser.T0:GP.bT0;GP.Tmax=ser.Tmax!=null?ser.Tmax:GP.bTmax;
   const c=$('gp-cv'),g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,GP.cw,GP.ch);
   g.fillStyle='#fffdf6';g.fillRect(0,0,GP.cw,GP.ch);g.textBaseline='alphabetic';
   if(GP.locked)GP.B=GP.A;
@@ -171,9 +171,9 @@ function gpDraw(){
   /* plot s(t) */
   const top=GP.sh+10,bot=GP.sh+GP.ph-MB;
   g.font='600 11px '+FU;
-  const stt=niceStep(GP.Tmax,8),sts=niceStep(GP.Smax,5);
+  const stt=niceStep(GP.Tmax-GP.T0,8),sts=niceStep(GP.Smax,5);
   g.strokeStyle='rgba(28,34,48,.13)';g.lineWidth=1;g.fillStyle=INK;g.textAlign='center';
-  for(let t=0;t<=GP.Tmax+1e-6;t+=stt){g.beginPath();g.moveTo(gx(t),top);g.lineTo(gx(t),bot);g.stroke();g.fillText(String(Math.round(t*100)/100).replace('.',','),gx(t),bot+14);}
+  for(let t=Math.ceil(GP.T0/stt-1e-9)*stt;t<=GP.Tmax+1e-6;t+=stt){g.beginPath();g.moveTo(gx(t),top);g.lineTo(gx(t),bot);g.stroke();g.fillText(String(Math.round(t*100)/100).replace('.',','),gx(t),bot+14);}
   g.textAlign='right';
   for(let s=0;s<=GP.Smax+1e-6;s+=sts){g.beginPath();g.moveTo(ML,gy(s));g.lineTo(GP.cw-MR,gy(s));g.stroke();g.fillText(String(Math.round(s)),ML-5,gy(s)+4);}
   g.strokeStyle=INK;g.lineWidth=2;g.beginPath();g.moveTo(ML,top);g.lineTo(ML,bot);g.lineTo(GP.cw-MR,bot);g.stroke();
@@ -190,9 +190,9 @@ function gpDraw(){
   g.lineTo(gx(pts[pts.length-1][0]),gy(pts[pts.length-1][1]));g.stroke();
   g.save();g.beginPath();g.rect(ML,top,GP.cw-ML-MR,bot-top);g.clip();
   if(GP.locked){
-    const d=GP.Tmax*.13;g.strokeStyle=ALERT;g.lineWidth=3;g.beginPath();g.moveTo(gx(tA-d),gy(sA-m*d));g.lineTo(gx(tA+d),gy(sA+m*d));g.stroke();
+    const d=(GP.Tmax-GP.T0)*.13;g.strokeStyle=ALERT;g.lineWidth=3;g.beginPath();g.moveTo(gx(tA-d),gy(sA-m*d));g.lineTo(gx(tA+d),gy(sA+m*d));g.stroke();
   }else{
-    const a=info.t1,b=info.t2,d=GP.Tmax*.04;
+    const a=info.t1,b=info.t2,d=(GP.Tmax-GP.T0)*.04;
     g.strokeStyle='rgba(47,127,193,.55)';g.lineWidth=2;g.setLineDash([5,4]);g.beginPath();g.moveTo(gx(a),gy(info.s1));g.lineTo(gx(b),gy(info.s1));g.lineTo(gx(b),gy(info.s2));g.stroke();g.setLineDash([]);
     g.fillStyle=BLUE;g.font='700 11px '+FU;g.textAlign='center';g.fillText('Δt',(gx(a)+gx(b))/2,gy(info.s1)+13);g.textAlign='left';g.fillText('Δs',gx(b)+5,(gy(info.s1)+gy(info.s2))/2+4);
     g.strokeStyle=BLUE;g.lineWidth=3;g.beginPath();g.moveTo(gx(a-d),gy(info.s1-m*d));g.lineTo(gx(b+d),gy(info.s2+m*d));g.stroke();
@@ -222,9 +222,9 @@ function gpDraw(){
   let html;
   if(GP.locked){
     const st=GP.flat?(Math.abs(m)<0.25?' <span class="tag">puncak: kemiringan nol</span>':m<0?' <span class="tag no">turun</span>':' <span class="tag no">naik</span>'):GP.src==='ext'?(Math.abs(m)<0.25?' <span class="tag">berhenti</span>':m<0?' <span class="tag no">mundur ke arah Pos A</span>':' <span class="tag no">maju</span>'):'';
-    html='<b>Garis singgung</b> di '+XS+' = <b>'+f1(tA)+' '+XU+'</b>, '+SYM+' = <b>'+f1(sA)+' '+YU+'</b>'+(GP.camS!=null&&GP.src!=='ext'?' <span class="tag'+(info.atCam?'':' no')+'">'+(info.atCam?'tepat di garis kamera':'bukan di garis kamera')+'</span>':'')+st+'<br><code>'+SYM+'′('+XS+') = d'+SYM+'/d'+XS+' = '+f1(m)+' '+RU+'</code> '+(SYM==='s'?'Kecepatan':'Kemiringan')+(XS==='t'?' di satu momen.':' di satu titik.');
+    html='<b>Garis singgung</b> di '+XS+' = <b>'+fm(tA)+' '+XU+'</b>, '+SYM+' = <b>'+fm(sA)+(YU?' '+YU:'')+'</b>'+(GP.camS!=null&&GP.src!=='ext'?' <span class="tag'+(info.atCam?'':' no')+'">'+(info.atCam?'tepat di garis kamera':'bukan di garis kamera')+'</span>':'')+st+'<br><code>'+SYM+'′('+XS+') = d'+SYM+'/d'+XS+' = '+fm(m)+' '+RU+'</code> '+(SYM==='s'?'Kecepatan':'Kemiringan')+(XS==='t'?' di satu momen.':' di satu titik.');
   }else{
-    html='<b>Garis potong</b> A ke B, selang <b>Δ'+XS+' = '+f1(info.t2-info.t1)+' '+XU+'</b><br><code>Δ'+SYM+'/Δ'+XS+' = '+f1(m)+' '+RU+'</code> Ini rata-rata. Tarik B sampai menempel ke A.';
+    html='<b>Garis potong</b> A ke B, selang <b>Δ'+XS+' = '+fm(info.t2-info.t1)+' '+XU+'</b><br><code>Δ'+SYM+'/Δ'+XS+' = '+fm(m)+' '+RU+'</code> Ini rata-rata. Tarik B sampai menempel ke A.';
   }
   $('gp-read').innerHTML=html;$('gp-tip').textContent=GP.tip;$('gp-split').hidden=!GP.locked;
 }
@@ -244,7 +244,7 @@ $('gp-cv').addEventListener('pointerup',()=>{gpDown=false;});
 $('gp-cv').addEventListener('pointercancel',()=>{gpDown=false;});
 $('gp-cv').addEventListener('keydown',e=>{
   if(!GP.series[GP.cur])return;
-  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){const d=(e.key==='ArrowRight'?1:-1)*GP.Tmax*(e.shiftKey?0.001:0.005);
+  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){const d=(e.key==='ArrowRight'?1:-1)*(GP.Tmax-GP.T0)*(e.shiftKey?0.001:0.005);
     if(GP.act===1&&!GP.locked)GP.B=clamp(GP.B+d,tBeg(),tEnd());else GP.A=clamp(GP.A+d,tBeg(),tEnd());tryLock();gpDraw();e.preventDefault();}
   else if(e.key==='Tab'&&!GP.locked){GP.act=1-GP.act;e.preventDefault();}
 });

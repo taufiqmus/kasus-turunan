@@ -196,7 +196,7 @@ function openLedger(){
     series:{
       U:{name:'U: uang dibayar',col:'#c25a1c',pts:KT.samp(Uof,0,10,200),kind:'plain',sym:'U',yu:'rb',ru:'rb/jam',ylab:'U (ribu Rp)',Smax:14000},
       G:{name:'G: berat masuk (sensor)',col:'#2f7fc1',pts:KT.samp(Gof,0,10,200),kind:'plain',sym:'G',yu:'kg',ru:'kg/jam',ylab:'G (kg)',Smax:550},
-      u:{name:'u = U/G: harga sungguhan',col:'#7c4dbd',pts:KT.samp(uOf,0.25,10,390),kind:'plain',sym:'u',yu:'rb/kg',ru:'rb/kg per jam',ylab:'u (ribu Rp per kg asli)',Smax:35}
+      u:{name:'u = U/G: harga sungguhan',col:'#7c4dbd',pts:KT.samp(uOf,0.25,10,390),kind:'plain',sym:'u',yu:'rb/kg',ru:'rb/kg per jam',ylab:'u (ribu Rp per kg asli)',Smax:35,dp:2}
     },
     tip:'Buku Darto: rata-rata 30 rb/kg. Tapi itu pakai berat dari timbangannya sendiri. Di sini G dari sensor gudang.'});
 }
