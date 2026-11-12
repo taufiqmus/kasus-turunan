@@ -116,7 +116,7 @@ function gpLayout(){
   c.style.width=w+'px';c.style.height=GP.ch+'px';c.width=Math.round(w*dpr);c.height=Math.round(GP.ch*dpr);gpDraw();
 }
 function gpOpen(cfg){
-  Object.assign(GP,{pinOK:false,flat:false,k:3.6,unit:'km/jam',sym:'s',ylab:'s (meter)',pinWhere:'Pos A'},cfg);GP.trace=new Map();GP.fx=0;S.ui='gp';$('gp').hidden=false;
+  Object.assign(GP,{xs:'t',xu:'dtk',yu:'m',ru:'m/s',xlab:'t (detik)',pinOK:false,flat:false,k:3.6,unit:'km/jam',sym:'s',ylab:'s (meter)',pinWhere:'Pos A'},cfg);GP.trace=new Map();GP.fx=0;S.ui='gp';$('gp').hidden=false;
   $('gp-title').textContent=cfg.title;
   const tabs=$('gp-tabs');tabs.innerHTML='';const ids=Object.keys(GP.series);tabs.hidden=ids.length<2;
   for(const id of ids){
@@ -137,7 +137,7 @@ function tryLock(){
   if(!GP.locked&&Math.abs(gx(GP.A)-gx(GP.B))<9){GP.locked=true;GP.B=GP.A;GP.fx=1;sfx.snap();}
 }
 function gpDraw(){
-  const ser=GP.series[GP.cur];if(!ser)return;const pts=ser.pts,SYM=ser.sym||GP.sym;if(ser.Smax)GP.Smax=ser.Smax;
+  const ser=GP.series[GP.cur];if(!ser)return;const pts=ser.pts,SYM=ser.sym||GP.sym,XS=ser.xs||GP.xs,XU=ser.xu||GP.xu,YU=ser.yu||GP.yu,RU=ser.ru||GP.ru;if(ser.Smax)GP.Smax=ser.Smax;
   const c=$('gp-cv'),g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,GP.cw,GP.ch);
   g.fillStyle='#fffdf6';g.fillRect(0,0,GP.cw,GP.ch);g.textBaseline='alphabetic';
   if(GP.locked)GP.B=GP.A;
@@ -149,6 +149,7 @@ function gpDraw(){
   if(GP.src==='ext'&&GP.locked)GP.trace.set(Math.round(tA*4),kmh);
   /* strip: reka ulang di jalan */
   const sw=GP.cw-ML-MR-78,stx=s=>ML+(s/GP.Smax)*sw,ry=14,rh=24;
+  if(ser.kind!=='plain'){
   g.fillStyle=ser.kind==='run'?'#d98c5f':ser.kind==='ball'?'#1d2547':'#343a47';g.fillRect(ML,ry,sw,rh);g.strokeStyle=INK;g.lineWidth=2;g.strokeRect(ML,ry,sw,rh);
   g.fillStyle='rgba(255,246,228,.6)';if(ser.kind!=='ball')for(let x=ML+8;x<ML+sw-10;x+=22)g.fillRect(x,ry+rh/2-1,10,2);
   g.font='600 10px '+FU;g.fillStyle=INK;g.textAlign='left';if(ser.kind!=='ball'){g.fillText('0 m',ML,ry+rh+12);g.textAlign='right';g.fillText(GP.Smax+' m',ML+sw,ry+rh+12);}
@@ -159,6 +160,7 @@ function gpDraw(){
     g.globalAlpha=1;};
   if(!GP.locked)bike(sB,'#fff',.8,1);
   bike(sA,ser.col,1,m<-0.3?-1:1);
+  }
   /* jarum kecepatan */
   const gcx=GP.cw-MR-36,gcy=42,gr=28;
   g.lineWidth=7;g.strokeStyle='#e9dfc8';g.beginPath();g.arc(gcx,gcy,gr,Math.PI,2*Math.PI);g.stroke();
@@ -175,7 +177,7 @@ function gpDraw(){
   g.textAlign='right';
   for(let s=0;s<=GP.Smax+1e-6;s+=sts){g.beginPath();g.moveTo(ML,gy(s));g.lineTo(GP.cw-MR,gy(s));g.stroke();g.fillText(String(Math.round(s)),ML-5,gy(s)+4);}
   g.strokeStyle=INK;g.lineWidth=2;g.beginPath();g.moveTo(ML,top);g.lineTo(ML,bot);g.lineTo(GP.cw-MR,bot);g.stroke();
-  g.textAlign='right';g.font='700 11px '+FU;g.fillText('t (detik)',GP.cw-MR,bot+26);
+  g.textAlign='right';g.font='700 11px '+FU;g.fillText(ser.xlab||GP.xlab,GP.cw-MR,bot+26);
   g.textAlign='left';g.fillText(ser.ylab||GP.ylab,ML+6,top+10);
   if(GP.camS!=null){g.strokeStyle=ALERT;g.lineWidth=2;g.setLineDash([7,5]);g.beginPath();g.moveTo(ML,gy(GP.camS));g.lineTo(GP.cw-MR,gy(GP.camS));g.stroke();g.setLineDash([]);
     g.fillStyle=ALERT;g.textAlign='right';g.fillText('garis kamera '+GP.camS+' m',GP.cw-MR-4,gy(GP.camS)-5);}
@@ -220,9 +222,9 @@ function gpDraw(){
   let html;
   if(GP.locked){
     const st=GP.flat?(Math.abs(m)<0.25?' <span class="tag">puncak: kemiringan nol</span>':m<0?' <span class="tag no">turun</span>':' <span class="tag no">naik</span>'):GP.src==='ext'?(Math.abs(m)<0.25?' <span class="tag">berhenti</span>':m<0?' <span class="tag no">mundur ke arah Pos A</span>':' <span class="tag no">maju</span>'):'';
-    html='<b>Garis singgung</b> di t = <b>'+f1(tA)+' dtk</b>, '+SYM+' = <b>'+f1(sA)+' m</b>'+(GP.camS!=null&&GP.src!=='ext'?' <span class="tag'+(info.atCam?'':' no')+'">'+(info.atCam?'tepat di garis kamera':'bukan di garis kamera')+'</span>':'')+st+'<br><code>'+SYM+'′(t) = d'+SYM+'/dt = '+f1(m)+' m/s</code> '+(SYM==='s'?'Kecepatan':'Kemiringan')+' di satu momen.';
+    html='<b>Garis singgung</b> di '+XS+' = <b>'+f1(tA)+' '+XU+'</b>, '+SYM+' = <b>'+f1(sA)+' '+YU+'</b>'+(GP.camS!=null&&GP.src!=='ext'?' <span class="tag'+(info.atCam?'':' no')+'">'+(info.atCam?'tepat di garis kamera':'bukan di garis kamera')+'</span>':'')+st+'<br><code>'+SYM+'′('+XS+') = d'+SYM+'/d'+XS+' = '+f1(m)+' '+RU+'</code> '+(SYM==='s'?'Kecepatan':'Kemiringan')+(XS==='t'?' di satu momen.':' di satu titik.');
   }else{
-    html='<b>Garis potong</b> A ke B, selang <b>Δt = '+f1(info.t2-info.t1)+' dtk</b><br><code>Δs/Δt = '+f1(m)+' m/s</code> Ini rata-rata. Tarik B sampai menempel ke A.';
+    html='<b>Garis potong</b> A ke B, selang <b>Δ'+XS+' = '+f1(info.t2-info.t1)+' '+XU+'</b><br><code>Δ'+SYM+'/Δ'+XS+' = '+f1(m)+' '+RU+'</code> Ini rata-rata. Tarik B sampai menempel ke A.';
   }
   $('gp-read').innerHTML=html;$('gp-tip').textContent=GP.tip;$('gp-split').hidden=!GP.locked;
 }
@@ -562,6 +564,9 @@ function endCineHook(){endCine();}
 const w2s=(x,y)=>[(x-cam.x)*Z,(y-cam.y)*Z];
 const E={teori,w2s,S,P,G,K,T,V,$,clamp,lerp,f0,f1,rngSeed,INK,PAPER,SUN,CORAL,ALERT,BLUE,GOOD,FD,FU,say,toast,addEv,card,sfx,openAccuse,gpOpen,endCine:endCineHook,endCase,plate};
 C=createCase(E);
+{const N=()=>{};for(const k of ['tick','afterMove','drawWorld','drawWorldTop','drawHud','drawCine','init','cineEnd','suspects'])if(!C[k])C[k]=N;
+ if(!C.extraInts)C.extraInts=()=>[];if(!C.pinPos)C.pinPos=()=>null;if(!C.jitter)C.jitter=()=>0;if(!C.night)C.night=()=>0;if(!C.sx)C.sx=x=>x;
+ if(!C.cineStep)C.cineStep=()=>[P.x,P.y];if(!C.LAMPS)C.LAMPS=[];}
 for(const id of (C.THEORY_START||[]))teori(id,true);
 WW=C.WW;WH=C.WH;SOLIDS=C.SOLIDS;LAMPS=C.LAMPS;
 $('chap').textContent=C.chapter;
