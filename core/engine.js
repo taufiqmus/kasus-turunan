@@ -99,7 +99,7 @@ const gx=t=>ML+(t/GP.Tmax)*(GP.cw-ML-MR),gxi=x=>(x-ML)/(GP.cw-ML-MR)*GP.Tmax;
 const gy=s=>GP.sh+GP.ph-MB-(s/GP.Smax)*(GP.ph-MB-10);
 function slopeAt(pts,t){
   const win=0.3;let n=0,a=0,b=0,c=0,d=0;
-  for(const p of pts){if(Math.abs(p[0]-t)<=win){n++;a+=p[0];b+=p[1];c+=p[0]*p[0];d+=p[0]*p[1];}}
+  for(const p of pts){if(Math.abs(p[0]-t)<=win+1e-6){n++;a+=p[0];b+=p[1];c+=p[0]*p[0];d+=p[0]*p[1];}}
   if(n<2)return 0;const q=n*c-a*a;return q?(n*d-a*b)/q:0;
 }
 function sAt(pts,t){
@@ -116,7 +116,7 @@ function gpLayout(){
   c.style.width=w+'px';c.style.height=GP.ch+'px';c.width=Math.round(w*dpr);c.height=Math.round(GP.ch*dpr);gpDraw();
 }
 function gpOpen(cfg){
-  Object.assign(GP,cfg);GP.trace=new Map();GP.fx=0;S.ui='gp';$('gp').hidden=false;
+  Object.assign(GP,{pinOK:false,flat:false,k:3.6,unit:'km/jam',sym:'s',ylab:'s (meter)',pinWhere:'Pos A'},cfg);GP.trace=new Map();GP.fx=0;S.ui='gp';$('gp').hidden=false;
   $('gp-title').textContent=cfg.title;
   const tabs=$('gp-tabs');tabs.innerHTML='';const ids=Object.keys(GP.series);tabs.hidden=ids.length<2;
   for(const id of ids){
@@ -127,7 +127,7 @@ function gpOpen(cfg){
   }
   const te=tEnd();
   if(cfg.startLocked){GP.A=GP.B=te*.2;GP.locked=true;}else{GP.A=te*.3;GP.B=te*.75;GP.locked=false;}
-  $('gp-pin').hidden=GP.src!=='ext';$('gp-save').hidden=GP.src==='ext';$('gp-save').textContent='Simpan bukti';
+  $('gp-pin').hidden=!(GP.src==='ext'||GP.pinOK);$('gp-save').hidden=GP.src==='ext'||GP.pinOK;$('gp-save').textContent='Simpan bukti';
   gpLayout();setTimeout(()=>$('gp-cv').focus({preventScroll:true}),30);
 }
 const tEnd=()=>{const p=GP.series[GP.cur].pts;return p[p.length-1][0];};
@@ -135,7 +135,7 @@ function tryLock(){
   if(!GP.locked&&Math.abs(gx(GP.A)-gx(GP.B))<9){GP.locked=true;GP.B=GP.A;GP.fx=1;sfx.snap();}
 }
 function gpDraw(){
-  const ser=GP.series[GP.cur];if(!ser)return;const pts=ser.pts;
+  const ser=GP.series[GP.cur];if(!ser)return;const pts=ser.pts,SYM=ser.sym||GP.sym;
   const c=$('gp-cv'),g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,GP.cw,GP.ch);
   g.fillStyle='#fffdf6';g.fillRect(0,0,GP.cw,GP.ch);g.textBaseline='alphabetic';
   if(GP.locked)GP.B=GP.A;
@@ -143,16 +143,16 @@ function gpDraw(){
   let m,info;
   if(GP.locked){m=slopeAt(pts,tA);const atCam=GP.camS!=null&&Math.abs(sA-GP.camS)<=6&&tA<20;info={kind:'inst',t:tA,s:sA,m,atCam};}
   else{const a=Math.min(tA,tB),b=Math.max(tA,tB),s1=sAt(pts,a),s2=sAt(pts,b);m=(b-a)>0.02?(s2-s1)/(b-a):0;info={kind:'avg',t1:a,t2:b,s1,s2,m,fromStart:s1<=6&&GP.camS!=null&&Math.abs(s2-GP.camS)<=8};}
-  GP.info=info;const kmh=m*3.6;
+  GP.info=info;const kmh=m*GP.k;
   if(GP.src==='ext'&&GP.locked)GP.trace.set(Math.round(tA*4),kmh);
   /* strip: reka ulang di jalan */
   const sw=GP.cw-ML-MR-78,stx=s=>ML+(s/GP.Smax)*sw,ry=14,rh=24;
-  g.fillStyle=ser.kind==='run'?'#d98c5f':'#343a47';g.fillRect(ML,ry,sw,rh);g.strokeStyle=INK;g.lineWidth=2;g.strokeRect(ML,ry,sw,rh);
-  g.fillStyle='rgba(255,246,228,.6)';for(let x=ML+8;x<ML+sw-10;x+=22)g.fillRect(x,ry+rh/2-1,10,2);
-  g.font='600 10px '+FU;g.fillStyle=INK;g.textAlign='left';g.fillText('0 m',ML,ry+rh+12);g.textAlign='right';g.fillText(GP.Smax+' m',ML+sw,ry+rh+12);
+  g.fillStyle=ser.kind==='run'?'#d98c5f':ser.kind==='ball'?'#1d2547':'#343a47';g.fillRect(ML,ry,sw,rh);g.strokeStyle=INK;g.lineWidth=2;g.strokeRect(ML,ry,sw,rh);
+  g.fillStyle='rgba(255,246,228,.6)';if(ser.kind!=='ball')for(let x=ML+8;x<ML+sw-10;x+=22)g.fillRect(x,ry+rh/2-1,10,2);
+  g.font='600 10px '+FU;g.fillStyle=INK;g.textAlign='left';if(ser.kind!=='ball'){g.fillText('0 m',ML,ry+rh+12);g.textAlign='right';g.fillText(GP.Smax+' m',ML+sw,ry+rh+12);}
   if(GP.camS!=null){g.fillStyle=ALERT;g.fillRect(stx(GP.camS)-2,ry-4,4,rh+8);g.textAlign='center';g.font='700 10px '+FU;g.fillText('kamera',stx(GP.camS),ry+rh+12);}
-  const bike=(s,col,alpha,dir)=>{const x=stx(s),y=ry+rh/2;g.globalAlpha=alpha;g.fillStyle=col;g.strokeStyle=INK;g.lineWidth=2;
-    if(ser.kind==='run'){g.beginPath();g.arc(x,y,7,0,7);g.fill();g.stroke();}
+  const bike=(s,col,alpha,dir)=>{const ball=ser.kind==='ball',x=ball?ML+sw/2:stx(s),y=ball?ry+rh-5-(Math.max(0,s)/GP.Smax)*(rh-10):ry+rh/2;g.globalAlpha=alpha;g.fillStyle=col;g.strokeStyle=INK;g.lineWidth=2;
+    if(ser.kind==='run'||ser.kind==='ball'){g.beginPath();g.arc(x,y,ser.kind==='ball'?5:7,0,7);g.fill();g.stroke();}
     else{g.fillRect(x-11,y-5,22,10);g.strokeRect(x-11,y-5,22,10);g.fillStyle=INK;g.fillRect(x+(dir<0?-11:8),y-8,3,16);}
     g.globalAlpha=1;};
   if(!GP.locked)bike(sB,'#fff',.8,1);
@@ -174,7 +174,7 @@ function gpDraw(){
   for(let s=0;s<=GP.Smax+1e-6;s+=sts){g.beginPath();g.moveTo(ML,gy(s));g.lineTo(GP.cw-MR,gy(s));g.stroke();g.fillText(String(Math.round(s)),ML-5,gy(s)+4);}
   g.strokeStyle=INK;g.lineWidth=2;g.beginPath();g.moveTo(ML,top);g.lineTo(ML,bot);g.lineTo(GP.cw-MR,bot);g.stroke();
   g.textAlign='right';g.font='700 11px '+FU;g.fillText('t (detik)',GP.cw-MR,bot+26);
-  g.textAlign='left';g.fillText('s (meter)',ML+6,top+10);
+  g.textAlign='left';g.fillText(ser.ylab||GP.ylab,ML+6,top+10);
   if(GP.camS!=null){g.strokeStyle=ALERT;g.lineWidth=2;g.setLineDash([7,5]);g.beginPath();g.moveTo(ML,gy(GP.camS));g.lineTo(GP.cw-MR,gy(GP.camS));g.stroke();g.setLineDash([]);
     g.fillStyle=ALERT;g.textAlign='right';g.fillText('garis kamera '+GP.camS+' m',GP.cw-MR-4,gy(GP.camS)-5);}
   g.strokeStyle=ser.col;g.lineWidth=3.5;g.lineJoin='round';g.beginPath();
@@ -210,12 +210,12 @@ function gpDraw(){
     if(GP.locked){g.fillStyle=SUN;g.strokeStyle=INK;g.lineWidth=2.5;g.beginPath();g.arc(gx(tA),vy(kmh),6,0,7);g.fill();g.stroke();}
   }
   /* bacaan */
-  $('gp-num').firstChild.nodeValue=(kmh<-0.5?'-':'')+f0(Math.abs(kmh));
+  $('gp-num').querySelector('small').textContent=GP.unit;$('gp-num').firstChild.nodeValue=(kmh<-0.5?'-':'')+f0(Math.abs(kmh));
   $('gp-num').style.color=GP.locked?ALERT:BLUE;
   let html;
   if(GP.locked){
-    const st=GP.src==='ext'?(Math.abs(m)<0.25?' <span class="tag">berhenti</span>':m<0?' <span class="tag no">mundur ke arah Pos A</span>':' <span class="tag no">maju</span>'):'';
-    html='<b>Garis singgung</b> di t = <b>'+f1(tA)+' dtk</b>, s = <b>'+f1(sA)+' m</b>'+(GP.camS!=null&&GP.src!=='ext'?' <span class="tag'+(info.atCam?'':' no')+'">'+(info.atCam?'tepat di garis kamera':'bukan di garis kamera')+'</span>':'')+st+'<br><code>s′(t) = ds/dt = '+f1(m)+' m/s</code> Kecepatan di satu momen.';
+    const st=GP.flat?(Math.abs(m)<0.25?' <span class="tag">puncak: kemiringan nol</span>':m<0?' <span class="tag no">turun</span>':' <span class="tag no">naik</span>'):GP.src==='ext'?(Math.abs(m)<0.25?' <span class="tag">berhenti</span>':m<0?' <span class="tag no">mundur ke arah Pos A</span>':' <span class="tag no">maju</span>'):'';
+    html='<b>Garis singgung</b> di t = <b>'+f1(tA)+' dtk</b>, '+SYM+' = <b>'+f1(sA)+' m</b>'+(GP.camS!=null&&GP.src!=='ext'?' <span class="tag'+(info.atCam?'':' no')+'">'+(info.atCam?'tepat di garis kamera':'bukan di garis kamera')+'</span>':'')+st+'<br><code>'+SYM+'′(t) = d'+SYM+'/dt = '+f1(m)+' m/s</code> '+(SYM==='s'?'Kecepatan':'Kemiringan')+' di satu momen.';
   }else{
     html='<b>Garis potong</b> A ke B, selang <b>Δt = '+f1(info.t2-info.t1)+' dtk</b><br><code>Δs/Δt = '+f1(m)+' m/s</code> Ini rata-rata. Tarik B sampai menempel ke A.';
   }
@@ -226,6 +226,7 @@ function gpPointer(e,down){
   let t=clamp(gxi(x),0,tEnd());
   if(down)GP.act=(!GP.locked&&Math.abs(gx(GP.B)-x)<Math.abs(gx(GP.A)-x))?1:0;
   if(GP.locked&&GP.camS!=null&&ser.tc&&t<20&&Math.abs(sAt(ser.pts,t)-GP.camS)<4)t=ser.tc;
+  if(GP.locked&&ser.snap)for(const q of ser.snap)if(Math.abs(gx(t)-gx(q))<9)t=q;
   if(GP.act===1&&!GP.locked)GP.B=t;else GP.A=t;
   tryLock();gpDraw();
 }
@@ -251,7 +252,8 @@ $('gp-save').addEventListener('click',()=>{
 });
 $('gp-pin').addEventListener('click',()=>{
   const i=GP.info;if(!i||i.kind!=='inst'){toast('Kunci dulu titik B ke titik A');return;}
-  S.pin={s:i.s};sfx.snap();closeGp();toast('Pin dipasang di '+f0(i.s)+' m dari Pos A. Datangi tempatnya.');
+  if(C.canPin&&!C.canPin(GP,i))return;
+  S.pin={s:i.s};sfx.snap();closeGp();toast('Pin dipasang di '+f0(i.s)+' m dari '+GP.pinWhere+'. Datangi tempatnya.');
 });
 /* ================= PAPAN BUKTI ================= */
 function openBoard(){S.ui='board';$('board').hidden=false;renderBoard();}

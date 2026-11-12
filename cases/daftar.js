@@ -4,6 +4,6 @@ export const SEMESTA=[
     {id:'jalan-raya/tilang-1',judul:'Tilang Salah Alamat',ringkas:'Kamera menjepret motor 82 km/jam. Siapa pelakunya?',ready:true}
   ]},
   {id:'lemparan',nama:'Semesta 2: Lemparan',kasus:[
-    {id:'lemparan/melayang-1',judul:'Benda di Atas Pasar',ringkas:'Sesuatu melayang di atas pasar tengah malam.',ready:false}
+    {id:'lemparan/melayang-1',judul:'Benda di Atas Pasar',ringkas:'Sesuatu melayang di atas pasar tengah malam.',ready:true}
   ]}
 ];
