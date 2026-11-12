@@ -129,7 +129,6 @@ function tick(dt){
     if(FL.mode==='intro'&&FL.after>.9&&S.ui==='cine')endCine();
     else if(FL.mode==='self'&&FL.after>.6&&S.ui==='cine')showResult();
     else if(FL.mode==='demo'&&FL.after>.6&&S.ui==='cine')finishDemo();
-    else if(FL.mode==='replay'&&FL.after>.6&&S.ui==='cine'){FL=null;S.ui='none';}
   }
 }
 function onLand(){
@@ -208,7 +207,6 @@ const INTS=[
   {id:'anto',ch:'anto',t:TG.anto,label:'Bicara dengan Pak Anto',act:talkAnto},
   {id:'ketapel',t:TG.ketapel,label:'Pakai ketapel rekonstruksi',icon:'Y',when:()=>S.flags.case&&!S.flags.twist,act:startAim},
   {id:'rekaman',t:TG.rekaman,label:'Buka terminal rekaman',act:()=>{if(!S.flags.case){say([['Terminal','Terkunci. Butuh izin Pak Anto.']]);return;}openTerminal();}},
-  {id:'ulang',t:{x:TG.rekaman.x-90,y:TG.rekaman.y},label:'Putar ulang rekaman hantu',icon:'▶',when:()=>S.flags.case&&!S.flags.twist,act:()=>{launch('replay','hantu',GHOST.vy,GHOST.vx,JX,JY,.7,true);S.ui='cine';CINE.mode='replay';}},
   {id:'joko',ch:'joko',t:TG.joko,label:'Bicara dengan Joko',act:()=>{
     const f=S.flags;
     if(f.acc1&&!f.twist){sfx.twist();
@@ -539,7 +537,6 @@ function drawCine(ctx){
     ctx.fillStyle=PAPER;ctx.font='600 '+Math.round(12*hs)+'px '+FU;ctx.textAlign='right';ctx.fillText(G.coarse?'ketuk untuk lewati':'tekan E untuk lewati',W-14,H*.89+20*hs);
   }else if(CINE.mode==='self')small('Lemparanmu. Perhatikan panah kuning di dekat puncak.',H*.11+30*hs);
   else if(CINE.mode==='demo'&&FL)small('Lemparan uji: '+DEM[FL.who].n,H*.11+30*hs);
-  else if(CINE.mode==='replay')small('Rekaman hantu, diputar ulang dengan panah gaya',H*.11+30*hs);
   else if(CINE.mode==='watch'){big('JANGAN BERKEDIP',H*.11+50*hs,40,SUN);small('Bungkusan melesat dari gang. Perhatikan puncaknya.',H*.11+78*hs);}
 }
 function drawHud(ctx){}
