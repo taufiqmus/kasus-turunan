@@ -264,6 +264,7 @@ $('gp-pin').addEventListener('click',()=>{
 function openBoard(){S.ui='board';$('board').hidden=false;renderBoard();}
 function renderBoard(){
   const f=S.flags,su=$('bd-sus');su.innerHTML='';
+  const chip=(t,c)=>{const s=document.createElement('span');s.textContent=t;if(c)s.className=c;su.append(s);};
   C.suspects(chip);
   const L=$('bd-list');L.innerHTML='';
   if(!S.evidence.length){const p=document.createElement('p');p.textContent='Belum ada bukti.';L.append(p);}
