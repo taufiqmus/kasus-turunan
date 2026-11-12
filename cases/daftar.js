@@ -9,7 +9,7 @@ export const SEMESTA=[
   {id:'kebun',nama:'Semesta 4: Kebun dan Kolam',kasus:[
     {id:'kebun/kolam-1',judul:'Kolam Menghijau',ringkas:'Lumut menelan kolam dalam semalam.',ready:true}]},
   {id:'pantai',nama:'Semesta 5: Pantai dan Taman Hiburan',kasus:[
-    {id:'pantai/bianglala-1',judul:'Foto dari Bianglala',ringkas:'Satu foto, satu bianglala, satu pencuri.',ready:false}]},
+    {id:'pantai/bianglala-1',judul:'Foto dari Bianglala',ringkas:'Satu foto, satu bianglala, satu pencuri.',ready:true}]},
   {id:'bengkel',nama:'Semesta 6: Bengkel Roda Gigi',kasus:[
     {id:'bengkel/gigi-1',judul:'Mesin yang Mengamuk',ringkas:'Mesin parut berputar terlalu cepat. Satu roda gigi ditukar.',ready:false}]},
   {id:'teknik',nama:'Semesta 7: Teknik',kasus:[
