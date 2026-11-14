@@ -1,12 +1,12 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=5';
-import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=5';
-import * as P1 from './pos1.js?v=5';
-import * as AR from './arena.js?v=5';
-import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=5';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=5';
-import {labelSprite,buangSprite,klem} from './util.js?v=5';
+import {sambung} from './rt.js?v=6';
+import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=6';
+import * as P1 from './pos1.js?v=6';
+import * as AR from './arena.js?v=6';
+import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=6';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=6';
+import {labelSprite,buangSprite,klem} from './util.js?v=6';
 import {bacaSesi} from '../core/net.js';
 
 const $=id=>document.getElementById(id);
@@ -21,7 +21,7 @@ const Q=new URLSearchParams(location.search);
 let profil={nama:'',tim:TIM[Math.floor(Math.random()*TIM.length)].id,av:acakAv()};
 const KOIN_N=60;
 let koinAmbil=new Set();try{for(const v of JSON.parse(localStorage.getItem('ki-koin')||'[]'))if(Number.isInteger(v)&&v>=0&&v<KOIN_N)koinAmbil.add(v);}catch(e){}
-const KOIN_KUNCI={t:{5:40},h:{3:10,4:20},g:{3:15},a:{3:30}};
+const KOIN_KUNCI={};
 const jmlKoin=()=>koinAmbil.size;
 const terbuka=(k,i)=>!(KOIN_KUNCI[k]&&KOIN_KUNCI[k][i])||jmlKoin()>=KOIN_KUNCI[k][i];
 try{const j=JSON.parse(localStorage.getItem('ki-profil')||'null');if(j){profil.nama=String(j.nama||'').slice(0,12);if(TIM.some(t=>t.id===j.tim))profil.tim=j.tim;if(j.av)profil.av=parseAv(j.av);}}catch(e){}
