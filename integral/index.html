@@ -41,10 +41,10 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #hitung{position:fixed;z-index:4;left:50%;top:38%;transform:translate(-50%,-50%);font-family:var(--display);font-size:120px;color:#fff6e4;-webkit-text-stroke:6px var(--ink);paint-order:stroke fill;pointer-events:none}
 @media (max-width:560px){
 #c-ruang{display:none}
-.lchip,#b-kam,#b-keluar,#b-audit,#b-grafis,#b-pos1{font-size:11px;padding:4px 7px;white-space:nowrap}
+.lchip,#b-kam,#b-keluar,#b-audit,#b-grafis,#b-pos1,#b-pos2{font-size:11px;padding:4px 7px;white-space:nowrap}
 #lhud{gap:5px;flex-wrap:wrap;row-gap:5px}#lhud .sp{display:none}
-#arhud{width:min(165px,40vw);font-size:12px;padding:6px;gap:3px}
-#arhud .r{flex-wrap:wrap;gap:0 6px}
+#arhud,#ar2{width:min(165px,40vw);font-size:12px;padding:6px;gap:3px}
+#arhud .r,#ar2 .r{flex-wrap:wrap;gap:0 6px}
 }
 @media (max-width:720px){.screen>.wrap{grid-template-columns:1fr;gap:12px}h1{font-size:44px}}
 
@@ -71,19 +71,23 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #grafis .gj{margin:10px 0 5px;font-weight:700}#grafis .gk{margin:10px 0 0;font-size:12px;opacity:.8}
 #stam i{display:block;height:100%;width:100%;background:#ff6f47}
 #b-lari{position:fixed;z-index:3;right:calc(env(safe-area-inset-right,0px) + 28px);bottom:calc(env(safe-area-inset-bottom,0px) + 112px);width:60px;height:60px;border-radius:50%;padding:0;font-size:12px;touch-action:none;user-select:none}
-#b-pos1{pointer-events:auto;font-size:13px;padding:6px 12px}
+#b-pos1,#b-pos2{pointer-events:auto;font-size:13px;padding:6px 12px}
 #boost{position:fixed;z-index:3;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 96px);display:grid;grid-template-columns:1fr 1fr;gap:6px;width:min(92vw,360px);pointer-events:auto}
+#pilih{position:fixed;z-index:3;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 96px);display:flex;flex-wrap:wrap;justify-content:center;gap:6px;width:min(92vw,420px);pointer-events:auto}
+#pilih .bj{flex-basis:100%;text-align:center;font-size:12px;font-weight:700;color:#1c2230;text-shadow:0 1px 0 #fff}
+#pilih .btn{font-size:16px;padding:8px 12px;min-width:56px;font-family:"Bricolage Grotesque",sans-serif}
+#ar2 .tb{font-family:"Bricolage Grotesque",sans-serif;font-size:14px}
 #boost .bj{grid-column:1/-1;text-align:center;font-size:12px;font-weight:700;color:#1c2230;text-shadow:0 1px 0 #fff}
 #boost .btn{font-size:12px;padding:6px 8px;width:auto;min-width:0}#boost .btn[aria-pressed=true]{background:var(--apricot);color:#fff}
 #b-kam{pointer-events:auto;font-size:13px;padding:6px 12px}
 #b-keluar{pointer-events:auto;font-size:13px;padding:6px 12px}
 #b-lompat{position:fixed;z-index:3;right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 26px);width:76px;height:76px;border-radius:50%;padding:0;font-size:13px}
 #aksi{min-width:150px;touch-action:none;user-select:none;-webkit-user-select:none}
-#arhud{position:fixed;z-index:3;left:calc(env(safe-area-inset-left,0px) + 10px);top:calc(env(safe-area-inset-top,0px) + 54px);width:min(190px,46vw);padding:8px;display:flex;flex-direction:column;gap:5px;font-size:13px;pointer-events:none}
-#arhud canvas{width:100%;height:auto;aspect-ratio:2/1.15;border:2px solid var(--ink);border-radius:8px;display:block}
-#arhud .r{display:flex;justify-content:space-between;gap:8px;font-weight:700}
-#arhud .r span:last-child{font-variant-numeric:tabular-nums}
-#arhud p{margin:0;font-size:12px;line-height:1.3}
+#arhud,#ar2{position:fixed;z-index:3;left:calc(env(safe-area-inset-left,0px) + 10px);top:calc(env(safe-area-inset-top,0px) + 54px);width:min(190px,46vw);padding:8px;display:flex;flex-direction:column;gap:5px;font-size:13px;pointer-events:none}
+#arhud canvas,#ar2 canvas{width:100%;height:auto;aspect-ratio:2/1.15;border:2px solid var(--ink);border-radius:8px;display:block}
+#arhud .r,#ar2 .r{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+#arhud .r span:last-child,#ar2 .r span:last-child{font-variant-numeric:tabular-nums}
+#arhud p,#ar2 p{margin:0;font-size:12px;line-height:1.3}
 #hasil{position:fixed;inset:0;z-index:5;background:rgba(28,34,48,.55);display:flex;align-items:center;justify-content:center;padding:10px}
 #hasil .card{width:min(560px,100%);max-height:100%;overflow:auto;padding:14px}
 #w-tabel{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
@@ -93,11 +97,11 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #audit .tgl{display:flex;gap:6px;align-items:center;margin:6px 0;font-weight:700}
 @media (max-width:720px){.screen>.wrap{grid-template-columns:1fr;gap:12px}h1{font-size:44px}}
 @media (max-width:560px){
-#arhud{top:calc(env(safe-area-inset-top,0px) + 76px)}
+#arhud,#ar2{top:calc(env(safe-area-inset-top,0px) + 76px)}
 #peta{top:calc(env(safe-area-inset-top,0px) + 76px)}#stam{top:calc(env(safe-area-inset-top,0px) + 192px)}
 #grafis,#audit{top:calc(env(safe-area-inset-top,0px) + 76px)}
-.lchip,#b-kam,#b-keluar,#b-audit,#b-grafis,#b-pos1{font-size:11px;padding:4px 7px;white-space:nowrap}
-#boost{bottom:calc(env(safe-area-inset-bottom,0px) + 190px)}
+.lchip,#b-kam,#b-keluar,#b-audit,#b-grafis,#b-pos1,#b-pos2{font-size:11px;padding:4px 7px;white-space:nowrap}
+#boost,#pilih{bottom:calc(env(safe-area-inset-bottom,0px) + 190px)}
 }
 </style>
 </head>
@@ -134,6 +138,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <span class="sp"></span>
   <button class="btn alt" id="b-keluar" type="button" hidden>Keluar pos</button>
   <button class="btn alt" id="b-pos1" type="button" hidden>Ke Pos 1</button>
+  <button class="btn alt" id="b-pos2" type="button" hidden>Ke Pos 2</button>
   <button class="btn alt" id="b-kam" type="button">Ikuti</button>
   <button class="btn alt" id="b-grafis" type="button">Grafis</button>
   <button class="btn alt" id="b-audit" type="button">Audit</button>
@@ -150,6 +155,16 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <div class="r"><span>Total balok</span><span id="ar-total">0</span></div>
   <div class="r"><span>Siap di pad</span><span id="ar-siap">0/1</span></div>
   </div>
+<div class="card" id="ar2" hidden>
+  <div class="r"><span id="a2-babak">Babak 1/3</span><span id="a2-isi">0/4</span></div>
+  <canvas id="a2-cv" width="480" height="276"></canvas>
+  <div class="r"><span>Waktu</span><span id="a2-waktu">-</span></div>
+  <div class="r"><span>Bawa</span><span id="a2-bawa" class="tb">-</span></div>
+  <div class="r"><span>Boost</span><span id="a2-boost">-</span></div>
+  <div class="r"><span>Siap di pad</span><span id="a2-siap">0/1</span></div>
+  <p id="a2-p">a dan dx di Oasis, f di Menara, b di Reruntuhan.</p>
+</div>
+<div id="pilih" hidden></div>
 <div id="boost" hidden></div>
 <button class="btn big" id="aksi" type="button" hidden>Masuk Pos 1</button>
 <button class="btn alt" id="b-lompat" type="button" hidden>Lompat</button>
@@ -208,9 +223,9 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 </div>
 <div id="hasil" hidden>
   <div class="card">
-    <p class="eyebrow" style="margin:0">Pos 1 selesai</p>
-    <h2>Makin tipis kolomnya, makin dekat ke luas sebenarnya</h2>
-    <p>Bandingkan taksiran timmu dengan luas asli tiap babak. Kalau lebar kolom terus diperkecil sampai mendekati nol, jumlah luas kolom itu mendekati luas sebenarnya, dan itulah integral.</p>
+    <p class="eyebrow" style="margin:0" id="w-pos">Pos 1 selesai</p>
+    <h2 id="w-h">Makin tipis kolomnya, makin dekat ke luas sebenarnya</h2>
+    <p id="w-p">Bandingkan taksiran timmu dengan luas asli tiap babak. Kalau lebar kolom terus diperkecil sampai mendekati nol, jumlah luas kolom itu mendekati luas sebenarnya, dan itulah integral.</p>
     <table id="w-tabel"></table>
     <p style="margin:10px 0 0">Skor tim: <span class="skorbesar" id="w-skor">0</span> / 100</p>
     <button class="btn" id="w-tutup" type="button" style="margin-top:10px">Kembali ke lobi</button>
@@ -218,6 +233,6 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 </div>
 
 <script src="./vendor/supabase.js"></script>
-<script type="module" src="lobi.js?v=24"></script>
+<script type="module" src="lobi.js?v=25"></script>
 </body>
 </html>

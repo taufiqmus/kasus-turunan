@@ -108,3 +108,12 @@ Tiga jalur (kiri, tengah, kanan), sungai dengan jembatan sempit, palu ayun, pint
 - Koin petualang di sudut-sudut lembah (muncul lagi tiap babak) menambah saldo boost.
 - Grafis: 4 tingkat kualitas (rendah, sedang, tinggi, sangat tinggi) dan 2 gaya (realistik, sinematik), dipilih di tombol Grafis, tersimpan di perangkat. Kualitas awal ditebak dari perangkat dan turun sendiri bila tersendat (kecuali sudah dipilih manual).
 - Semua rintangan tetap dihitung dari jam dinding, tanpa pesan jaringan baru.
+
+### Pos 2 "Rakit Sandi" di Ngarai Kuil (v=25)
+- Materi: notasi integral tentu. Prasasti kuil menampilkan daerah berarsir (babak 1), cerita kecepatan/debit/laju/kerapatan (babak 2), atau daerah terbelah dua (babak 3). Tim merakit sandinya dari batu: batas bawah dan diferensial di kamp Oasis, fungsi di kamp Menara, batas atas di kamp Reruntuhan, lalu memasang di slot altar.
+- Pengecoh sengaja disertakan: turunan f, antiturunan F, variabel lain (4x + 1 untuk cerita dalam t), dy/dt yang tidak cocok, batas tertukar. Ulasan babak menjelaskan kesalahan yang terbaca.
+- Skor: tiap slot bernilai sama (ketepatan 88%) ditambah bonus kecepatan 12%. Pada daerah terbelah, urutan dua integral boleh ditukar. Tanpa batas waktu.
+- Bawa maksimal 2 batu. Tabrakan menjatuhkan batu. Pos 2 bisa dimasuki kapan saja (tidak menunggu Pos 1).
+- Jaringan: event `d2` (slot: indeks, kode, cap waktu; yang terbaru menang), `st2`, `mulai2`, `kunci2`. Papan skor memuat skor Pos 1 dan Pos 2.
+- Struktur: `medan.js` sekarang pembuat dunia (`M1` Lembah Waduk, `M2` Ngarai Kuil), `dunia3d.js` tampilan dunia umum (tema hijau dan gurun), `arena.js` isi khusus Pos 1, `arena2.js` dan `pos2.js` untuk Pos 2.
+- Uji: `node tests/medan_cek.mjs` (geometri dan rintangan kedua dunia), `python3 tests/lobi.py` (Pos 1), `python3 tests/pos2.py` (Pos 2).
