@@ -95,3 +95,6 @@ Belum ada: panel dosen, pos 2 sampai 6, pemeriksaan skor di server.
 - Pos 1: kurva diundi lewat roda (seed dari kode ruang dan tim, tanpa pesan jaringan), aturan titik sampel kiri, kanan, tengah, kurva dan luas disembunyikan, batas waktu, skor ketat dengan bonus waktu, gelondong rintangan.
 - Lobi: peta radius 95 dengan enam zona bertema (Padang, Gurun, Salju, Hutan, Pantai, Gunung), tiang cahaya di tiap gerbang, peta mini, lari (Shift atau tombol Lari, stamina 100), 60 koin yang membuka kosmetik (penyihir 10, helm 20, kacamata hitam 15, ransel 30, bebek 40). Koin tersimpan di perangkat (`ki-koin`).
 - Boost: koin ditukar sebelum babak (Sepatu roket 5, Tangan raksasa 8, Perisai 6, Gudang cepat 6), berlaku satu babak dan efeknya lokal ke pemain. Waktu babak 3, 5, 8 menit.
+
+### Pos 1 tahap 2 (medan)
+Tiga jalur (kiri, tengah, kanan), sungai dengan jembatan sempit, palu ayun, pintu geser, duri, ban berjalan, lantai runtuh, trampolin (babak 3) dan bola menggelinding. Semua bahaya dihitung dari jam dinding (`medan.js`), tanpa pesan jaringan. Tingkat kesulitan naik tiap babak. Perisai menahan satu tabrakan.

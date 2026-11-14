@@ -59,7 +59,7 @@ with sync_playwright() as p:
     cek('rencana kurva sama untuk satu tim',A.evaluate('JSON.stringify(__L.P1.RENCANA)')==B.evaluate('JSON.stringify(__L.P1.RENCANA)'))
     cek('rencana kurva tim lain berbeda urutan atau kurva',True)
     # babak belum berjalan: balok tidak bisa ditaruh
-    A.evaluate("__L.tp(-12.5,12.5)");A.wait_for_timeout(1200)
+    A.evaluate("__L.tp(-12.5,14.5)");A.wait_for_timeout(1200)
     cek('sebelum mulai gudang tidak mengisi',A.evaluate('__L.me.carry')==0)
     # mulai lewat pad
     for pg in (A,B):pg.bring_to_front();pg.evaluate("__L.tp(7,16.8)");pg.wait_for_timeout(300)
@@ -68,7 +68,7 @@ with sync_playwright() as p:
     A.screenshot(path='/tmp/v3-arena.png')
     # gudang: kapasitas 2, pengisian pelan
     g0=A.evaluate('__L.st.g.slice()')
-    A.evaluate("__L.tp(-12.5,12.5)");A.wait_for_timeout(2200)
+    A.evaluate("__L.tp(-12.5,14.5)");A.wait_for_timeout(2200)
     ca=A.evaluate('__L.me.carry');cek('gudang mengisi tangan sampai 2',ca==2,ca)
     g1=A.evaluate('__L.st.g.slice()')
     cek('stok gudang kiri berkurang 2',g0[0]-g1[0]==2 and g0[1]==g1[1] and g0[2]==g1[2],(g0,g1))
@@ -85,16 +85,21 @@ with sync_playwright() as p:
     A.evaluate("__L.tp(4,9)");A.wait_for_timeout(500)
     cek('sungai menghanyutkan dan menjatuhkan balok',A.evaluate('__L.me.carry')==0 and A.evaluate('__L.stunTil')>0)
     A.wait_for_timeout(1500);zz=A.evaluate('__L.me.z');cek('hanyut ke tepi selatan tanpa lompatan',zz>11.2,zz)
-    A.wait_for_timeout(1500);A.evaluate("__L.tp(0,9.3)");A.wait_for_timeout(900)
-    cek('jembatan aman',abs(A.evaluate('__L.me.z')-9.3)<.01)
-    A.evaluate("__L.tp(-12.5,12.5)");A.wait_for_timeout(2200)
+    A.wait_for_timeout(1500);A.evaluate("__L.tp(0,8.0)");A.wait_for_timeout(900)
+    cek('jembatan aman',abs(A.evaluate('__L.me.z')-8.0)<.01)
+    # medan: palu di jalur tengah (babak 1) mengenai pemain di x sapuan
+    A.evaluate("__L.tp(-3,5)");A.wait_for_timeout(2600)
+    s0=A.evaluate('__L.stunTil');A.evaluate("__L.tp(0,9.3)");A.wait_for_timeout(2500)
+    s1=A.evaluate('__L.stunTil');cek('palu ayun mengenai pemain',s1>s0,(s0,s1))
+    A.wait_for_timeout(2500)
+    A.evaluate("__L.tp(-12.5,14.5)");A.wait_for_timeout(2200)
     # rintangan
     sp=A.evaluate("(()=>{const s=__L.AR.rintanganBabak(__L.st.r)[0];return [__L.AR.xRint(s,Date.now()/1000),s.z]})()")
     A.evaluate(f"__L.tp({sp[0]},{sp[1]})");A.wait_for_timeout(500)
     cek('gelondong menjatuhkan balok',A.evaluate('__L.me.carry')==0 and A.evaluate('__L.stunTil')>0)
     A.wait_for_timeout(1800)
     # taruh dan ambil kembali
-    A.evaluate("__L.tp(-12.5,12.5)");A.wait_for_timeout(1800);A.evaluate("__L.tp(-4,2)");A.wait_for_timeout(300)
+    A.evaluate("__L.tp(-12.5,14.5)");A.wait_for_timeout(1800);A.evaluate("__L.tp(-4,2)");A.wait_for_timeout(300)
     A.evaluate('__L.tahan=true');A.wait_for_timeout(2500);A.evaluate('__L.tahan=false')
     st0=A.evaluate('__L.st.c');cek('taruh balok menambah kolom',sum(st0)>=1,st0)
     B.bring_to_front();B.wait_for_timeout(2500)

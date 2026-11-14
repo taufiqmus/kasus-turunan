@@ -1,12 +1,13 @@
 /* Arena Pos 1: lantai, dinding berkurva, kolom balok, gudang balok, pad kunci.
    Dunia arena memakai titik asal yang sama dengan lobi, kelompoknya dinyalakan saat pemain masuk. */
 import * as THREE from './vendor/three.min.js';
-import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=15';
-import {labelSprite} from './util.js?v=15';
+import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=16';
+import {labelSprite} from './util.js?v=16';
+import {medanBabak,xPalu,celahPintu,tinggiDuri,statusUbin,keadaanBola,kecBan,KIRI,KANAN,PAL_L,PAL_Y,PAL_A,PINTU_C,DURI_X,UBIN_W,UBIN_D,BOLA_R} from './medan.js?v=16';
 
 export const SY=.9,UB=UBAG*SY,WX=9;
 /* tiga gudang (kiri, tengah, kanan) dengan stok terbatas, satu pad kunci, satu sungai dengan jembatan di tengah */
-export const DEPOTS=[{x:-12.5,z:12.5,r:2.2,nama:'Kiri'},{x:0,z:13.6,r:2.2,nama:'Tengah'},{x:12.5,z:12.5,r:2.2,nama:'Kanan'}];
+export const DEPOTS=[{x:-12.5,z:14.5,r:2.2,nama:'Kiri'},{x:0,z:13.6,r:2.2,nama:'Tengah'},{x:12.5,z:14.5,r:2.2,nama:'Kanan'}];
 export const DEPOT=DEPOTS[0],PAD={x:7,z:16.8,r:2.2};
 export const SUNGAI={x0:-7.5,x1:7.5,z0:7.4,z1:11.2},JEMBATAN={x0:-1.2,x1:1.2};
 export const diAir=(x,z)=>x>SUNGAI.x0&&x<SUNGAI.x1&&z>SUNGAI.z0&&z<SUNGAI.z1&&!(x>JEMBATAN.x0&&x<JEMBATAN.x1);
@@ -181,6 +182,88 @@ export function buatArena(){
     const tanda=[['Jalur kiri',-12.5],['Jalur tengah',0],['Jalur kanan',12.5]];
     for(const [t,x] of tanda){const lb=labelSprite(t,{w:300,h:80,size:30,bg:'#fff6e4',sx:3.6});lb.position.set(x,1.6,3.2);grup.add(lb);}
   }
+  /* medan tambahan per babak: palu ayun (tengah), pintu geser dan duri (kiri), ban berjalan, lantai runtuh dan trampolin (kanan), bola menggelinding */
+  const logam=mat(0x6b7480),merah=mat(0xe5392b),oranye=mat(0xff8a3d),gelap=mat(0x1c2230);
+  const MD={palu:[],pintu:[],duri:[],ubin:[],lubang:[],bola:[],chev:[],lbl:{}};
+  let mSpec=medanBabak(0),chevOff=0;
+  for(let i=0;i<2;i++){
+    const g=new THREE.Group(),t1=new THREE.Mesh(new THREE.BoxGeometry(.3,PAL_Y+.4,.3),logam),t2=t1.clone(),bm=new THREE.Mesh(new THREE.BoxGeometry(2*(PAL_A+.9),.3,.3),logam);
+    t1.position.set(-PAL_A-.9,(PAL_Y+.4)/2,0);t2.position.set(PAL_A+.9,(PAL_Y+.4)/2,0);bm.position.set(0,PAL_Y+.15,0);
+    const ag=new THREE.BoxGeometry(.2,PAL_L,.2);ag.translate(0,-PAL_L/2,0);const lengan=new THREE.Mesh(ag,logam);lengan.position.set(0,PAL_Y,0);
+    const kepala=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.0,1.1),merah);kepala.position.set(0,-PAL_L,0);lengan.add(kepala);
+    g.add(t1,t2,bm,lengan);g.visible=false;grup.add(g);MD.palu.push({g,lengan});
+  }
+  {
+    const pg=new THREE.BoxGeometry(1,2.2,.9);
+    for(let i=0;i<2;i++){const m=new THREE.Mesh(pg,oranye);m.position.y=1.1;m.visible=false;grup.add(m);MD.pintu.push(m);}
+  }
+  for(let j=0;j<2;j++)for(let i=0;i<DURI_X.length;i++){
+    const g=new THREE.Group(),dasar=new THREE.Mesh(new THREE.CylinderGeometry(.85,.85,.05,14),gelap);dasar.position.y=.03;g.add(dasar);
+    const kn=new THREE.Group();
+    for(const [ox,oz] of [[-.35,-.2],[.35,-.2],[0,.3]]){const c=new THREE.Mesh(new THREE.ConeGeometry(.26,1.0,6),merah);c.position.set(ox,.5,oz);kn.add(c);}
+    g.add(kn);g.visible=false;grup.add(g);MD.duri.push({g,kn,j,i});
+  }
+  for(let n=0;n<6;n++){
+    const lb=new THREE.Mesh(new THREE.BoxGeometry(UBIN_W,.04,UBIN_D),gelap);lb.position.y=.03;lb.visible=false;grup.add(lb);MD.lubang.push(lb);
+    const u=new THREE.Mesh(new THREE.BoxGeometry(UBIN_W*.96,.18,UBIN_D*.96),mat(0xd9a45a));u.position.y=.1;u.visible=false;grup.add(u);MD.ubin.push(u);
+  }
+  for(let n=0;n<2;n++){
+    const b=new THREE.Mesh(new THREE.IcosahedronGeometry(BOLA_R,1),mat(0x8a8f98));b.visible=false;grup.add(b);
+    const w=new THREE.Mesh(new THREE.PlaneGeometry(BOLA_R*2,21),new THREE.MeshBasicMaterial({color:0xe5392b,transparent:true,opacity:.0,depthWrite:false}));
+    w.rotation.x=-Math.PI/2;w.position.set(0,.06,9);w.visible=false;grup.add(w);MD.bola.push({b,w});
+  }
+  /* ban berjalan: alas gelap dan panah yang bergulir */
+  const banAlas=new THREE.Mesh(new THREE.PlaneGeometry(KANAN.x1-KANAN.x0,2.6),new THREE.MeshBasicMaterial({color:0x4a4f5a}));
+  banAlas.rotation.x=-Math.PI/2;banAlas.position.set((KANAN.x0+KANAN.x1)/2,.05,10.7);grup.add(banAlas);
+  const chevG=new THREE.Group();grup.add(chevG);
+  {
+    const ga=new THREE.BoxGeometry(.8,.03,.16);
+    for(let k=0;k<20;k++){
+      const g=new THREE.Group(),a=new THREE.Mesh(ga,mat(0xffd96b)),b=new THREE.Mesh(ga,mat(0xffd96b));
+      a.position.set(-.25,0,-.25);a.rotation.y=-Math.PI/4;b.position.set(.25,0,-.25);b.rotation.y=Math.PI/4;g.add(a,b);g.position.y=.08;chevG.add(g);MD.chev.push(g);
+    }
+  }
+  const tramp=new THREE.Group();tramp.visible=false;grup.add(tramp);
+  {
+    const alas=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,.25,18),mat(0xe5392b)),atas=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.05,.06,18),mat(0xfff1d0));
+    alas.position.y=.13;atas.position.y=.28;tramp.add(alas,atas);
+  }
+  const labelMd=(k,t,x,y,z,sx)=>{const s=labelSprite(t,{w:330,h:90,size:30,bg:'#fff6e4',sx:sx||3.8});s.position.set(x,y,z);s.visible=false;grup.add(s);MD.lbl[k]=s;};
+  labelMd('palu','Palu ayun',0,5.4,9.3);labelMd('pintu','Pintu geser',PINTU_C,3.3,11.2);labelMd('duri','Duri',-11.2,2.2,8.4,2.6);
+  labelMd('ban','Ban berjalan',11.25,2.2,10.7);labelMd('ubin','Lantai runtuh',11.1,2.2,8.4);labelMd('tramp','Trampolin',4.6,2.6,12.6,3.2);
+  function setMedan(r){
+    mSpec=medanBabak(r);
+    MD.palu.forEach((o,i)=>{const p=mSpec.palu[i];o.g.visible=!!p;if(p)o.g.position.set(0,0,p.z);});
+    MD.pintu.forEach(m=>{m.visible=true;m.position.z=mSpec.pintu[0].z;});
+    MD.duri.forEach(o=>{const p=mSpec.duri[o.j];o.g.visible=!!p;if(p)o.g.position.set(DURI_X[o.i],0,p.z);});
+    MD.ubin.forEach((u,n)=>{const s=mSpec.ubin[n];u.visible=!!s;MD.lubang[n].visible=!!s;if(s){u.position.set(s.x,.1,s.z);MD.lubang[n].position.set(s.x,.03,s.z);}});
+    MD.bola.forEach((o,n)=>{const s=mSpec.bola[n];o.b.visible=false;o.w.visible=!!s;if(s){o.w.position.x=s.x;o.w.material.opacity=0;}});
+    if(mSpec.tramp){tramp.visible=true;tramp.position.set(mSpec.tramp.x,0,mSpec.tramp.z);}else tramp.visible=false;
+    MD.lbl.palu.visible=true;MD.lbl.pintu.visible=true;MD.lbl.ban.visible=true;
+    MD.lbl.duri.visible=mSpec.duri.length>0;MD.lbl.ubin.visible=mSpec.ubin.length>0;MD.lbl.tramp.visible=!!mSpec.tramp;
+  }
+  function animMedan(t,dt){
+    mSpec.palu.forEach((p,i)=>{const x=xPalu(p,t);MD.palu[i].lengan.rotation.z=Math.asin(Math.max(-1,Math.min(1,x/PAL_L)));});
+    {
+      const p=mSpec.pintu[0],g=celahPintu(p,t),izq=PINTU_C-g/2,dr=PINTU_C+g/2;
+      MD.pintu[0].scale.x=Math.max(.01,izq-KIRI.x0);MD.pintu[0].position.x=(KIRI.x0+izq)/2;
+      MD.pintu[1].scale.x=Math.max(.01,KIRI.x1-dr);MD.pintu[1].position.x=(dr+KIRI.x1)/2;
+    }
+    for(const o of MD.duri){const p=mSpec.duri[o.j];if(!p)continue;const h=tinggiDuri(p,o.i,t);o.kn.scale.y=Math.max(.001,h);
+      for(const c of o.kn.children)c.material=h>=.99?merah:(h>0?oranye:merah);}
+    mSpec.ubin.forEach((u,n)=>{const s=statusUbin(u,t),m=MD.ubin[n];m.visible=s!==2;m.material.color.setHex(s===1?(Math.sin(t*22)>0?0xe5392b:0xd9a45a):0xd9a45a);m.position.x=u.x+(s===1?Math.sin(t*60)*.04:0);});
+    mSpec.bola.forEach((b,n)=>{
+      const s=keadaanBola(b,t),o=MD.bola[n];o.b.visible=s.fase==='gulir';
+      if(s.fase==='gulir'){o.b.position.set(b.x,BOLA_R,s.z);o.b.rotation.x=s.z/BOLA_R;}
+      o.w.material.opacity=s.fase==='peringatan'?(.18+.18*Math.abs(Math.sin(t*8))):(s.fase==='gulir'?.1:0);
+    });
+    const v=kecBan(mSpec,t);chevOff=(chevOff+Math.abs(v)*dt)%2.6;const L=2.6,N=5,sp=L/N;
+    chevG.rotation.y=v<0?Math.PI:0;chevG.position.set((KANAN.x0+KANAN.x1)/2,0,10.7);
+    MD.chev.forEach((g,k)=>{
+      const col=k%4,row=Math.floor(k/4),zl=((row*sp+chevOff)%L)-L/2;
+      g.position.set((col-1.5)*1.7,.08,zl);
+    });
+  }
   /* gelondong rintangan: gerak ditentukan jam dinding sehingga sama di semua perangkat */
   const gelondong=[];
   const geoG=new THREE.CylinderGeometry(.55,.55,1.3,12);geoG.rotateX(Math.PI/2);
@@ -200,7 +283,7 @@ export function buatArena(){
     grup,
     setBabak(o){nKol=o.n;gambarDinding(o);bangunPelat(o.n,o.xs);},
     setWarna(w){warna=w;for(const b of tumpuk)b.material.color.set(w);},
-    setStok,
+    setStok,setMedan,animMedan,
     setBags,setBawa,setRintangan,animRintangan,
     sorot(i){for(const p of pelat)p.material.color.set(p.userData.i===i?0xffd96b:0xffffff);},
     airAnim(t){const r=grup.userData.air&&grup.userData.air.userData.riak;if(r){r.position.z=(SUNGAI.z0+SUNGAI.z1)/2+Math.sin(t*.9)*(SUNGAI.z1-SUNGAI.z0)*.4;}},
