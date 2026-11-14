@@ -1,16 +1,16 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=25';
-import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=25';
-import * as P1 from './pos1.js?v=25';
-import * as AR from './arena.js?v=25';
-import {buatArena,kolomDari,uTembus} from './arena.js?v=25';
-import {buatArena2,gambarSandi} from './arena2.js?v=25';
-import * as P2 from './pos2.js?v=25';
-import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=25';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=25';
-import {labelSprite,buangSprite,klem} from './util.js?v=25';
-import {M1,M2} from './medan.js?v=25';
+import {sambung} from './rt.js?v=26';
+import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=26';
+import * as P1 from './pos1.js?v=26';
+import * as AR from './arena.js?v=26';
+import {buatArena,kolomDari,uTembus} from './arena.js?v=26';
+import {buatArena2,gambarSandi} from './arena2.js?v=26';
+import * as P2 from './pos2.js?v=26';
+import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=26';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=26';
+import {labelSprite,buangSprite,klem} from './util.js?v=26';
+import {M1,M2} from './medan.js?v=26';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
 let W=M1;

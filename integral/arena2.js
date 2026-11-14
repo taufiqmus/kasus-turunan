@@ -1,9 +1,9 @@
 /* Arena Pos 2 "Ngarai Kuil": dunia umum dari dunia3d.js (tema gurun) ditambah fasad kuil dengan prasasti sandi,
    altar notasi integral di plaza (slot batu), rak batu sandi di tiap kamp, dan batu yang dibawa pemain. */
 import * as THREE from './vendor/three.min.js';
-import {M2} from './medan.js?v=25';
-import {buatDunia,TEMA_GURUN,mat,tulisanLantai} from './dunia3d.js?v=25';
-import {soal,tata,batuKamp,teksBatu} from './pos2.js?v=25';
+import {M2} from './medan.js?v=26';
+import {buatDunia,TEMA_GURUN,mat,tulisanLantai} from './dunia3d.js?v=26';
+import {soal,tata,batuKamp,teksBatu} from './pos2.js?v=26';
 
 /* gambar prasasti: grafik daerah berarsir atau cerita. Dipakai juga untuk kartu kecil di HUD dan ulasan. */
 export function gambarSandi(cv,r,opsi={}){
@@ -42,9 +42,13 @@ export function gambarSandi(cv,r,opsi={}){
   K.forEach((p,i)=>{
     /* kurva digambar sedikit melewati daerah supaya bentuknya terbaca, lalu diberi label rumus */
     const x0=K.length>1?p.a:Math.max(0,p.a-.6),x1=K.length>1?p.b:Math.min(xm,p.b+.6);
-    g.strokeStyle='#b8321c';g.lineWidth=Math.max(2,9*k);g.beginPath();
-    for(let j=0;j<=60;j++){const x=x0+(x1-x0)*j/60,y=Math.min(ym*1.05,p.f(x));j?g.lineTo(X(x),Yp(y)):g.moveTo(X(x),Yp(y));}
-    g.stroke();
+    /* hanya bagian kurva di dalam bidang grafik (0 <= y <= ym) yang digambar; garis putus bila keluar */
+    g.save();g.beginPath();g.rect(L,T,R-L,B-T);g.clip();
+    g.strokeStyle='#b8321c';g.lineWidth=Math.max(2,9*k);g.lineJoin='round';g.beginPath();
+    let naik=false;
+    for(let j=0;j<=120;j++){const x=x0+(x1-x0)*j/120,y=p.f(x),ok=y>=-1e-9&&y<=ym;
+      if(ok){naik?g.lineTo(X(x),Yp(y)):g.moveTo(X(x),Yp(y));naik=true;}else naik=false;}
+    g.stroke();g.restore();
     const xl=(p.a+p.b)/2,yl=Math.min(ym*.92,p.f(xl)+ym*.12);
     g.font='800 '+Math.round(56*k)+'px "Bricolage Grotesque",sans-serif';g.textAlign='center';g.textBaseline='bottom';
     g.lineWidth=Math.max(2,10*k);g.strokeStyle='#f4e3c1';g.strokeText(p.lab,X(xl),Yp(yl));g.fillStyle='#b8321c';g.fillText(p.lab,X(xl),Yp(yl));
