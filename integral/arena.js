@@ -32,7 +32,14 @@ export function buatArena(){
     g.fillStyle='#fff6e4';g.fillRect(0,0,WW,HH);
     g.strokeStyle='#e5dcc6';g.lineWidth=2;g.fillStyle='#1c2230';g.font='700 26px "Chakra Petch",sans-serif';
     g.textAlign='right';g.textBaseline='middle';
-    for(let y=0;y<=9;y+=1){g.beginPath();g.moveTo(px(-WX),py(y*SY));g.lineTo(px(WX),py(y*SY));g.stroke();if(y%3===0)g.fillText(String(y),px(-WX)-12,py(y*SY));}
+    /* satu petak vertikal = satu balok (0,5 satuan data); garis tebal tiap 1 satuan berlabel */
+    for(let y=0;y<=9;y+=UBAG){
+      const mayor=Number.isInteger(y);
+      g.strokeStyle=mayor?'#cdbf9c':'#eadfc6';g.lineWidth=mayor?3:2;
+      g.beginPath();g.moveTo(px(-WX),py(y*SY));g.lineTo(px(WX),py(y*SY));g.stroke();
+      if(mayor)g.fillText(String(y),px(-WX)-12,py(y*SY));
+    }
+    g.fillStyle='#1c2230';
     g.textAlign='center';g.textBaseline='top';
     for(let x=0;x<=XMAX;x++){g.fillText(String(x),px(-WX+x*2*WX/XMAX),py(0)+8);}
     /* daerah di bawah kurva */
@@ -71,7 +78,7 @@ export function buatArena(){
   function setBags(cnt){
     const n=cnt.length,w=2*WX/n*.9;let k=0;
     for(let i=0;i<n;i++)for(let j=0;j<cnt[i];j++){
-      P.set(kolX(n,i),(j+.5)*UB,-1);S.set(w,UB*.94,.8);M.compose(P,Q,S);bag.setMatrixAt(k,M);
+      P.set(kolX(n,i),(j+.5)*UB,-1.7);S.set(w,UB*.97,.5);M.compose(P,Q,S);bag.setMatrixAt(k,M);
       C.set(warna);if(j%2)C.lerp(new THREE.Color(1,1,1),.28);bag.setColorAt(k,C);k++;
     }
     bag.count=k;bag.instanceMatrix.needsUpdate=true;if(bag.instanceColor)bag.instanceColor.needsUpdate=true;

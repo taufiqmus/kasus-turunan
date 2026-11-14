@@ -45,7 +45,7 @@ export function gambarMini(cv,st,warna){
   const X=x=>pl+x/XMAX*(W-pl-pr),Y=y=>H-pb-y/YMAX*(H-pb-pt);
   g.clearRect(0,0,W,H);g.fillStyle='#fffdf6';g.fillRect(0,0,W,H);
   g.strokeStyle='#e5dcc6';g.lineWidth=1;g.fillStyle='#1c2230';g.font='10px sans-serif';g.textAlign='right';g.textBaseline='middle';
-  for(let y=0;y<=YMAX;y+=3){g.beginPath();g.moveTo(X(0),Y(y));g.lineTo(X(XMAX),Y(y));g.stroke();g.fillText(String(y),pl-3,Y(y));}
+  for(let y=0;y<=9;y+=UBAG){g.beginPath();g.moveTo(X(0),Y(y));g.lineTo(X(XMAX),Y(y));g.stroke();if(y%3===0)g.fillText(String(y),pl-3,Y(y));}
   for(let i=0;i<n;i++){
     const h=c[i]*UBAG,x0=X(i*dx),x1=X((i+1)*dx);
     g.fillStyle=warna+'bb';g.fillRect(x0,Y(h),x1-x0,Y(0)-Y(h));
