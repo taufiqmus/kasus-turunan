@@ -1,24 +1,24 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=29';
-import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=29';
-import * as P1 from './pos1.js?v=29';
-import * as AR from './arena.js?v=29';
-import {buatArena,kolomDari,uTembus} from './arena.js?v=29';
-import {buatArena2,gambarSandi} from './arena2.js?v=29';
-import * as P2 from './pos2.js?v=29';
-import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=29';
-import * as P3 from './pos3.js?v=29';
-import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=29';
-import * as P4 from './pos4.js?v=29';
-import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=29';
-import * as P5 from './pos5.js?v=29';
-import {buatArena6,gambarFinal} from './arena6.js?v=29';
-import * as P6 from './pos6.js?v=29';
-import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=29';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=29';
-import {labelSprite,buangSprite,klem} from './util.js?v=29';
-import {M1,M2,M3,M4,M5,M6} from './medan.js?v=29';
+import {sambung} from './rt.js?v=30';
+import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=30';
+import * as P1 from './pos1.js?v=30';
+import * as AR from './arena.js?v=30';
+import {buatArena,kolomDari,uTembus} from './arena.js?v=30';
+import {buatArena2,gambarSandi} from './arena2.js?v=30';
+import * as P2 from './pos2.js?v=30';
+import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=30';
+import * as P3 from './pos3.js?v=30';
+import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=30';
+import * as P4 from './pos4.js?v=30';
+import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=30';
+import * as P5 from './pos5.js?v=30';
+import {buatArena6,gambarFinal} from './arena6.js?v=30';
+import * as P6 from './pos6.js?v=30';
+import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=30';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=30';
+import {labelSprite,buangSprite,klem} from './util.js?v=30';
+import {M1,M2,M3,M4,M5,M6} from './medan.js?v=30';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
 let W=M1;
@@ -32,6 +32,9 @@ const POS_AKTIF=6;
 const POS=['Tambal Waduk','Rakit Sandi','Mesin Putar Balik','Misteri Tangki','Brankas Batas','Puncak Final'];
 const SPD=7,RMAX=95,RZ=62,SPRINT=1.8;
 const Q=new URLSearchParams(location.search);
+/* HP: layar sentuh (atau ?hp=1 untuk uji). Mengatur tata letak ringkas, kamera lebih dekat, getar, layar tetap menyala */
+const HP=Q.has('hp')||matchMedia('(pointer:coarse)').matches;
+document.body.classList.toggle('hp',HP);
 
 /* ---------- profil dan pembuat karakter ---------- */
 let profil={nama:'',tim:TIM[Math.floor(Math.random()*TIM.length)].id,av:acakAv()};
@@ -839,18 +842,21 @@ function pakaiBoost(){
   if(boostPilih&&saldo()>=BOOST[boostPilih].k){koinPakai+=BOOST[boostPilih].k;try{localStorage.setItem('ki-pakai',String(koinPakai));}catch(e){}boostAktif=boostPilih;}
   boostPilih=null;boostKey='';
 }
+let boostBuka=false;
 function boostUI(){
   const box=$('boost'),tampil=me.a>=1&&fAktif()===0&&!selesaiAktif()&&$('roda').hidden&&!(me.a>=2&&W.diKamp(me.x,me.z)>=0);
   box.hidden=!tampil;
-  const kunci=tampil+'|'+boostPilih+'|'+saldo();
+  const kunci=tampil+'|'+boostPilih+'|'+saldo()+'|'+boostBuka;
   $(me.a>=2?'a2-boost':'ar-boost').textContent=boostAktif?BOOST[boostAktif].n:(boostPilih?BOOST[boostPilih].n+' (siap)':'-');
   if(!tampil||kunci===boostKey)return;boostKey=kunci;
   box.textContent='';
+  if(HP&&!boostBuka){const b=document.createElement('button');b.type='button';b.className='btn alt lipat';b.textContent=(boostPilih?'Boost: '+BOOST[boostPilih].n:'Pilih boost')+' (koin '+saldo()+')';
+    b.addEventListener('click',()=>{boostBuka=true;boostKey='';boostUI();});box.append(b);return;}
   const j=document.createElement('div');j.className='bj';j.textContent='Boost satu babak (koin '+saldo()+')';box.append(j);
   for(const k in BOOST){
     const o=BOOST[k],b=document.createElement('button');b.type='button';b.className='btn alt';b.disabled=saldo()<o.k||(me.a>=2&&k==='g');
     b.setAttribute('aria-pressed',String(boostPilih===k));b.textContent=o.n+' '+o.k+'k';b.title=o.d;
-    b.addEventListener('click',()=>{boostPilih=boostPilih===k?null:k;boostKey='';boostUI();});box.append(b);
+    b.addEventListener('click',()=>{boostPilih=boostPilih===k?null:k;boostBuka=false;boostKey='';boostUI();});box.append(b);
   }
 }
 /* ---------- koin dan peta mini ---------- */
@@ -954,7 +960,7 @@ cv.addEventListener('pointerdown',e=>{
   cv.setPointerCapture(e.pointerId);
   let mode='cam';
   if(e.pointerType!=='mouse'&&e.clientX<innerWidth*.45&&joy.id===null){
-    mode='joy';joy.id=e.pointerId;joy.ox=e.clientX;joy.oy=e.clientY;joy.x=joy.y=0;
+    mode='joy';if(!$('joy-tips').hidden){$('joy-tips').hidden=true;try{localStorage.setItem('ki-joy','1');}catch(_){}}joy.id=e.pointerId;joy.ox=e.clientX;joy.oy=e.clientY;joy.x=joy.y=0;
     const j=$('joy');j.hidden=false;j.style.left=e.clientX+'px';j.style.top=e.clientY+'px';j.firstElementChild.style.transform='';
   }
   ptr.set(e.pointerId,{x:e.clientX,y:e.clientY,mode});
@@ -1088,13 +1094,16 @@ function tampilRev(r,c,w,h){
   $('rev-ok').onclick=()=>{revBuka=false;$('rev').hidden=true;if(selesai(st))bukaHasil();};
 }
 let tAksi=0;
+let idTekan=0;
 function aksiMulai(){
+  idTekan++;
   if(!me||blok())return;
   if(me.a===0){if(!$('aksi').hidden&&gerbangDekat)setArea(gerbangDekat.i+1);}else tahan=true;
 }
 let gerbangDekat=null;
 let modeAksi=0; /* 1 = taruh, 2 = ambil kembali; ditentukan saat tombol mulai ditahan */
-function aksiAkhir(){tahan=false;modeAksi=0;}
+/* ketukan singkat di HP: lepas baru berlaku setelah dua bingkai, supaya ketukan tetap terbaca */
+function aksiAkhir(){const i=idTekan;requestAnimationFrame(()=>requestAnimationFrame(()=>{if(i===idTekan){tahan=false;modeAksi=0;}}));}
 {
   const b=$('aksi');
   b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);aksiMulai();});
@@ -1108,7 +1117,7 @@ function ubahKolom(col,d){
 }
 function tabrak(now,h){
   if(boostAktif==='p'){boostAktif=null;tabrakTil=now+1600;toast('Perisai menahan tabrakan! ('+h.msg.replace('!','')+')');boostUI();return;}
-  const ada=me.carry;me.carry=0;me.tiles=[];stunTil=now+800;tabrakTil=now+1600;
+  const ada=me.carry;me.carry=0;me.tiles=[];stunTil=now+800;tabrakTil=now+1600;getar(90);
   kb=titikMundur(h.mundur||3);me.vx=me.vz=0;kotor=true;
   toast(h.msg+(ada?(me.a===2?' Batu sandi jatuh.':' Balok jatuh.'):'')+(h.j==='ubin'||h.j==='palu'||h.j==='pintu'?'':' Lompat untuk menghindar.'));
 }
@@ -1337,8 +1346,21 @@ $('b-masuk').addEventListener('click',()=>{
   setInterval(async()=>{if(!rt||rt.mode!=='daring'||document.hidden)return;const p=await rt.ping();if(p!=null){aud.ping=p;aud.pings.push(p);if(aud.pings.length>60)aud.pings.shift();}},8000);
   setInterval(()=>{laporPapan(false);gambarPapan();selaraskanLuar();const ct=$('c-tim');if(ct.lastChild)ct.lastChild.textContent='Tim '+timById(saya.tim).nama+' · '+(1+anggota().length);},1500);
   mulai=true;gambarPapan();setPre(0);$('b-lompat').hidden=false;$('peta').hidden=false;$('c-koin').hidden=false;$('b-pos').hidden=false;toast('Pos 1 ada di titik oranye pada peta mini. Atau tekan Ke Pos 1.');$('stam').hidden=false;$('b-lari').hidden=false;
-  toast('Geser layar kiri untuk berjalan, geser kanan untuk memutar kamera. Dekati gerbang Pos 1.');
+  toast(HP?'Geser sisi kiri layar untuk berjalan, sisi kanan untuk memutar kamera. Cubit untuk zoom.':'Geser layar kiri untuk berjalan, geser kanan untuk memutar kamera. Dekati gerbang Pos 1.');
+  if(HP){let sudah=false;try{sudah=!!localStorage.getItem('ki-joy');}catch(_){}$('joy-tips').hidden=sudah;jagaLayar();
+    if(innerHeight>innerWidth)setTimeout(()=>{if(innerHeight>innerWidth)toast('Tips: putar HP mendatar agar pandangan lebih luas.');},6000);}
 });
+/* ---------- kenyamanan HP ---------- */
+function getar(ms){if(HP&&navigator.vibrate)try{navigator.vibrate(ms);}catch(e){}}
+let kunciLayar=null;
+async function jagaLayar(){try{if('wakeLock' in navigator&&!document.hidden&&!kunciLayar){kunciLayar=await navigator.wakeLock.request('screen');kunciLayar.addEventListener('release',()=>{kunciLayar=null;});}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(HP&&mulai&&!document.hidden)jagaLayar();});
+$('b-menu').addEventListener('click',()=>{const L=$('lhud'),b=!L.classList.contains('buka');L.classList.toggle('buka',b);$('b-menu').setAttribute('aria-expanded',String(b));$('b-menu').textContent=b?'Tutup':'Menu';if(!b){$('grafis').hidden=true;$('audit').hidden=true;}});
+$('b-layar').addEventListener('click',async()=>{
+  try{if(document.fullscreenElement)await document.exitFullscreen();else{await document.documentElement.requestFullscreen({navigationUI:'hide'});try{await screen.orientation.lock('landscape');}catch(e){}}}catch(e){toast('Layar penuh tidak didukung peramban ini.');}
+});
+document.addEventListener('fullscreenchange',()=>{$('b-layar').textContent=document.fullscreenElement?'Keluar layar penuh':'Layar penuh';});
+for(const id of ['ar2','arhud']){const el=$(id);if(HP)el.classList.add('ringkas');el.addEventListener('click',()=>{if(HP)el.classList.toggle('ringkas');});}
 function pemainBaru0(){
   const p=pemainBaru({id:saya.id,nama:saya.nama,tim:saya.tim,av:kodeAv(saya.av)},false);
   tim.delete(saya.id);p.x=(Math.random()-.5)*8;p.z=8+Math.random()*4;p.carry=0;p.tiles=[];return p;
@@ -1567,14 +1589,14 @@ function frame(now){
   }
   /* kamera */
   const k=Math.min(1,dt*8);C.d+=(C.td-C.d)*k;if(!fp())C.p+=(C.tp-C.p)*k;
-  const ks=cam.aspect<1?1.55:1,sp=Math.sin(C.p),cp=Math.cos(C.p);
+  const ks=cam.aspect<1?(HP?1.35:1.55):(HP?.85:1),sp=Math.sin(C.p),cp=Math.cos(C.p);
   if(!mulai){
     const y=t*.1;cam.position.set(tx+Math.sin(y)*28,14,tz+Math.cos(y)*28);cam.lookAt(tx,1,tz);
   }else if(fp()&&C.d<1.5){
     const jy=me.grp.position.y;cam.position.set(me.x,2.7+jy,me.z);
     cam.lookAt(me.x-Math.sin(C.yaw)*cp,2.7+jy-sp,me.z-Math.cos(C.yaw)*cp);
   }else{
-    const ar=mulai&&me.a>=1,D=C.d*ks*(ar?1.6:1),oy=(ar?2:1.2)+kamY;
+    const ar=mulai&&me.a>=1,D=C.d*ks*(ar?(HP?1.35:1.6):1),oy=(ar?2:1.2)+kamY;
     kamP.set(tx+D*Math.sin(C.yaw)*cp,oy+D*sp,tz+D*Math.cos(C.yaw)*cp);
     if(ar){kamP.x=klem(kamP.x,W.DUNIA.x0+1,W.DUNIA.x1-1);kamP.z=klem(kamP.z,-1.4,W.DUNIA.z1-1);kamP.y=Math.max(kamP.y,W.tinggiTanah(kamP.x,kamP.z)+1.4);}
     cam.position.copy(kamP);cam.lookAt(tx,oy,tz);

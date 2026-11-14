@@ -2,7 +2,7 @@
    gerbang, koin, dan semua rintangan. Isi khusus tiap pos (bendungan, kuil, kolom, altar) ditambah oleh modul pos.
    W = dunia dari medan.js, T = tema warna dan tumbuhan. */
 import * as THREE from './vendor/three.min.js';
-import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=29';
+import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=30';
 
 export const mat=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
 /* tumbuhan dan batu yang menutupi pemain dari kamera dibuat tembus pandang berbintik, supaya karakter selalu terlihat.

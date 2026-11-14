@@ -108,6 +108,59 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 .lchip,#b-kam,#b-keluar,#b-audit,#b-grafis,#b-pos{font-size:11px;padding:4px 7px;white-space:nowrap}
 #boost,#pilih{bottom:calc(env(safe-area-inset-bottom,0px) + 190px)}
 }
+
+/* ===== kenyamanan HP (body.hp: layar sentuh) ===== */
+#b-menu,#b-layar{display:none;pointer-events:auto}
+body.hp{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+body.hp button{touch-action:manipulation}
+body.hp #b-menu{display:inline-block}
+body.hp #b-kam,body.hp #b-grafis,body.hp #b-audit{display:none}
+body.hp #lhud.buka #b-kam,body.hp #lhud.buka #b-grafis,body.hp #lhud.buka #b-audit,body.hp #lhud.buka #b-layar{display:inline-block}
+body.hp #lhud{flex-wrap:wrap;row-gap:6px}
+body.hp #lhud.buka~#peta,body.hp #lhud.buka~#stam{visibility:hidden}
+body.hp #lhud.buka{background:rgba(255,246,228,.0)}
+body.hp .lchip,body.hp #lhud .btn{font-size:12px;padding:5px 9px}
+body.hp #c-ruang{display:none}
+body.hp #arhud,body.hp #ar2{pointer-events:auto;cursor:pointer;top:calc(env(safe-area-inset-top,0px) + 50px);width:min(178px,44vw);padding:6px 8px;gap:3px;font-size:12px}
+body.hp #arhud::after,body.hp #ar2::after{content:'ketuk: ringkas';font-size:10px;opacity:.6;text-align:center}
+body.hp #arhud.ringkas::after,body.hp #ar2.ringkas::after{content:'ketuk: detail'}
+body.hp #ar2.ringkas canvas,body.hp #ar2.ringkas p,body.hp #ar2.ringkas .r:not(:first-child):not(.wkt),body.hp #arhud.ringkas canvas,body.hp #arhud.ringkas p,body.hp #arhud.ringkas .r:not(:first-child):not(.wkt){display:none}
+body.hp #peta{top:calc(env(safe-area-inset-top,0px) + 50px);width:96px;height:96px}
+body.hp #stam{top:calc(env(safe-area-inset-top,0px) + 152px)}
+body.hp #grafis,body.hp #audit{top:calc(env(safe-area-inset-top,0px) + 92px)}
+body.hp #ltoast{top:calc(env(safe-area-inset-top,0px) + 50px);bottom:auto;max-width:min(92vw,460px);font-size:13px;z-index:4}
+body.hp #aksi{font-size:18px;min-height:54px;padding:10px 22px}
+body.hp #boost .btn{padding:8px}
+#boost .lipat{grid-column:1/-1;font-size:13px;padding:7px 10px}
+#joy-tips{position:fixed;z-index:2;left:calc(env(safe-area-inset-left,0px) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 40px);width:118px;height:118px;border:3px dashed rgba(28,34,48,.5);border-radius:50%;background:rgba(255,246,228,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:12px;font-weight:700;color:#1c2230;pointer-events:none;line-height:1.2}
+#joy-tips[hidden]{display:none}
+#roda-cv{width:min(360px,80vw,52vh)}
+#rev-cv{width:auto;max-width:100%;max-height:34vh;display:block;margin:0 auto}
+@media (orientation:landscape) and (max-height:520px){
+  .modal .card,#hasil .card{padding:10px}
+  .modal h2,#hasil h2{font-size:18px;margin:2px 0}
+  #rev-t{font-size:13px}#rev-t .r{padding:1px 0}
+  #hasil .card{width:min(720px,100%)}
+  #pilih,#boost{bottom:calc(env(safe-area-inset-bottom,0px) + 84px);width:min(52vw,560px);left:55%}
+  #roda .card{width:min(680px,100%);display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center;text-align:left}
+  #roda .card>h2,#roda .card>p,#roda .card>button{grid-column:2}#roda-cv{grid-column:1;grid-row:1/span 5;width:min(300px,70vh)}
+  #roda .card>button{justify-self:start}
+  #rev .card{width:min(780px,100%);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2px 14px;align-items:start;text-align:left}
+  #rev .card>h2{grid-column:1/-1}#rev-cv{grid-column:1;grid-row:2/span 3;max-height:62vh}
+  #rev-t,#rev-p,#rev .card>button{grid-column:2}#rev-p{font-size:13px;margin:4px 0}#rev .card>button{justify-self:start}
+  #pilih .btn.opsi{flex-basis:calc(50% - 3px);font-size:13px;padding:6px 10px}
+  #pilih .bj.soal{font-size:13px;padding:6px 9px}
+  #boost{grid-template-columns:repeat(4,1fr)}
+  body.hp #aksi{bottom:calc(env(safe-area-inset-bottom,0px) + 14px);min-height:48px}
+  body.hp #arhud,body.hp #ar2{width:min(178px,24vw)}
+  #hitung{font-size:90px}
+  .screen>.wrap{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}
+  #masuk h1{font-size:40px}
+}
+@media (orientation:portrait) and (max-width:560px){
+  body.hp #pilih,body.hp #boost{bottom:calc(env(safe-area-inset-bottom,0px) + 176px)}
+  body.hp #b-lari{bottom:calc(env(safe-area-inset-bottom,0px) + 110px)}
+}
 </style>
 </head>
 <body>
@@ -143,6 +196,8 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <span class="sp"></span>
   <button class="btn alt" id="b-keluar" type="button" hidden>Keluar pos</button>
   <button class="btn alt" id="b-pos" type="button" hidden>Ke Pos</button>
+  <button class="btn alt" id="b-menu" type="button" aria-expanded="false">Menu</button>
+  <button class="btn alt" id="b-layar" type="button">Layar penuh</button>
   <button class="btn alt" id="b-kam" type="button">Ikuti</button>
   <button class="btn alt" id="b-grafis" type="button">Grafis</button>
   <button class="btn alt" id="b-audit" type="button">Audit</button>
@@ -152,7 +207,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 <div class="card" id="arhud" hidden>
   <div class="r"><span id="ar-babak">Babak 1/3</span><span id="ar-bawa">Bawa 0/2</span></div>
   <canvas id="mini" width="320" height="184"></canvas>
-  <div class="r"><span>Waktu</span><span id="ar-waktu">-</span></div>
+  <div class="r wkt"><span>Waktu</span><span id="ar-waktu">-</span></div>
   <div class="r"><span>Rumus</span><span id="ar-rumus">-</span></div>
   <div class="r"><span>Titik</span><span id="ar-titik">-</span></div>
   <div class="r"><span>Boost</span><span id="ar-boost">-</span></div>
@@ -162,7 +217,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 <div class="card" id="ar2" hidden>
   <div class="r"><span id="a2-babak">Babak 1/3</span><span id="a2-isi">0/4</span></div>
   <canvas id="a2-cv" width="480" height="276"></canvas>
-  <div class="r"><span>Waktu</span><span id="a2-waktu">-</span></div>
+  <div class="r wkt"><span>Waktu</span><span id="a2-waktu">-</span></div>
   <div class="r"><span>Bawa</span><span id="a2-bawa" class="tb">-</span></div>
   <div class="r"><span>Boost</span><span id="a2-boost">-</span></div>
   <div class="r"><span>Siap di pad</span><span id="a2-siap">0/1</span></div>
@@ -177,6 +232,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 <div id="ltoast" hidden></div>
 <div id="hitung" hidden></div>
 <div id="joy" hidden><i></i></div>
+<div id="joy-tips" hidden><b>Geser di sini</b>untuk berjalan</div>
 
 <div class="card" id="grafis" hidden>
   <h2>Grafis</h2>
@@ -238,6 +294,6 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 </div>
 
 <script src="./vendor/supabase.js"></script>
-<script type="module" src="lobi.js?v=29"></script>
+<script type="module" src="lobi.js?v=30"></script>
 </body>
 </html>
