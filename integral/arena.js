@@ -1,9 +1,9 @@
 /* Arena Pos 1: lantai, dinding berkurva, kolom balok, gudang balok, pad kunci.
    Dunia arena memakai titik asal yang sama dengan lobi, kelompoknya dinyalakan saat pemain masuk. */
 import * as THREE from './vendor/three.min.js';
-import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=16';
-import {labelSprite} from './util.js?v=16';
-import {medanBabak,xPalu,celahPintu,tinggiDuri,statusUbin,keadaanBola,kecBan,KIRI,KANAN,PAL_L,PAL_Y,PAL_A,PINTU_C,DURI_X,UBIN_W,UBIN_D,BOLA_R} from './medan.js?v=16';
+import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=17';
+import {labelSprite} from './util.js?v=17';
+import {medanBabak,xPalu,celahPintu,tinggiDuri,statusUbin,keadaanBola,kecBan,KIRI,KANAN,PAL_L,PAL_Y,PAL_A,PINTU_C,DURI_X,UBIN_W,UBIN_D,BOLA_R} from './medan.js?v=17';
 
 export const SY=.9,UB=UBAG*SY,WX=9;
 /* tiga gudang (kiri, tengah, kanan) dengan stok terbatas, satu pad kunci, satu sungai dengan jembatan di tengah */
@@ -158,7 +158,7 @@ export function buatArena(){
   cp.rotation.x=-Math.PI/2;cp.position.y=.04;pad.add(cp);
   const cr=new THREE.Mesh(new THREE.RingGeometry(PAD.r-.3,PAD.r,28),new THREE.MeshBasicMaterial({color:0x1c2230,side:THREE.DoubleSide}));
   cr.rotation.x=-Math.PI/2;cr.position.y=.05;pad.add(cr);
-  const lp=labelSprite('Pad kunci\n(semua berdiri di sini)',{w:420,h:120,size:32,bg:'#fff6e4',sx:5});lp.position.set(0,3.6,0);pad.add(lp);
+  const lp=labelSprite('Pad kunci',{w:300,h:80,size:32,bg:'#fff6e4',sx:3});lp.position.set(0,3.6,0);pad.add(lp);
 
   /* sungai dengan satu jembatan sempit di tengah */
   {
@@ -175,12 +175,12 @@ export function buatArena(){
       pl.position.set(0,.12,SUNGAI.z0-.4+(k+.5)*(d+.8)/8);grup.add(pl);
     }
     for(const sx of [-1,1]){const rl=new THREE.Mesh(new THREE.BoxGeometry(.12,.5,d+.8),mat(0x6b4a26));rl.position.set(sx*(jw/2+.06),.4,cz);grup.add(rl);}
-    const lb=labelSprite('Sungai\n(lewat jembatan)',{w:360,h:110,size:30,bg:'#fff6e4',sx:4.6});lb.position.set(-5.2,2.2,cz);grup.add(lb);
+    
   }
   /* penanda jalur di lantai */
   {
     const tanda=[['Jalur kiri',-12.5],['Jalur tengah',0],['Jalur kanan',12.5]];
-    for(const [t,x] of tanda){const lb=labelSprite(t,{w:300,h:80,size:30,bg:'#fff6e4',sx:3.6});lb.position.set(x,1.6,3.2);grup.add(lb);}
+    
   }
   /* medan tambahan per babak: palu ayun (tengah), pintu geser dan duri (kiri), ban berjalan, lantai runtuh dan trampolin (kanan), bola menggelinding */
   const logam=mat(0x6b7480),merah=mat(0xe5392b),oranye=mat(0xff8a3d),gelap=mat(0x1c2230);
@@ -228,7 +228,7 @@ export function buatArena(){
     const alas=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,.25,18),mat(0xe5392b)),atas=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.05,.06,18),mat(0xfff1d0));
     alas.position.y=.13;atas.position.y=.28;tramp.add(alas,atas);
   }
-  const labelMd=(k,t,x,y,z,sx)=>{const s=labelSprite(t,{w:330,h:90,size:30,bg:'#fff6e4',sx:sx||3.8});s.position.set(x,y,z);s.visible=false;grup.add(s);MD.lbl[k]=s;};
+  const labelMd=(k,t,x,y,z,sx)=>{};
   labelMd('palu','Palu ayun',0,5.4,9.3);labelMd('pintu','Pintu geser',PINTU_C,3.3,11.2);labelMd('duri','Duri',-11.2,2.2,8.4,2.6);
   labelMd('ban','Ban berjalan',11.25,2.2,10.7);labelMd('ubin','Lantai runtuh',11.1,2.2,8.4);labelMd('tramp','Trampolin',4.6,2.6,12.6,3.2);
   function setMedan(r){
@@ -239,8 +239,6 @@ export function buatArena(){
     MD.ubin.forEach((u,n)=>{const s=mSpec.ubin[n];u.visible=!!s;MD.lubang[n].visible=!!s;if(s){u.position.set(s.x,.1,s.z);MD.lubang[n].position.set(s.x,.03,s.z);}});
     MD.bola.forEach((o,n)=>{const s=mSpec.bola[n];o.b.visible=false;o.w.visible=!!s;if(s){o.w.position.x=s.x;o.w.material.opacity=0;}});
     if(mSpec.tramp){tramp.visible=true;tramp.position.set(mSpec.tramp.x,0,mSpec.tramp.z);}else tramp.visible=false;
-    MD.lbl.palu.visible=true;MD.lbl.pintu.visible=true;MD.lbl.ban.visible=true;
-    MD.lbl.duri.visible=mSpec.duri.length>0;MD.lbl.ubin.visible=mSpec.ubin.length>0;MD.lbl.tramp.visible=!!mSpec.tramp;
   }
   function animMedan(t,dt){
     mSpec.palu.forEach((p,i)=>{const x=xPalu(p,t);MD.palu[i].lengan.rotation.z=Math.asin(Math.max(-1,Math.min(1,x/PAL_L)));});
