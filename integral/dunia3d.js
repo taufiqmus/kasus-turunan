@@ -2,7 +2,7 @@
    gerbang, koin, dan semua rintangan. Isi khusus tiap pos (bendungan, kuil, kolom, altar) ditambah oleh modul pos.
    W = dunia dari medan.js, T = tema warna dan tumbuhan. */
 import * as THREE from './vendor/three.min.js';
-import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=28';
+import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=29';
 
 export const mat=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
 /* tumbuhan dan batu yang menutupi pemain dari kamera dibuat tembus pandang berbintik, supaya karakter selalu terlihat.
@@ -103,7 +103,7 @@ export const TEMA_PANTAI={
     else if(z>W.PANTAI_Z)C.set(n>.1?0xf3e3b0:0xeedca6);
     else C.set(n>.25?0x8cc96a:0x7fbe5f);
   },
-  flora:'gurun',kamp:[0xe5392b,0x2f7fc1,0xe0a200],latar:[0x8fb9d3,0x9fc7de,0x7fa9c3],
+  flora:'gurun',tanpaKaktus:true,kamp:[0xe5392b,0x2f7fc1,0xe0a200],latar:[0x8fb9d3,0x9fc7de,0x7fa9c3],
   batu:[0xb9a88a,0xa89878,0xc9b89a],batuJalan:0xd9c9a0,air:0x2fa6c9,rakit:0xb27a3c
 };
 export const TEMA_GUNUNG={
@@ -233,7 +233,7 @@ export function buatDunia(W,T){
       const kiri=x<-13,kanan=x>13,tebing=W.tebing(x,z)>.45,dekatAir=dalam(A,x,z)>-7;
       const y=W.tinggiTanah(x,z);
       /* peluang tiap jenis: hutan lebat di kiri pada tema hijau; kaktus jarang, palem di dekat air pada tema gurun */
-      const pA=gurun?(kiri?.12:.1):(kiri?.72:kanan?.18:.3),pL=gurun?(dekatAir?.55:kiri?.2:.13):(kiri?.8:kanan?.55:.36),pB=gurun?(kanan?.7:.58):(kiri?.86:kanan?.68:.72);
+      const pA=gurun?(T.tanpaKaktus?0:(kiri?.12:.1)):(kiri?.72:kanan?.18:.3),pL=gurun?(T.tanpaKaktus?(dekatAir?.6:.3):(dekatAir?.55:kiri?.2:.13)):(kiri?.8:kanan?.55:.36),pB=gurun?(kanan?.7:.58):(kiri?.86:kanan?.68:.72);
       if(u<pA&&!tebing){
         if(np>=NP||!sah(x,z,3.2))continue;
         q.setFromEuler(e.set(0,ry,0));sc.set(s,s,s);

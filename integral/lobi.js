@@ -1,20 +1,24 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=28';
-import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=28';
-import * as P1 from './pos1.js?v=28';
-import * as AR from './arena.js?v=28';
-import {buatArena,kolomDari,uTembus} from './arena.js?v=28';
-import {buatArena2,gambarSandi} from './arena2.js?v=28';
-import * as P2 from './pos2.js?v=28';
-import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=28';
-import * as P3 from './pos3.js?v=28';
-import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=28';
-import * as P4 from './pos4.js?v=28';
-import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=28';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=28';
-import {labelSprite,buangSprite,klem} from './util.js?v=28';
-import {M1,M2,M3,M4} from './medan.js?v=28';
+import {sambung} from './rt.js?v=29';
+import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=29';
+import * as P1 from './pos1.js?v=29';
+import * as AR from './arena.js?v=29';
+import {buatArena,kolomDari,uTembus} from './arena.js?v=29';
+import {buatArena2,gambarSandi} from './arena2.js?v=29';
+import * as P2 from './pos2.js?v=29';
+import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=29';
+import * as P3 from './pos3.js?v=29';
+import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=29';
+import * as P4 from './pos4.js?v=29';
+import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=29';
+import * as P5 from './pos5.js?v=29';
+import {buatArena6,gambarFinal} from './arena6.js?v=29';
+import * as P6 from './pos6.js?v=29';
+import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=29';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=29';
+import {labelSprite,buangSprite,klem} from './util.js?v=29';
+import {M1,M2,M3,M4,M5,M6} from './medan.js?v=29';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
 let W=M1;
@@ -24,8 +28,8 @@ const $=id=>document.getElementById(id);
 const TIM=[['merah','Merah','#e5392b'],['biru','Biru','#2f7fc1'],['hijau','Hijau','#2f9e5b'],['kuning','Kuning','#e0a200'],
   ['ungu','Ungu','#7a4bc4'],['oranye','Oranye','#ee7d1a'],['tosca','Tosca','#17a2a2'],['pink','Pink','#e0559b']].map(a=>({id:a[0],nama:a[1],warna:a[2]}));
 const timById=id=>TIM.find(t=>t.id===id)||TIM[0];
-const POS_AKTIF=4;
-const POS=['Tambal Waduk','Rakit Sandi','Mesin Putar Balik','Misteri Tangki','Brankas Batas','Final'];
+const POS_AKTIF=6;
+const POS=['Tambal Waduk','Rakit Sandi','Mesin Putar Balik','Misteri Tangki','Brankas Batas','Puncak Final'];
 const SPD=7,RMAX=95,RZ=62,SPRINT=1.8;
 const Q=new URLSearchParams(location.search);
 
@@ -211,7 +215,9 @@ const papan={c:document.createElement('canvas')};
 const arena=buatArena();scene.add(arena.grup);
 const arena2=buatArena2();scene.add(arena2.grup);
 const arena3=buatArena3();scene.add(arena3.grup);
-const arena4=buatArena4();scene.add(arena4.grup);bayang(scene);
+const arena4=buatArena4();scene.add(arena4.grup);
+const arena5=buatArena5();scene.add(arena5.grup);
+const arena6=buatArena6();scene.add(arena6.grup);bayang(scene);
 
 /* ---------- keadaan ---------- */
 let saya=null,me=null,rt=null,mulai=false,hasilBuka=false,rodaBuka=false,revBuka=false,kotor=true,tGabung=0;
@@ -482,10 +488,10 @@ let pilihKey='';
 function panelUmum(tampil,judul,pilihan,kunci){
   const box=$('pilih');box.hidden=!tampil||blok();if(box.hidden){pilihKey='';return;}
   if(kunci===pilihKey)return;pilihKey=kunci;box.textContent='';
-  const j=document.createElement('div');j.className='bj';j.textContent=judul;box.append(j);
+  const j=document.createElement('div');j.className='bj'+(judul.length>70?' soal':'');j.textContent=judul;box.append(j);
   for(const o of pilihan){
     const t=document.createElement('button');t.type='button';t.className=o.utama?'btn':'btn alt';t.textContent=o.t;if(o.judul)t.title=o.judul;
-    t.disabled=!!o.mati;t.addEventListener('click',()=>{o.aksi();pilihKey='';});box.append(t);
+    t.disabled=!!o.mati;if(o.kelas)t.classList.add(o.kelas);t.addEventListener('click',()=>{o.aksi();pilihKey='';});box.append(t);
   }
 }
 const taruhKembali=()=>({t:'Taruh kembali',utama:true,aksi:()=>{me.tiles=[];me.carry=0;kirimPosisi();}});
@@ -626,6 +632,92 @@ const CFG4={id:4,setSeed:P4.setSeed4,NB:P4.NB4,WAKTU:P4.WAKTU4,M:M4,mode:'jumlah
   }
 };
 ALUR[4]=buatAlur(CFG4);
+/* ================= Pos 5: Brankas Batas ================= */
+let kunciMini5='';
+const brNama=i=>'ABCD'[i];
+const CFG5={id:5,setSeed:P5.setSeed5,NB:P5.NB5,WAKTU:P5.WAKTU5,M:M5,mode:'jumlah',cap:P5.CAP5,get arena(){return arena5;},
+  stateBaru:P5.stateBaru5,stateBabak:r=>{const n=r<P5.NB5?P5.nSlot5(r):0;return {s:Array(n).fill(0),k:Array(n).fill(0)};},
+  maxKode:()=>P5.BMAX,batasSlot:()=>[0,P5.BMAX],sValid:P5.sValid5,valid:P5.valid5,skorRonde:P5.skorRonde5,skorTim:P5.skorTim5,
+  bolehKunci:st=>{if(!st.s.length)return false;for(let i=0;i<st.s.length;i+=2)if(!(st.s[i]>0||st.s[i+1]>0))return false;return true;},
+  pesanBelum:'Muat beban di setiap brankas dulu sebelum dikunci.',
+  sambut:A=>A.selesai()?'Pos 5 sudah selesai.':(A.st.f===1?'Babak sedang berjalan. Muat F(atas) di piring kanan dan F(bawah) di piring kiri.':'Teluk Karang. Baca soal di papan, lalu semua berdiri di pad hijau untuk mulai.'),
+  atur(r){
+    arena5.setBabak(r);arena5.setMedan(r);kunciMini5='';$('a2-cv').hidden=false;
+    $('a2-p').textContent='Piring kanan = F(atas), piring kiri = F(bawah). Beban 1 kg di Dermaga, 5 kg di Gua Karang, 10 kg di Mercusuar.';
+  },
+  hud(r,s){
+    if(kunciMini5!==String(r)){kunciMini5=String(r);gambarBrankas($('a2-cv'),r,{kecil:true});}
+    const jml=me.tiles.reduce((a,v)=>a+v,0),L=[];
+    for(let i=0;i<P5.nBrankas(r);i++){const d=(s[2*i]|0)-(s[2*i+1]|0);L.push(brNama(i)+': '+(s[2*i]|0)+'−'+(s[2*i+1]|0)+'='+d);}
+    return {isi:L.join(' · '),bawa:me.tiles.length?me.tiles.map(v=>v+' kg').join(' + ')+' = '+jml+' kg':'-'};
+  },
+  ulasan:(r,s,w,h)=>{
+    const S=P5.soal5(r),tim=S.br.map((B,i)=>((s[2*i]|0)-(s[2*i+1]|0))),cC=h.C.length?' Kalian memakai F + C dengan C = '+h.C.join(', ')+', dan hasilnya tetap sama: C saling menghapus.':'';
+    return {gambar:cv=>gambarBrankas(cv,r),
+      baris:[['F(x)',P5.teksP(S.F)+' + C'],['Sandi tim',tim.join(', ')],['Sandi benar',S.br.map(B=>B.I).join(', ')],['Brankas terbuka',h.benar+' / '+h.total],['Ketepatan',h.akurasi+' / 100'],['Bonus kecepatan',Math.round(w/10)+'%']],
+      catatan:(h.catatan.length?h.catatan.map(c=>P5.PESAN5[c]).filter(Boolean).join(' '):'Tepat. Integral tentu = F(atas) − F(bawah) untuk antiturunan F mana pun.')+cC};
+  },
+  hasil:st=>({kolom:['Babak','f(x)','Sandi tim','Sandi benar','Skor'],baris:st.sr.map((s,i)=>{const S=P5.soal5(i);return [i+1,P5.teksP(S.f),S.br.map((B,j)=>(s[2*j]|0)-(s[2*j+1]|0)).join(', '),S.br.map(B=>B.I).join(', '),P5.skorRonde5(i,s,st.w[i]).skor];}),
+    judul:'Integral tentu = F(atas) − F(bawah)',teks:'Cukup satu antiturunan F, nilai di dua batas, lalu selisih. Konstanta C hilang saat dikurangkan, dan menukar batas membalik tanda.'}),
+  anim:dt=>arena5.animTimbangan(dt),
+  bingkai(A,o){
+    const r=o.r,dk=W.diKamp(me.x,me.z),pi=o.main?piringDi(r,me.x,me.z):-1,penuh=me.tiles.length>=capNow(),jml=me.tiles.reduce((a,v)=>a+v,0),tk=me.tiles.join(',');
+    if(dk>=0){
+      const bb=P5.BEBAN[dk];
+      panelUmum(true,!o.main?'Kamp '+W.KAMP[dk].nama+'. Beban bisa diambil setelah babak mulai.':(penuh?'Tangan penuh ('+capNow()+' beban).':W.KAMP[dk].nama+': '+bb.nama+' '+bb.kg+' kg'),
+        [{t:'Ambil '+bb.nama+' '+bb.kg+' kg',mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()){me.tiles.push(bb.kg);me.carry=me.tiles.length;kirimPosisi();}}}].concat(me.tiles.length?[taruhKembali()]:[]),
+        'k|'+dk+'|'+o.main+'|'+tk);
+    }else if(pi>=0){
+      const v=A.st.s[pi],B=P5.soal5(r).br[pi>>1],kanan=pi%2===0;
+      panelUmum(true,'Brankas '+brNama(pi>>1)+', piring '+(kanan?'kanan F('+B.atas+')':'kiri F('+B.bawah+')')+': '+v+' kg',
+        [{t:'Taruh +'+jml+' kg',utama:true,mati:!jml,aksi:()=>{if(A.tambah(pi,jml)){me.tiles=[];me.carry=0;kirimPosisi();}}},
+         {t:'Angkat 1 kg',mati:v<1,aksi:()=>A.tambah(pi,-1)},{t:'Angkat 5 kg',mati:v<5,aksi:()=>A.tambah(pi,-5)},{t:'Angkat 10 kg',mati:v<10,aksi:()=>A.tambah(pi,-10)}],
+        'p|'+pi+'|'+v+'|'+tk);
+    }else panelUmum(false);
+    const b=$('aksi'),bisa=pi>=0&&jml>0;
+    b.hidden=o.blk||!bisa;if(bisa)b.textContent='Taruh +'+jml+' kg di piring '+(pi%2===0?'kanan':'kiri');
+    if(tahan&&bisa&&o.now-tAksi>350){tahan=false;tAksi=o.now;if(A.tambah(pi,jml)){me.tiles=[];me.carry=0;kirimPosisi();}}
+    if(tahan&&!bisa)tahan=false;
+    return pi;
+  }
+};
+ALUR[5]=buatAlur(CFG5);
+/* ================= Pos 6: Puncak Final ================= */
+let kunciMini6='';
+const CFG6={id:6,setSeed:P6.setSeed6,NB:P6.NB6,WAKTU:P6.WAKTU6,M:M6,mode:'set',get arena(){return arena6;},
+  stateBaru:P6.stateBaru6,stateBabak:r=>{const n=r<P6.NB6?P6.NSTASIUN:0;return {s:Array(n).fill(0),k:Array(n).fill(0)};},
+  maxKode:()=>4,sValid:P6.sValid6,valid:P6.valid6,skorRonde:P6.skorRonde6,skorTim:P6.skorTim6,
+  pesanBelum:'Ketiga pos harus dijawab sebelum dikunci.',
+  sambut:A=>A.selesai()?'Pos 6 sudah selesai.':(A.st.f===1?'Babak sedang berjalan. Daki ke tiga pos dan pilih jawaban di sana.':'Puncak Kalkulus. Baca tiga soal di papan, bagi tugas, lalu semua berdiri di pad hijau untuk mulai.'),
+  atur(r){
+    arena6.setBabak(r);arena6.setMedan(r);kunciMini6='';$('a2-cv').hidden=false;
+    $('a2-p').textContent='Tiap babak ada tiga soal di Pos Lembah, Pos Tebing, dan Puncak. Jawaban bisa diganti sampai dikunci di pad.';
+  },
+  hud(r,s){
+    const kk=r+'|'+s.join(',');if(kunciMini6!==kk){kunciMini6=kk;gambarFinal($('a2-cv'),r,s,{kecil:true});}
+    return {isi:s.map(v=>v?P6.HURUF[v-1]:'-').join(' · '),bawa:'-'};
+  },
+  ulasan:(r,s,w,h)=>({gambar:cv=>gambarFinal(cv,r,s),
+    baris:[['Jawaban tim',s.map(v=>v?P6.HURUF[v-1]:'-').join(', ')],['Kunci',P6.soal6(r).map(q=>P6.HURUF[q.b]).join(', ')],['Benar',h.benar+' / '+h.total],['Ketepatan',h.akurasi+' / 100'],['Bonus kecepatan',Math.round(w/10)+'%']],
+    catatan:h.catatan.length?h.catatan.map(c=>M6.KAMP[c.i].nama+': '+c.teks).join(' '):'Ketiga jawaban tepat. Pemahamanmu tentang integral sudah utuh.'}),
+  hasil:st=>{
+    const sk=skorSemua(),ada=sk.filter(v=>v!=null),rata=ada.length?Math.round(ada.reduce((a,v)=>a+v,0)/ada.length):0;
+    return {kolom:['Babak','Jawaban','Kunci','Skor'],baris:st.sr.map((s,i)=>[i+1,s.map(v=>v?P6.HURUF[v-1]:'-').join(', '),P6.soal6(i).map(q=>P6.HURUF[q.b]).join(', '),P6.skorRonde6(i,s,st.w[i]).skor]),
+      judul:'Rapor perjalanan integral',teks:'Skor tiap pos: '+sk.map((v,i)=>'P'+(i+1)+' '+(v??'-')).join(', ')+'. Rata-rata '+rata+'. Dari menaksir luas, menulis notasi, memutar balik turunan, mengakumulasi laju, sampai teorema dasar: semuanya satu ide, integral sebagai akumulasi.'};
+  },
+  bingkai(A,o){
+    const r=o.r,dk=W.diKamp(me.x,me.z);
+    if(dk>=0){
+      const q=P6.soal6(r)[dk],v=A.st.s[dk]|0;
+      panelUmum(true,W.KAMP[dk].nama+': '+q.t+(o.main?'':' (jawab setelah babak mulai)'),
+        q.o.map((t,i)=>({t:P6.HURUF[i]+'. '+t,utama:v===i+1,kelas:'opsi',mati:!o.main,aksi:()=>{A.ubahSlot(dk,i+1);toast('Pos '+W.KAMP[dk].nama+': jawaban '+P6.HURUF[i]+'.');}})),
+        's|'+r+'|'+dk+'|'+v+'|'+o.main);
+    }else panelUmum(false);
+    $('aksi').hidden=true;if(tahan)tahan=false;
+    return -1;
+  }
+};
+ALUR[6]=buatAlur(CFG6);
 function ambilBatu(kode){
   const A=ALUR[2];
   if(me.a!==2||A.st.f!==1||me.tiles.length>=capNow()||blok())return;
@@ -1458,6 +1550,7 @@ function frame(now){
         /* ---------- pos berbasis slot (2 sampai 6): interaksi khusus pos, lalu alur mulai dan kunci ---------- */
         const A=AL(),P=A.P;
         const sl=P.bingkai(A,{now,r,main,blk,dt,t,tSec});
+        if(P.anim)P.anim(dt,t);
         A.alur(now,blk);
         bawaItems.length=0;
         for(const p of [me,...anggota()])if(p.a===me.a&&p.carry>0)bawaItems.push({x:p.x,z:p.z,y:p.grp.userData.h+.3+(p.grp.position.y),n:p.carry});
@@ -1498,4 +1591,4 @@ document.fonts&&document.fonts.ready.then(gambarPapan);
 
 /* kait uji */
 window.__L={P1,AR,arena,get endAt(){return endAt;},get stunTil(){return stunTil;},get me(){return me;},tim,luar,papanData,get st(){return st;},aud,get rt(){return rt;},gerbang,C,hit,
-  MED,M2,M3,M4,P2,P3,P4,arena2,arena3,arena4,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca};},setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};
+  MED,M2,M3,M4,M5,M6,P2,P3,P4,P5,P6,arena2,arena3,arena4,arena5,arena6,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca};},setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};

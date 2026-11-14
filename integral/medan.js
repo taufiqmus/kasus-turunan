@@ -322,3 +322,97 @@ export const M4=buatMedan({
     };
   }
 });
+
+/* ================= Pos 5: Teluk Karang ================= */
+/* Pantai berpasir di utara, teluk di barat. Kamp: Dermaga (beban 1 kg, timur, dekat), Mercusuar (jangkar 10 kg, bukit utara, jauh),
+   Gua Karang (peti 5 kg, barat laut, di seberang teluk). Rintangan khas pantai: ombak pasang di dataran pasir, kepiting,
+   bulu babi, papan dermaga lapuk, kayu hanyut, kelapa jatuh, tong menggelinding dari bukit mercusuar, perahu penyeberangan. */
+export const M5=buatMedan({
+  nama:'Teluk Karang',
+  DUNIA:{x0:-46,x1:46,z0:-6,z1:64},
+  PLAZA:{x0:-15,x1:15,z0:.4,z1:8.6},
+  KAMP:[{x:26,z:20,r:4.2,nama:'Dermaga'},{x:0,z:54,r:4.2,nama:'Mercusuar'},{x:-28,z:40,r:4.2,nama:'Gua Karang'}],
+  PAD:{x:12.5,z:6.6,r:2},TUAS:{x:-12.5,z:6.6,r:1.8},
+  PANTAI_Z:34,
+  JALUR:[
+    /* jalan pintas bertuas: titian kayu di atas dataran pasang menuju bukit mercusuar */
+    [6,8,10,18,2],[10,18,10,38,1.5],[10,38,2,47,2],
+    /* poros tengah: jalan pasir, dataran pasang, tanjakan ke mercusuar */
+    [0,8,0,22,HW],[0,22,0,36,HW],[0,36,0,46,HW],[0,46,0,54,HW],
+    /* timur: dermaga, papan lapuk, pantai kepiting, kembali ke bukit */
+    [14,4,20,10,HW],[20,10,26,20,HW],[26,20,26,34,2],[26,34,18,44,2],[18,44,2,50,2],[26,20,32,17,1.8],
+    /* barat: perahu menyeberangi teluk menuju gua */
+    [-4,8,-12,16,HW],[-12,16,-22,20,HW],[-22,20,-22,22,HW],[-22,22,-22,30,1.5],[-22,30,-24,36,HW],[-24,36,-28,40,HW],
+    /* memutar paling barat lewat jembatan kayu */
+    [-13,5,-30,10,2],[-30,10,-36,18,2],[-36,18,-36,34,2],[-36,34,-28,40,2],[-30,10,-38,7,1.8],
+    /* pantai utara dari gua ke mercusuar */
+    [-28,40,-14,48,2],[-14,48,-2,52,2]
+  ],
+  GERBANG:{ruas:0,z0:11,z1:12.3,x0:5.5,x1:9.5},
+  AIR:{x0:-46,x1:-14,z0:22,z1:30},AIR_JATUH:'tidak',
+  JEMB_KAYU:[-36,18,-36,34],
+  tinggi:(x,z)=>3*ss(44,54,z)*(1-ss(6,16,Math.abs(x))),
+  tebing:(x,z)=>Math.max(ss(38,46,Math.abs(x)),ss(56,64,z)),
+  KOIN_A:[[-38,7],[-36.6,7.6],[32,17],[30.6,17.7],[-36,26],[10,26],[-16,18],[22,39],[-8,50],[0,30],[26,31],[-21,44]],
+  PINTU:{cx:0,x0:-2.2,x1:2.2,min:.3,max:3.6},
+  UBIN:{W:4,D:1.9},
+  BAN:{x0:0,x1:0,z0:0,z1:0},
+  teks:{palu:'Terkena ayunan!',pintu:'Terjepit pintu!',kayu:'Tertabrak kayu hanyut!',duri:'Terinjak bulu babi!',ubin:'Papan dermaga lapuk ambruk! Tercebur.',bola:'Tertabrak tong menggelinding!',
+    penekan:'Tertimpa!',air:'Tercebur ke teluk! Naik perahu saat merapat.',jatuh:'Tertimpa kelapa jatuh!',lengan:'Tersapu!',patroli:'Dijepit kepiting!',pasang:'Tersapu ombak pasang! Tunggu air surut.'},
+  rintangan(k){
+    const T=[6.5,5.6,4.8][k],Td=[4.2,3.6,3.2][k];
+    return {
+      kayu:[{ax:'x',c:14,m:0,A:2.6,f:0},{ax:'x',c:33,m:-36,A:2.6,f:.5}].concat(k>=1?[{ax:'x',c:28,m:0,A:2.8,f:.25}]:[]).map(o=>({...o,T})),
+      duri:[{pts:lintang(23,15,6,10),f:0},{pts:lintang(-8,12,-8,8),f:.4},{pts:lintang(-23,33,-2,6),f:.7}].concat(k===2?[{pts:lintang(6,42.5,-8,9),f:.2}]:[]).map(o=>({...o,T:Td})),
+      ubin:[25,27,29,31].map((z,n)=>({x:26,z,w:4,d:1.9,f:fr(n*.29),T:[7,6,5][k]})),
+      rakit:[{ax:'z',c:-22,a0:22,a1:30,len:2.6,lebar:1.5,T:[7,6,5][k],f:0}],
+      patroli:[{x0:10,z0:22,x1:10,z1:34,r:1.3,T:[7,6,5][k],f:0},{x0:25,z0:35.25,x1:19,z1:42.75,r:1.8,T:[6,5,4.2][k],f:.4}].concat(k>=1?[{x0:-30,z0:10,x1:-36,z1:18,r:2,T:[7,6,5][k],f:.6}]:[]),
+      pasang:[{x0:-3.2,x1:3.2,z0:38,z1:44,T:[10,9,8][k],f:0}].concat(k>=1?[{x0:7,x1:13,z0:42,z1:52,T:[10,9,8][k],f:.5}]:[]),
+      jatuh:[{x0:-22,x1:-8,z0:42,z1:51,n:[3,4,5][k],T:4.5,f:0,r:1.2}],
+      bola:[[{x:-1.2,T:13,f:0}],[{x:1.2,T:11,f:0}],[{x:-1.2,T:10,f:0},{x:1.2,T:10,f:.5}]][k].map(b=>({...b,z0:53,z1:38}))
+    };
+  }
+});
+
+/* ================= Pos 6: Puncak Kalkulus ================= */
+/* Gunung bersalju dengan jalan berkelok. Tiga pos jawaban di ketinggian berbeda: Pos Lembah (timur, rendah),
+   Pos Tebing (barat, tengah), Puncak (utara, tertinggi). Rintangan: batang pinus menggelinding, semak berduri,
+   papan es retak, kambing gunung, baling-baling pos cuaca, batu longsor, bola salju longsoran. */
+export const M6=buatMedan({
+  nama:'Puncak Kalkulus',
+  DUNIA:{x0:-46,x1:46,z0:-6,z1:64},
+  PLAZA:{x0:-15,x1:15,z0:.4,z1:8.6},
+  KAMP:[{x:24,z:22,r:4.2,nama:'Pos Lembah'},{x:-24,z:38,r:4.2,nama:'Pos Tebing'},{x:0,z:56,r:4.2,nama:'Puncak'}],
+  PAD:{x:12.5,z:6.6,r:2},TUAS:{x:-12.5,z:6.6,r:1.8},
+  JALUR:[
+    /* jalan pintas bertuas: punggung bukit sempit */
+    [6,8,10,16,2],[10,16,14,20,2],[14,20,14,44,1.5],[14,44,2,54,2],
+    /* jalan berkelok di lereng tengah */
+    [0,8,-8,16,HW],[-8,16,8,24,HW],[8,24,-8,32,HW],[-8,32,6,40,HW],[6,40,-4,48,HW],[-4,48,0,56,HW],
+    /* timur: lembah, papan es, naik ke punggung */
+    [14,4,20,12,HW],[20,12,24,22,HW],[24,22,24,34,2],[24,34,14,40,2],[24,22,31,20,1.8],
+    /* barat: tanjakan lurus ke tebing, lalu ke puncak */
+    [-13,5,-24,12,HW],[-24,12,-24,38,HW],[-8,32,-24,38,2],[-24,38,-14,48,2],[-14,48,-3,50,2],[-24,12,-32,8,1.8]
+  ],
+  GERBANG:{ruas:0,z0:11,z1:12.3,x0:5.8,x1:9.8},
+  tinggi:(x,z)=>12*ss(10,58,z),
+  tebing:(x,z)=>Math.max(ss(36,44,Math.abs(x)),ss(58,64,z)),
+  KOIN_A:[[31,20],[29.6,20.5],[-32,8],[-30.6,8.7],[14,32],[-24,26],[24,30],[-19,43],[0,28],[2,44],[-8,49],[8,24]],
+  PINTU:{cx:0,x0:-2.2,x1:2.2,min:.3,max:3.6},
+  UBIN:{W:4,D:1.9},
+  BAN:{x0:0,x1:0,z0:0,z1:0},
+  teks:{palu:'Terkena ayunan!',pintu:'Terjepit pintu!',kayu:'Tertabrak batang pinus menggelinding!',duri:'Tertusuk semak berduri!',ubin:'Papan es retak! Tergelincir.',bola:'Tertabrak bola salju longsoran!',
+    penekan:'Tertimpa!',air:'Tercebur!',jatuh:'Tertimpa batu longsor!',lengan:'Tersapu baling-baling pos cuaca! Lompat saat lewat.',patroli:'Diseruduk kambing gunung!'},
+  rintangan(k){
+    const T=[6.5,5.6,4.8][k],Td=[4.2,3.6,3.2][k];
+    return {
+      kayu:[{ax:'x',c:20,m:-24,A:2.6,f:0}].concat(k>=1?[{ax:'x',c:30,m:-24,A:2.6,f:.5}]:[]).map(o=>({...o,T})),
+      duri:[{pts:lintang(-4,12,-8,8),f:0},{pts:lintang(22,17,4,10),f:.4}].concat(k===2?[{pts:lintang(-19,43,10,10),f:.7}]:[]).map(o=>({...o,T:Td})),
+      ubin:[26,28,30].map((z,n)=>({x:24,z,w:4,d:1.9,f:fr(n*.31),T:[7,6,5][k]})),
+      patroli:[{x0:14,z0:24,x1:14,z1:40,r:1.3,T:[7,6,5][k],f:0}].concat(k>=1?[{x0:-22,z0:40,x1:-16,z1:46,r:1.8,T:[6,5,4.2][k],f:.3}]:[]),
+      lengan:[{x:-1,z:36,L:2.6,w:[1.3,1.7,2.1][k],n:[2,2,3][k],f:0}],
+      jatuh:[{x0:-8,x1:8,z0:42,z1:52,n:[3,4,5][k],T:4.5,f:0,r:1.2}],
+      bola:[[{x:0,T:13,f:0}],[{x:0,T:11,f:0}],[{x:-1.2,T:10,f:0},{x:1.2,T:10,f:.5}]][k].map(b=>({...b,z0:52,z1:12}))
+    };
+  }
+});

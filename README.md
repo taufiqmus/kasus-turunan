@@ -117,3 +117,15 @@ Tiga jalur (kiri, tengah, kanan), sungai dengan jembatan sempit, palu ayun, pint
 - Jaringan: event `d2` (slot: indeks, kode, cap waktu; yang terbaru menang), `st2`, `mulai2`, `kunci2`. Papan skor memuat skor Pos 1 dan Pos 2.
 - Struktur: `medan.js` sekarang pembuat dunia (`M1` Lembah Waduk, `M2` Ngarai Kuil), `dunia3d.js` tampilan dunia umum (tema hijau dan gurun), `arena.js` isi khusus Pos 1, `arena2.js` dan `pos2.js` untuk Pos 2.
 - Uji: `node tests/medan_cek.mjs` (geometri dan rintangan kedua dunia), `python3 tests/lobi.py` (Pos 1), `python3 tests/pos2.py` (Pos 2).
+
+### Pos 3 sampai Pos 6 (v=29)
+Semua pos berbasis slot memakai satu pengendali umum `buatAlur(CFG)` di `lobi.js` (mode `set`: slot dengan cap waktu, yang terbaru menang; mode `jumlah`: tambahan bertanda yang dijumlah). Event jaringan per pos: `d<n>`, `st<n>`, `mulai<n>`, `kunci<n>` (terdaftar di `EV_TIM`, `rt.js`). Tiap pos 3 babak, tanpa batas waktu, skor = ketepatan 88% + bonus kecepatan 12%.
+
+| Pos | Dunia | Materi | Mekanik |
+|---|---|---|---|
+| 3 Mesin Putar Balik | Danau Beku (salju) | antiturunan polinom, + C, syarat awal | balok suku dari corong masuk, Tungku (pangkat naik), Pemotong (bagi koefisien), Gudang C, corong keluar |
+| 4 Misteri Tangki | Hutan Sungai | integral sebagai akumulasi laju, luas bertanda | grafik debit; isi tiga tangki dengan ember 1 L, jeriken 2 L, drum 5 L; babak 3 ada aliran keluar |
+| 5 Brankas Batas | Teluk Karang (pantai) | teorema dasar: F(atas) − F(bawah) | timbangan brankas: piring kanan F(atas), kiri F(bawah); beban 1, 5, 10 kg. Babak 2 F dicari sendiri (C bebas, tetap benar). Babak 3 dua brankas, satu batasnya terbalik (hasil negatif) |
+| 6 Puncak Final | Puncak Kalkulus (gunung) | rangkuman semua pos | estafet pendakian: tiga pos jawaban (Lembah, Tebing, Puncak) di ketinggian berbeda; pilihan A sampai D bisa diganti sampai dikunci; tiap pengecoh punya umpan balik; hasil akhir memuat rapor P1 sampai P6 |
+
+Rintangan baru (semua fungsi murni jam dinding, tanpa pesan jaringan): penekan, lengan putar, rakit/perahu, benda jatuh, kawanan berpatroli (lebah, kepiting, kambing), ombak pasang. Uji: `node tests/medan_cek.mjs`, `python3 tests/pos3.py` sampai `tests/pos6.py`, atau semuanya lewat `sh tests/semua.sh` (server lokal di port 8077).
