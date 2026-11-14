@@ -582,9 +582,9 @@ function frame(now){
     let ix=joy.x+key.d-key.a,iz=joy.y+key.s-key.w;const m=Math.hypot(ix,iz);
     if(m>1){ix/=m;iz/=m;}
     if(hasilBuka||m<.12){ix=0;iz=0;}
-    /* kamera hanya mengubah sudut pandang: arah jalan tetap terkunci pada sumbu dunia */
-    const v=SPD*(1-.07*me.carry);
-    me.vx=ix*v;me.vz=iz*v;
+    /* gerak relatif kamera: dorong ke atas berarti maju searah layar */
+    const sy=Math.sin(C.yaw),cy=Math.cos(C.yaw),v=SPD*(1-.07*me.carry);
+    me.vx=(cy*ix+sy*iz)*v;me.vz=(-sy*ix+cy*iz)*v;
     me.x+=me.vx*dt;me.z+=me.vz*dt;
     if(me.a===0){const r=Math.hypot(me.x,me.z);if(r>RMAX){me.x*=RMAX/r;me.z*=RMAX/r;}}
     else{me.x=klem(me.x,BATAS.x0,BATAS.x1);me.z=klem(me.z,BATAS.z0,BATAS.z1);}

@@ -27,7 +27,7 @@ with sync_playwright() as p:
     A.bring_to_front();p0=A.evaluate('[__L.me.x,__L.me.z]');A.evaluate('__L.C.yaw=Math.PI/2');A.keyboard.down('w');A.wait_for_timeout(1000)
     kaki=A.evaluate('Math.abs(__L.me.grp.userData.mesh.userData.kakiK.rotation.x)+Math.abs(__L.me.grp.userData.mesh.userData.kakiN.rotation.x)')
     A.keyboard.up('w')
-    pos=A.evaluate('[__L.me.x,__L.me.z]');cek('arah jalan tidak terpengaruh putaran kamera (W tetap ke -z)',pos[1]-p0[1]<-1 and abs(pos[0]-p0[0])<.8,(p0,pos))
+    pos=A.evaluate('[__L.me.x,__L.me.z]');cek('W maju searah kamera setelah diputar 90 derajat',pos[0]-p0[0]<-1 and abs(pos[1]-p0[1])<.8,(p0,pos))
     cek('kaki berayun saat berjalan',kaki>.05,kaki)
     A.wait_for_timeout(600);kaki2=A.evaluate('Math.abs(__L.me.grp.userData.mesh.userData.kakiK.rotation.x)')
     cek('kaki kembali lurus saat diam',kaki2<.1,kaki2)
