@@ -1,12 +1,12 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=13';
-import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=13';
-import * as P1 from './pos1.js?v=13';
-import * as AR from './arena.js?v=13';
-import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=13';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=13';
-import {labelSprite,buangSprite,klem} from './util.js?v=13';
+import {sambung} from './rt.js?v=14';
+import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=14';
+import * as P1 from './pos1.js?v=14';
+import * as AR from './arena.js?v=14';
+import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=14';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=14';
+import {labelSprite,buangSprite,klem} from './util.js?v=14';
 import {bacaSesi} from '../core/net.js';
 
 const $=id=>document.getElementById(id);
@@ -464,7 +464,7 @@ function petaMini(t){
   miniX.strokeStyle='#1c2230';miniX.lineWidth=2;miniX.beginPath();miniX.arc(cx,cy,W/2-2,0,7);miniX.stroke();
 }
 /* ---------- masukan ---------- */
-let stam=100,larian=false,btnLari=false;
+let stam=100,larian=false,btnLari=false,kbZ=null;
 const key={w:0,a:0,s:0,d:0,q:0,e:0,sh:0},joy={x:0,y:0,id:null,ox:0,oy:0};
 const peta={KeyW:'w',ArrowUp:'w',KeyA:'a',ArrowLeft:'a',KeyS:'s',ArrowDown:'s',KeyD:'d',ArrowRight:'d',KeyQ:'q',KeyE:'e',ShiftLeft:'sh',ShiftRight:'sh'};
 let tahan=false;
@@ -530,7 +530,7 @@ function setArea(a){
     kotor=true;toast(selesai(st)?'Pos 1 sudah selesai.':(st.f===1?'Babak sedang berjalan. Hitung tinggi kolom dari rumus di dinding.':'Semua berdiri di pad hijau untuk mulai.'));
     if(selesai(st))bukaHasil();
   }else{
-    boostAktif=null;boostPilih=null;boostKey='';me.carry=0;const g=gerbang[0];me.x=g.ax;me.z=g.az;me.vx=me.vz=0;$('hitung').hidden=true;
+    kbZ=null;boostAktif=null;boostPilih=null;boostKey='';me.carry=0;const g=gerbang[0];me.x=g.ax;me.z=g.az;me.vx=me.vz=0;$('hitung').hidden=true;
   }
   kirimPosisi(true);
 }
@@ -808,6 +808,8 @@ function frame(now){
     const sy=Math.sin(C.yaw),cy=Math.cos(C.yaw),v=SPD*(1-.07*me.carry)*(lari?SPRINT:1)*(boostAktif==='s'?1.5:1);
     me.vx=(cy*ix+sy*iz)*v;me.vz=(-sy*ix+cy*iz)*v;
     me.x+=me.vx*dt;me.z+=me.vz*dt;
+    /* terpental halus: bergeser ke titik tujuan, tanpa lompatan posisi */
+    if(kbZ!==null){const d=kbZ-me.z;me.z+=d*Math.min(1,dt*9);if(Math.abs(d)<.03)kbZ=null;}
     if(me.a===0){const r=Math.hypot(me.x,me.z);if(r>RMAX){me.x*=RMAX/r;me.z*=RMAX/r;}}
     else{me.x=klem(me.x,BATAS.x0,BATAS.x1);me.z=klem(me.z,BATAS.z0,BATAS.z1);}
     animAv(me,dt,t,now);
@@ -865,7 +867,7 @@ function frame(now){
           if(Math.abs(me.x-xRint(sp,tSec))<RINT_R&&Math.abs(me.z-sp.z)<.95){
             if(boostAktif==='p'){boostAktif=null;tabrakTil=now+1600;toast('Perisai menahan tabrakan!');boostUI();break;}
             const ada=me.carry;me.carry=0;stunTil=now+800;tabrakTil=now+1600;
-            me.z=klem(me.z+(me.z>=sp.z?1.6:-1.6),BATAS.z0,BATAS.z1);me.vx=me.vz=0;kotor=true;
+            kbZ=klem(me.z+(me.z>=sp.z?1.6:-1.6),BATAS.z0,BATAS.z1);me.vx=me.vz=0;kotor=true;
             toast(ada?'Tertabrak gelondong! Balok jatuh. Lompat untuk menghindar.':'Tertabrak gelondong! Lompat untuk menghindar.');break;
           }
         }
