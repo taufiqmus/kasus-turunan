@@ -1,12 +1,12 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=10';
-import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=10';
-import * as P1 from './pos1.js?v=10';
-import * as AR from './arena.js?v=10';
-import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=10';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=10';
-import {labelSprite,buangSprite,klem} from './util.js?v=10';
+import {sambung} from './rt.js?v=11';
+import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=11';
+import * as P1 from './pos1.js?v=11';
+import * as AR from './arena.js?v=11';
+import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=11';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=11';
+import {labelSprite,buangSprite,klem} from './util.js?v=11';
 import {bacaSesi} from '../core/net.js';
 
 const $=id=>document.getElementById(id);
@@ -525,7 +525,7 @@ function setArea(a){
   $('arhud').hidden=a!==1;$('peta').hidden=a!==0;$('c-koin').hidden=a!==0;$('b-pos1').hidden=a!==0;$('stam').hidden=a!==0;$('b-lari').hidden=a!==0;$('b-keluar').hidden=a!==1;$('b-lompat').hidden=false;
   me.siap=0;kirim('siap',{id:saya.id,v:0});
   if(a===1){
-    me.x=0;me.z=12;me.vx=me.vz=0;C.yaw=0;
+    me.x=(Math.random()-.5)*10;me.z=11+Math.random()*3;me.vx=me.vz=0;C.yaw=0;
     aturArena();arena.setWarna(timById(saya.tim).warna);
     kotor=true;toast(selesai(st)?'Pos 1 sudah selesai.':(st.f===1?'Babak sedang berjalan. Hitung tinggi kolom dari rumus di dinding.':'Semua berdiri di pad hijau untuk mulai.'));
     if(selesai(st))bukaHasil();
