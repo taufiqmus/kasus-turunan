@@ -1,12 +1,12 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=8';
-import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=8';
-import * as P1 from './pos1.js?v=8';
-import * as AR from './arena.js?v=8';
-import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=8';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=8';
-import {labelSprite,buangSprite,klem} from './util.js?v=8';
+import {sambung} from './rt.js?v=9';
+import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=9';
+import * as P1 from './pos1.js?v=9';
+import * as AR from './arena.js?v=9';
+import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=9';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=9';
+import {labelSprite,buangSprite,klem} from './util.js?v=9';
 import {bacaSesi} from '../core/net.js';
 
 const $=id=>document.getElementById(id);
