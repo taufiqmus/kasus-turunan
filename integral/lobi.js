@@ -1,13 +1,13 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=18';
-import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=18';
-import * as P1 from './pos1.js?v=18';
-import * as AR from './arena.js?v=18';
-import {buatArena,kolomDari,diDepot,depotDi,diAir,SUNGAI,diPad,BATAS,PAD,DEPOTS,rintanganBabak,xRint,RINT_R} from './arena.js?v=18';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=18';
-import {labelSprite,buangSprite,klem} from './util.js?v=18';
-import {medanBabak,bahaya,kecBan,diBan,diTramp} from './medan.js?v=18';
+import {sambung} from './rt.js?v=19';
+import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=19';
+import * as P1 from './pos1.js?v=19';
+import * as AR from './arena.js?v=19';
+import {buatArena,kolomDari,diDepot,depotDi,diAir,SUNGAI,diPad,BATAS,PAD,DEPOTS,rintanganBabak,xRint,RINT_R} from './arena.js?v=19';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=19';
+import {labelSprite,buangSprite,klem} from './util.js?v=19';
+import {medanBabak,bahaya,kecBan,diBan,diTramp} from './medan.js?v=19';
 import {bacaSesi} from '../core/net.js';
 
 const $=id=>document.getElementById(id);
@@ -912,7 +912,7 @@ function frame(now){
       /* medan tambahan: palu, pintu, duri, lantai runtuh, bola; kebal sebentar setelah tertabrak */
       if(main&&!lontar&&now>=stunTil&&now>=tabrakTil&&!blk){
         const udara2=me.emo&&me.emo.k===1&&Math.sin(((now-me.emo.t)/700)*Math.PI)*1.6>.7;
-        if(!udara2){const h=bahaya(r,me.x,me.z,tSec);if(h)tabrak(now,h);}
+        {const h=bahaya(r,me.x,me.z,tSec,udara2);if(h)tabrak(now,h);}
       }
       /* trampolin: melempar pemain melewati sungai dan jembatan */
       {

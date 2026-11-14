@@ -5,9 +5,9 @@ const fr=v=>v-Math.floor(v);
 
 export const KIRI={x0:-15,x1:-7.5},KANAN={x0:7.5,x1:15};
 export const PAL_L=3.6,PAL_A=3.0,PAL_Y=4.4;           /* palu ayun: panjang lengan, amplitudo, tinggi poros */
-export const PINTU_C=-11.25,PINTU_MIN=1.7,PINTU_MAX=4.7;
+export const PINTU_C=-11.25,PINTU_MIN=.3,PINTU_MAX=4.7;
 export const DURI_X=[-14.2,-12.2,-10.2,-8.4];
-export const UBIN_X=[8.7,11.1,13.5],UBIN_Z=[7.95,8.85],UBIN_W=2.4,UBIN_D=.9,UBIN_T=6.2;
+export const UBIN_X=[8.75,11.25,13.75],UBIN_Z=[7.95,8.85],UBIN_W=2.5,UBIN_D=.9,UBIN_T=6.2;
 export const UBIN_URUT=[[0,0],[1,1],[2,0],[0,1],[1,0],[2,1]];
 export const BOLA_R=1.1;
 
@@ -50,15 +50,16 @@ export const diTramp=(m,x,z)=>!!m.tramp&&Math.hypot(x-m.tramp.x,z-m.tramp.z)<m.t
 
 /* Apakah titik (x,z) terkena bahaya pada waktu t? Pemanggil sudah memastikan pemain di tanah.
    Hasil: {j, dz} dorongan relatif pada sumbu z, atau {j, abs} titik tujuan mutlak, plus pesan. */
-export function bahaya(r,x,z,t){
+export function bahaya(r,x,z,t,udara){
   const m=medanBabak(r);
   for(const p of m.palu)if(Math.abs(z-p.z)<.65&&Math.abs(x-xPalu(p,t))<.85)return {j:'palu',dz:z>=p.z?2:-2,msg:'Terkena palu!'};
   for(const p of m.pintu){
     if(x<KIRI.x0||x>KIRI.x1||Math.abs(z-p.z)>=.5)continue;
-    if(Math.abs(x-PINTU_C)>celahPintu(p,t)/2)return {j:'pintu',dz:z>=p.z?2:-2,msg:'Terjepit pintu geser!'};
+    const ce=celahPintu(p,t);if(ce<.9||Math.abs(x-PINTU_C)>ce/2)return {j:'pintu',dz:z>=p.z?2:-2,msg:'Terjepit pintu geser!'};
   }
+  if(udara)return null;
   for(const p of m.duri)if(Math.abs(z-p.z)<.7)for(let i=0;i<DURI_X.length;i++)
-    if(duriNaik(p,i,t)&&Math.abs(x-DURI_X[i])<.9)return {j:'duri',dz:z>=p.z?2:-2,msg:'Terkena duri!'};
+    if(duriNaik(p,i,t)&&Math.abs(x-DURI_X[i])<1.05)return {j:'duri',dz:z>=p.z?2:-2,msg:'Terkena duri!'};
   for(const u of m.ubin)if(Math.abs(x-u.x)<UBIN_W/2&&Math.abs(z-u.z)<UBIN_D/2&&statusUbin(u,t)===2)return {j:'ubin',abs:10.2,msg:'Lantai runtuh!'};
   for(const b of m.bola){const s=keadaanBola(b,t);if(s.fase==='gulir'&&Math.abs(x-b.x)<BOLA_R&&Math.abs(z-s.z)<BOLA_R)return {j:'bola',dz:2.6,msg:'Tertabrak bola!'};}
   return null;
