@@ -205,6 +205,8 @@ function onPesan(ev,p){
     kunciBabak(p.c);
   }else if(ev==='minta'){
     if(otoritas())setTimeout(()=>{flush();kirim('st',{s:st});tStKirim=performance.now();},100+Math.random()*400);
+    /* pendatang belum tahu posisi kita: kirim satu sinyal posisi */
+    setTimeout(()=>kirimPosisi(true),200+Math.random()*800);
   }else if(ev==='emo'){
     const q=tim.get(p.id);if(q&&(p.k===1||p.k===2))q.emo={k:p.k,t:performance.now()};
   }else if(ev==='ro'){
