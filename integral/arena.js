@@ -1,9 +1,9 @@
 /* Arena Pos 1: lantai, dinding berkurva, kolom balok, gudang balok, pad kunci.
    Dunia arena memakai titik asal yang sama dengan lobi, kelompoknya dinyalakan saat pemain masuk. */
 import * as THREE from './vendor/three.min.js';
-import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=19';
-import {labelSprite} from './util.js?v=19';
-import {medanBabak,xPalu,celahPintu,tinggiDuri,statusUbin,keadaanBola,kecBan,KIRI,KANAN,PAL_L,PAL_Y,PAL_A,PINTU_C,DURI_X,UBIN_W,UBIN_D,BOLA_R} from './medan.js?v=19';
+import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=20';
+import {labelSprite} from './util.js?v=20';
+import {medanBabak,xPalu,celahPintu,tinggiDuri,statusUbin,keadaanBola,kecBan,KIRI,KANAN,PAL_L,PAL_Y,PAL_A,PINTU_C,DURI_X,UBIN_W,UBIN_D,BOLA_R} from './medan.js?v=20';
 
 export const SY=.9,UB=UBAG*SY,WX=9;
 /* tiga gudang (kiri, tengah, kanan) dengan stok terbatas, satu pad kunci, satu sungai dengan jembatan di tengah */
@@ -159,7 +159,12 @@ export function buatArena(){
   cp.rotation.x=-Math.PI/2;cp.position.y=.04;pad.add(cp);
   const cr=new THREE.Mesh(new THREE.RingGeometry(PAD.r-.3,PAD.r,28),new THREE.MeshBasicMaterial({color:0x1c2230,side:THREE.DoubleSide}));
   cr.rotation.x=-Math.PI/2;cr.position.y=.05;pad.add(cr);
-  const lp=labelSprite('Pad kunci',{w:300,h:80,size:32,bg:'#fff6e4',sx:3});lp.position.set(0,3.6,0);pad.add(lp);
+  {const c=document.createElement('canvas');c.width=256;c.height=128;const g=c.getContext('2d');
+    g.textAlign='center';g.textBaseline='middle';g.font='800 84px "Bricolage Grotesque",sans-serif';g.lineWidth=12;g.lineJoin='round';
+    g.strokeStyle='#e8f6ea';g.strokeText('PAD',128,68);g.fillStyle='#1c2230';g.fillText('PAD',128,68);
+    const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;
+    const lp=new THREE.Mesh(new THREE.PlaneGeometry(3.6,1.8),new THREE.MeshBasicMaterial({map:tx,transparent:true,depthWrite:false,toneMapped:false}));
+    lp.rotation.x=-Math.PI/2;lp.position.y=.07;lp.renderOrder=2;pad.add(lp);}
 
   /* sungai dengan satu jembatan sempit di tengah */
   {
