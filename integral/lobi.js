@@ -1,12 +1,12 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=9';
-import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=9';
-import * as P1 from './pos1.js?v=9';
-import * as AR from './arena.js?v=9';
-import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=9';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=9';
-import {labelSprite,buangSprite,klem} from './util.js?v=9';
+import {sambung} from './rt.js?v=10';
+import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=10';
+import * as P1 from './pos1.js?v=10';
+import * as AR from './arena.js?v=10';
+import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=10';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=10';
+import {labelSprite,buangSprite,klem} from './util.js?v=10';
 import {bacaSesi} from '../core/net.js';
 
 const $=id=>document.getElementById(id);
@@ -263,7 +263,7 @@ function onPesan(ev,p){
   if(ev==='p'){
     const q=tim.get(p.id);if(!q||q.bot)return;
     if(![p.x,p.z,p.vx,p.vz].every(Number.isFinite)||Math.abs(p.x)>120||Math.abs(p.z)>120)return;
-    q.tx=p.x;q.tz=p.z;q.vx=klem(p.vx,-14,14);q.vz=klem(p.vz,-14,14);q.c=ang(p.c,0,CAP)?p.c:0;
+    q.tx=p.x;q.tz=p.z;q.vx=klem(p.vx,-14,14);q.vz=klem(p.vz,-14,14);q.c=ang(p.c,0,3)?p.c:0;
     const a=p.a===1?1:0;if(a!==q.a){q.a=a;q.siap=0;}
     if(!q.tMsg||Math.hypot(q.tx-q.x,q.tz-q.z)>8){q.x=p.x;q.z=p.z;}
     q.tMsg=performance.now();
@@ -405,6 +405,30 @@ function putar(dx,dy){
 }
 function zoom(f){if(fp()){if(f>1){C.td=6;$('b-kam').textContent='Bebas';}return;}C.td=klem(C.td*f,5,32);$('b-kam').textContent='Bebas';}
 
+/* ---------- boost dari koin: dipilih sebelum babak, berlaku satu babak, efeknya lokal ---------- */
+const BOOST={s:{n:'Sepatu roket',k:5,d:'Lari 1,5x'},t:{n:'Tangan raksasa',k:8,d:'Bawa 3 balok'},p:{n:'Perisai',k:6,d:'Kebal 1 tabrakan'},g:{n:'Gudang cepat',k:6,d:'Isi balok 2x'}};
+let boostPilih=null,boostAktif=null,koinPakai=+(localStorage.getItem('ki-pakai')||0)||0,boostKey='';
+const saldo=()=>Math.max(0,koinAmbil.size-koinPakai);
+const capNow=()=>boostAktif==='t'?3:CAP;
+function pakaiBoost(){
+  boostAktif=null;
+  if(boostPilih&&saldo()>=BOOST[boostPilih].k){koinPakai+=BOOST[boostPilih].k;try{localStorage.setItem('ki-pakai',String(koinPakai));}catch(e){}boostAktif=boostPilih;}
+  boostPilih=null;boostKey='';
+}
+function boostUI(){
+  const box=$('boost'),tampil=me.a===1&&st.f===0&&!selesai(st)&&$('roda').hidden;
+  box.hidden=!tampil;
+  const kunci=tampil+'|'+boostPilih+'|'+saldo();
+  $('ar-boost').textContent=boostAktif?BOOST[boostAktif].n:(boostPilih?BOOST[boostPilih].n+' (siap)':'-');
+  if(!tampil||kunci===boostKey)return;boostKey=kunci;
+  box.textContent='';
+  const j=document.createElement('div');j.className='bj';j.textContent='Boost satu babak (koin '+saldo()+')';box.append(j);
+  for(const k in BOOST){
+    const o=BOOST[k],b=document.createElement('button');b.type='button';b.className='btn alt';b.disabled=saldo()<o.k;
+    b.setAttribute('aria-pressed',String(boostPilih===k));b.textContent=o.n+' '+o.k+'k';b.title=o.d;
+    b.addEventListener('click',()=>{boostPilih=boostPilih===k?null:k;boostKey='';boostUI();});box.append(b);
+  }
+}
 /* ---------- koin dan peta mini ---------- */
 const _mk=new THREE.Matrix4(),_q=new THREE.Quaternion(),_p=new THREE.Vector3(),_s=new THREE.Vector3(1,1,1),_e=new THREE.Euler();
 function koinSembunyi(i){_mk.makeScale(0,0,0);koinMesh.setMatrixAt(i,_mk);koinMesh.instanceMatrix.needsUpdate=true;}
@@ -418,7 +442,7 @@ function koinPutar(t){
 for(const i of koinAmbil)koinSembunyi(i);
 const miniCv=$('peta'),miniX=miniCv.getContext('2d');let tMini=0;
 function petaMini(t){
-  $('c-koin').textContent='Koin '+jmlKoin()+'/'+KOIN_N;
+  $('c-koin').textContent='Koin '+saldo()+' (terkumpul '+jmlKoin()+'/'+KOIN_N+')';
   $('stam-i').style.width=stam+'%';
   if(t-tMini<.1)return;tMini=t;
   const W=miniCv.width,H=miniCv.height,R=48,k=W/2/R,cx=W/2,cy=H/2,cy0=Math.cos(C.yaw),sy0=Math.sin(C.yaw);
@@ -506,7 +530,7 @@ function setArea(a){
     kotor=true;toast(selesai(st)?'Pos 1 sudah selesai.':(st.f===1?'Babak sedang berjalan. Hitung tinggi kolom dari rumus di dinding.':'Semua berdiri di pad hijau untuk mulai.'));
     if(selesai(st))bukaHasil();
   }else{
-    me.carry=0;const g=gerbang[0];me.x=g.ax;me.z=g.az;me.vx=me.vz=0;$('hitung').hidden=true;
+    boostAktif=null;boostPilih=null;boostKey='';me.carry=0;const g=gerbang[0];me.x=g.ax;me.z=g.az;me.vx=me.vz=0;$('hitung').hidden=true;
   }
   kirimPosisi(true);
 }
@@ -600,7 +624,7 @@ function aksiTick(now,col){
   if(!modeAksi)modeAksi=me.carry>0?1:2;
   if(modeAksi===1){
     if(me.carry>0&&st.c[col]<MAXBAG){me.carry--;ubahKolom(col,1);tAksi=now;}
-  }else if(me.carry<CAP&&st.c[col]>0){me.carry++;ubahKolom(col,-1);tAksi=now;}
+  }else if(me.carry<capNow()&&st.c[col]>0){me.carry++;ubahKolom(col,-1);tAksi=now;}
 }
 
 /* ---------- kualitas dan audit ---------- */
@@ -667,7 +691,7 @@ function toast(s){const t=$('ltoast');t.textContent=s;t.hidden=false;clearTimeou
 function isiArena(){
   const r=Math.min(st.r,BABAK.length-1),c=selesai(st)?st.sr[BABAK.length-1]:st.c,k=kurvaBabak(r);
   $('ar-babak').textContent=selesai(st)?'Selesai':'Babak '+(r+1)+'/3 · '+BABAK[r]+' kolom';
-  $('ar-bawa').textContent='Bawa '+me.carry+'/'+CAP;
+  $('ar-bawa').textContent='Bawa '+me.carry+'/'+capNow();
   $('ar-rumus').textContent=k.tx;$('ar-titik').textContent=aturanBabak(r).tx.replace('titik ','');
   $('ar-total').textContent=jumlah(c)+' balok';
   gambarMini($('mini'),c,timById(saya.tim).warna,selesai(st)?k.f:null);
@@ -781,7 +805,7 @@ function frame(now){
     /* gerak relatif kamera: dorong ke atas berarti maju searah layar */
     const lari=me.a===0&&(key.sh||btnLari)&&stam>(larian?0:25)&&m>=.12;
     if(lari){stam=Math.max(0,stam-30*dt);larian=true;}else{larian=false;stam=Math.min(100,stam+18*dt);}
-    const sy=Math.sin(C.yaw),cy=Math.cos(C.yaw),v=SPD*(1-.07*me.carry)*(lari?SPRINT:1);
+    const sy=Math.sin(C.yaw),cy=Math.cos(C.yaw),v=SPD*(1-.07*me.carry)*(lari?SPRINT:1)*(boostAktif==='s'?1.5:1);
     me.vx=(cy*ix+sy*iz)*v;me.vz=(-sy*ix+cy*iz)*v;
     me.x+=me.vx*dt;me.z+=me.vz*dt;
     if(me.a===0){const r=Math.hypot(me.x,me.z);if(r>RMAX){me.x*=RMAX/r;me.z*=RMAX/r;}}
@@ -839,6 +863,7 @@ function frame(now){
         const udara=me.emo&&me.emo.k===1&&Math.sin(((now-me.emo.t)/700)*Math.PI)*1.6>.7;
         if(!udara)for(const sp of rintanganBabak(r)){
           if(Math.abs(me.x-xRint(sp,tSec))<RINT_R&&Math.abs(me.z-sp.z)<.95){
+            if(boostAktif==='p'){boostAktif=null;tabrakTil=now+1600;toast('Perisai menahan tabrakan!');boostUI();break;}
             const ada=me.carry;me.carry=0;stunTil=now+800;tabrakTil=now+1600;
             me.z=klem(me.z+(me.z>=sp.z?1.6:-1.6),BATAS.z0,BATAS.z1);me.vx=me.vz=0;kotor=true;
             toast(ada?'Tertabrak gelondong! Balok jatuh. Lompat untuk menghindar.':'Tertabrak gelondong! Lompat untuk menghindar.');break;
@@ -846,7 +871,9 @@ function frame(now){
         }
       }
       /* gudang mengisi tangan pelan: satu balok tiap 0,7 detik */
-      if(main&&diDepot(me.x,me.z)&&me.carry<CAP&&now-tReda>700){me.carry++;tReda=now;kotor=true;}
+      if(main&&diDepot(me.x,me.z)&&me.carry<capNow()&&now-tReda>(boostAktif==='g'?350:700)){me.carry++;tReda=now;kotor=true;}
+      if(st.f===0&&boostAktif){boostAktif=null;}
+      boostUI();
       const b=$('aksi');
       const bisaTaruh=col>=0&&me.carry>0&&st.c[col]<MAXBAG,bisaAmbil=col>=0&&me.carry===0&&st.c[col]>0;
       b.hidden=blk||!(bisaTaruh||bisaAmbil||(tahan&&col>=0));
@@ -860,7 +887,7 @@ function frame(now){
         const L=[me,...anggota().filter(p=>p.a===1)],semua=L.every(p=>p.siap),pem=pemimpinKunci();
         if(st.f===0){
           if(hitungMundur){
-            if(now>=hitungMundur){hitungMundur=0;st.f=1;endAt=now+WAKTU[st.r]*1000;toast('MULAI!');kotor=true;}
+            if(now>=hitungMundur){hitungMundur=0;st.f=1;endAt=now+WAKTU[st.r]*1000;pakaiBoost();toast('MULAI!'+(boostAktif?' Boost: '+BOOST[boostAktif].n+'.':''));kotor=true;}
           }else if(pem&&semua&&!blk){
             if(!tSiap)tSiap=now;
             if(now-tSiap>1200){tSiap=0;kirim('mulai',{r:st.r});mulaiHitung();}
