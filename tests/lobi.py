@@ -59,48 +59,70 @@ with sync_playwright() as p:
     for pg in (A,B):pg.bring_to_front();pg.wait_for_selector('#roda',state='hidden',timeout=15000)
     cek('rencana kurva sama untuk satu tim',A.evaluate('JSON.stringify(__L.P1.RENCANA)')==B.evaluate('JSON.stringify(__L.P1.RENCANA)'))
     cek('rencana kurva tim lain berbeda urutan atau kurva',True)
-    # babak belum berjalan: balok tidak bisa ditaruh
-    A.evaluate("__L.tp(-12.5,14.5)");A.wait_for_timeout(1200)
-    cek('sebelum mulai gudang tidak mengisi',A.evaluate('__L.me.carry')==0)
+    # babak belum berjalan: kamp belum mengisi
+    KH="-28,42";PADP="12.5,3.1";cap=A.evaluate('__L.P1.CAP');isi_ms=700*cap+900
+    A.evaluate(f"__L.tp({KH})");A.wait_for_timeout(1200)
+    cek('sebelum mulai kamp tidak mengisi',A.evaluate('__L.me.carry')==0)
+    cek('avatar di kamp berada di jalur',A.evaluate('__L.MED.boleh(__L.me.x,__L.me.z,false)'))
     # mulai lewat pad
-    for pg in (A,B):pg.bring_to_front();pg.evaluate("__L.tp(7,16.8)");pg.wait_for_timeout(300)
+    for pg in (A,B):pg.bring_to_front();pg.evaluate(f"__L.tp({PADP})");pg.wait_for_timeout(300)
     A.bring_to_front();A.wait_for_timeout(5500)
     cek('babak 1 mulai di A dan B',A.evaluate('__L.st.f')==1 and B.evaluate('__L.st.f')==1,(A.evaluate('__L.st.f'),B.evaluate('__L.st.f')))
     A.screenshot(path='/tmp/v3-arena.png')
-    # gudang: kapasitas 2, pengisian pelan
+    import re as _re
+    cek('waktu berupa stopwatch naik',bool(_re.match(r'^0:0\d$',A.inner_text('#ar-waktu'))),A.inner_text('#ar-waktu'))
+    # kamp: kapasitas, pengisian pelan, stok berkurang
     g0=A.evaluate('__L.st.g.slice()')
-    A.evaluate("__L.tp(-12.5,14.5)");A.wait_for_timeout(2200)
-    ca=A.evaluate('__L.me.carry');cek('gudang mengisi tangan sampai 2',ca==2,ca)
+    A.evaluate(f"__L.tp({KH})");A.wait_for_timeout(isi_ms)
+    ca=A.evaluate('__L.me.carry');cek('kamp mengisi tangan sampai penuh',ca==cap,ca)
     g1=A.evaluate('__L.st.g.slice()')
-    cek('stok gudang kiri berkurang 2',g0[0]-g1[0]==2 and g0[1]==g1[1] and g0[2]==g1[2],(g0,g1))
+    cek('stok kamp hutan berkurang sesuai',g0[0]-g1[0]==cap and g0[1]==g1[1] and g0[2]==g1[2],(g0,g1))
     A.evaluate('__L.flush()');B.bring_to_front();B.wait_for_timeout(1500)
     gb=B.evaluate('__L.st.g.slice()');cek('stok tersinkron ke B',gb==g1,(gb,g1))
     A.bring_to_front()
-    # kembalikan ke gudang
+    # kembalikan ke kamp
     A.evaluate('__L.tahan=true');A.wait_for_timeout(700);A.evaluate('__L.tahan=false')
     g2=A.evaluate('__L.st.g.slice()');c2=A.evaluate('__L.me.carry')
-    cek('mengembalikan balok menambah stok',c2<2 and g2[0]>g1[0],(c2,g2))
-    A.wait_for_timeout(2600)
-    cek('gudang mengisi lagi setelah tombol dilepas',A.evaluate('__L.me.carry')==2)
-    # sungai
-    A.evaluate("__L.tp(4,9)");A.wait_for_timeout(500)
-    cek('sungai menghanyutkan dan menjatuhkan balok',A.evaluate('__L.me.carry')==0 and A.evaluate('__L.stunTil')>0)
-    A.wait_for_timeout(1500);zz=A.evaluate('__L.me.z');cek('hanyut ke tepi selatan tanpa lompatan',zz>11.2,zz)
-    A.wait_for_timeout(1500);A.evaluate("__L.tp(0,8.0)");A.wait_for_timeout(900)
-    cek('jembatan aman',abs(A.evaluate('__L.me.z')-8.0)<.01)
-    # medan: palu di jalur tengah (babak 1) mengenai pemain di x sapuan
-    A.evaluate("__L.tp(-3,5)");A.wait_for_timeout(2600)
-    s0=A.evaluate('__L.stunTil');A.evaluate("__L.tp(0,9.3)");A.wait_for_timeout(2500)
+    cek('mengembalikan balok menambah stok',c2<cap and g2[0]>g1[0],(c2,g2))
+    A.wait_for_timeout(isi_ms)
+    cek('kamp mengisi lagi setelah tombol dilepas',A.evaluate('__L.me.carry')==cap)
+    # batu pijakan: saat tenggelam, pemain hanyut dan balok jatuh
+    A.wait_for_function("__L.MED.statusUbin(__L.MED.medanBabak(0).ubin[0],Date.now()/1000)===2",timeout=15000)
+    A.evaluate("__L.tp(21,15.8)");A.wait_for_timeout(400)
+    cek('batu pijakan tenggelam menghanyutkan dan menjatuhkan balok',A.evaluate('__L.me.carry')==0 and A.evaluate('__L.stunTil')>0)
+    A.wait_for_timeout(2200)
+    # tidak bisa keluar jalur
+    A.evaluate("__L.tp(-21,18);__L.C.yaw=0");A.keyboard.down('d');A.wait_for_timeout(1500);A.keyboard.up('d')
+    pj=A.evaluate('[__L.me.x,__L.me.z,__L.MED.jarakJalan(__L.me.x,__L.me.z)]');cek('pemain tidak bisa keluar jalur',pj[2]<=0.001 and abs(pj[0]+21)<=2.3,pj)
+    A.keyboard.down('a');A.wait_for_timeout(1500);A.keyboard.up('a')
+    pj=A.evaluate('[__L.me.x,__L.me.z,__L.MED.jarakJalan(__L.me.x,__L.me.z)]');cek('tepi jalur sisi lain juga menahan',pj[2]<=0.001 and abs(pj[0]+21)<=2.3,pj)
+    # tinggi bukit
+    A.evaluate("__L.tp(0,40)");A.wait_for_timeout(400)
+    cek('avatar mengikuti tinggi bukit',A.evaluate('__L.me.grp.position.y')>4,A.evaluate('__L.me.grp.position.y'))
+    # palu di jembatan gantung
+    s0=A.evaluate('__L.stunTil');A.evaluate("__L.tp(0,29)");A.wait_for_timeout(2600)
     s1=A.evaluate('__L.stunTil');cek('palu ayun mengenai pemain',s1>s0,(s0,s1))
-    A.evaluate("__L.tp(-4,2)");A.wait_for_timeout(3500)
-    A.evaluate("__L.tp(-12.5,14.5)");A.wait_for_timeout(2200)
-    # rintangan
-    sp=A.evaluate("(()=>{const s=__L.AR.rintanganBabak(__L.st.r)[0];return [__L.AR.xRint(s,Date.now()/1000),s.z]})()")
-    A.evaluate(f"__L.tp({sp[0]},{sp[1]})");A.wait_for_timeout(500)
-    cek('gelondong menjatuhkan balok',A.evaluate('__L.me.carry')==0 and A.evaluate('__L.stunTil')>0)
+    A.evaluate("__L.tp(0,40)");A.wait_for_timeout(2200)
+    # gelondong di lereng
+    s0=A.evaluate('__L.stunTil')
+    sp=A.evaluate("(()=>{const s=__L.MED.medanBabak(__L.st.r).kayu[0];return [__L.MED.xKayu(s,Date.now()/1000+.15),s.z]})()")
+    A.evaluate(f"__L.tp({sp[0]},{sp[1]})");A.wait_for_timeout(700)
+    cek('gelondong menabrak pemain',A.evaluate('__L.stunTil')>s0)
     A.wait_for_timeout(1800)
+    # gerbang jalan pintas: terbuka hanya saat teman berdiri di tuas
+    cek('gerbang tertutup tanpa tuas',A.evaluate('__L.gerbangBuka')==False and A.evaluate('__L.MED.boleh(-7.2,11.6,__L.gerbangBuka)')==False)
+    B.bring_to_front();B.evaluate("__L.tp(-12.5,3.1);__L.kirimPosisi()");B.wait_for_timeout(400)
+    A.bring_to_front();A.wait_for_timeout(1500)
+    cek('gerbang terbuka saat teman di tuas',A.evaluate('__L.gerbangBuka')==True)
+    B.bring_to_front();B.evaluate(f"__L.tp({PADP});__L.kirimPosisi()");B.wait_for_timeout(400)
+    A.bring_to_front();A.wait_for_timeout(1500)
+    cek('gerbang menutup saat tuas ditinggal',A.evaluate('__L.gerbangBuka')==False)
+    # koin petualang
+    sd=A.evaluate('__L.saldo()');kp=A.evaluate('__L.MED.KOIN_A[0]')
+    A.evaluate(f"__L.tp({kp[0]},{kp[1]})");A.wait_for_timeout(400)
+    cek('koin petualang menambah saldo',A.evaluate('__L.saldo()')==sd+1)
     # taruh dan ambil kembali
-    A.evaluate("__L.tp(-12.5,14.5)");A.wait_for_timeout(1800);A.evaluate("__L.tp(-4,2)");A.wait_for_timeout(300)
+    A.evaluate(f"__L.tp({KH})");A.wait_for_timeout(1800);A.evaluate("__L.tp(-4,2)");A.wait_for_timeout(300)
     A.evaluate('__L.tahan=true');A.wait_for_timeout(2500);A.evaluate('__L.tahan=false')
     st0=A.evaluate('__L.st.c');cek('taruh balok menambah kolom',sum(st0)>=1,st0)
     B.bring_to_front();B.wait_for_timeout(2500)
@@ -114,10 +136,10 @@ with sync_playwright() as p:
     for r in range(3):
         if r>0:
             for pg in (A,B):pg.bring_to_front();pg.wait_for_selector('#roda',state='hidden',timeout=20000)
-            for pg in (A,B):pg.bring_to_front();pg.evaluate("__L.tp(7,16.8)");pg.wait_for_timeout(300)
+            for pg in (A,B):pg.bring_to_front();pg.evaluate(f"__L.tp({PADP})");pg.wait_for_timeout(300)
             A.bring_to_front();A.wait_for_timeout(5800)
             cek(f'babak {r+1} mulai',A.evaluate('__L.st.f')==1 and B.evaluate('__L.st.f')==1)
-        A.bring_to_front();A.evaluate("__L.tp(7,16.8)");isi(A);A.wait_for_timeout(1800)
+        A.bring_to_front();A.evaluate(f"__L.tp({PADP})");isi(A);A.wait_for_timeout(1800)
         cek(f'babak {r+1} tersinkron ke B',B.evaluate('__L.st.c')==A.evaluate('__L.st.c'),A.evaluate('__L.st.c'))
         A.wait_for_timeout(1500)
         cek(f'babak {r+1} terkunci di A dan B',A.evaluate('__L.st.r')==r+1 and B.evaluate('__L.st.r')==r+1,(A.evaluate('__L.st.r'),B.evaluate('__L.st.r')))
@@ -140,6 +162,16 @@ with sync_playwright() as p:
     # anggaran
     cek('jeda posisi 2 pemain di batas bawah',A.evaluate('__L.jedaPos()')<=400,A.evaluate('__L.jedaPos()'))
     A.evaluate('__L.sim.on=true');cek('simulasi kelas 40',A.evaluate('__L.ntot()')==40 and A.evaluate('__L.jedaPos()')==4000)
+    A.bring_to_front()
+    for q in range(4):
+        for g in ('r','s'):
+            A.evaluate(f"__L.setGrafis({q},'{g}',true)");A.wait_for_timeout(700)
+            gr=A.evaluate('__L.grafis');cek(f'grafis {q}{g} diterapkan',gr['kual']==q and gr['gaya']==g and gr['pasca']==(g=='s' and q>=1),gr)
+    A.evaluate("__L.setGrafis(0,'r',true)")
+    if A.is_visible('#hasil'):A.click('#w-tutup');A.wait_for_timeout(400)
+    A.click('#b-grafis');cek('panel grafis tampil dengan 4 kualitas dan 2 gaya',A.is_visible('#grafis') and A.locator('#g-kual .btn').count()==4 and A.locator('#g-gaya .btn').count()==2)
+    A.click('#g-kual .btn >> nth=1');cek('klik kualitas mengubah pengaturan',A.evaluate('__L.grafis.kual')==1)
+    A.evaluate("__L.setGrafis(0,'r',true)");A.click('#b-grafis')
     cek('tanpa galat konsol',not errs,errs)
     hilang=cek_event_terdaftar();cek('semua event jaringan terdaftar di kanal',not hilang,str(hilang))
     print('SEMUA LULUS' if ok else 'ADA YANG GAGAL')

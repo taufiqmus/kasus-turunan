@@ -15,7 +15,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 .lchip{pointer-events:auto;background:var(--paper);border:3px solid var(--ink);border-radius:999px;padding:5px 12px;font-weight:700;font-size:13px;box-shadow:0 3px 0 var(--ink);white-space:nowrap}
 .lchip .sw{display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);margin-right:6px;vertical-align:-1px}
 #lhud .sp{flex:1}
-#b-audit{pointer-events:auto;font-size:13px;padding:6px 12px}
+#b-audit,#b-grafis{pointer-events:auto;font-size:13px;padding:6px 12px}
 #aksi{position:fixed;z-index:3;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 26px)}
 #aksi:active{transform:translate(-50%,3px)}
 #ltoast{position:fixed;z-index:3;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 96px);background:var(--ink);color:var(--paper);font-weight:700;font-size:14px;padding:8px 14px;border-radius:12px;max-width:86vw;text-align:center;pointer-events:none}
@@ -41,7 +41,8 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #hitung{position:fixed;z-index:4;left:50%;top:38%;transform:translate(-50%,-50%);font-family:var(--display);font-size:120px;color:#fff6e4;-webkit-text-stroke:6px var(--ink);paint-order:stroke fill;pointer-events:none}
 @media (max-width:560px){
 #c-ruang{display:none}
-.lchip,#b-kam,#b-keluar,#b-audit{font-size:12px;padding:5px 9px}
+.lchip,#b-kam,#b-keluar,#b-audit,#b-grafis,#b-pos1{font-size:11px;padding:4px 7px;white-space:nowrap}
+#lhud{gap:5px;flex-wrap:wrap;row-gap:5px}#lhud .sp{display:none}
 #arhud{width:min(165px,40vw);font-size:12px;padding:6px;gap:3px}
 #arhud .r{flex-wrap:wrap;gap:0 6px}
 }
@@ -61,6 +62,13 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 @media (max-width:420px){#cr{grid-template-columns:1fr}#cr-prev{width:100%;height:150px}}
 #peta{position:fixed;z-index:3;left:calc(env(safe-area-inset-left,0px) + 10px);top:calc(env(safe-area-inset-top,0px) + 52px);width:110px;height:110px;border-radius:50%;pointer-events:none}
 #stam{position:fixed;z-index:3;left:calc(env(safe-area-inset-left,0px) + 14px);top:calc(env(safe-area-inset-top,0px) + 168px);width:100px;height:8px;border-radius:4px;background:rgba(28,34,48,.35);overflow:hidden}
+#peta.ar{left:auto;right:calc(env(safe-area-inset-right,0px) + 10px)}
+#stam.ar{left:auto;right:calc(env(safe-area-inset-right,0px) + 15px)}
+#grafis{position:fixed;z-index:5;top:calc(env(safe-area-inset-top,0px) + 54px);right:calc(env(safe-area-inset-right,0px) + 10px);width:min(310px,calc(100vw - 20px));padding:12px;font-size:13px}
+#grafis .row{display:flex;gap:6px;flex-wrap:wrap}
+#grafis .btn{font-size:12px;padding:7px 10px}
+#grafis .btn[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+#grafis .gj{margin:10px 0 5px;font-weight:700}#grafis .gk{margin:10px 0 0;font-size:12px;opacity:.8}
 #stam i{display:block;height:100%;width:100%;background:#ff6f47}
 #b-lari{position:fixed;z-index:3;right:calc(env(safe-area-inset-right,0px) + 28px);bottom:calc(env(safe-area-inset-bottom,0px) + 112px);width:60px;height:60px;border-radius:50%;padding:0;font-size:12px;touch-action:none;user-select:none}
 #b-pos1{pointer-events:auto;font-size:13px;padding:6px 12px}
@@ -84,6 +92,13 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 .skorbesar{font-family:var(--display);font-size:54px;line-height:1}
 #audit .tgl{display:flex;gap:6px;align-items:center;margin:6px 0;font-weight:700}
 @media (max-width:720px){.screen>.wrap{grid-template-columns:1fr;gap:12px}h1{font-size:44px}}
+@media (max-width:560px){
+#arhud{top:calc(env(safe-area-inset-top,0px) + 76px)}
+#peta{top:calc(env(safe-area-inset-top,0px) + 76px)}#stam{top:calc(env(safe-area-inset-top,0px) + 192px)}
+#grafis,#audit{top:calc(env(safe-area-inset-top,0px) + 76px)}
+.lchip,#b-kam,#b-keluar,#b-audit,#b-grafis,#b-pos1{font-size:11px;padding:4px 7px;white-space:nowrap}
+#boost{bottom:calc(env(safe-area-inset-bottom,0px) + 190px)}
+}
 </style>
 </head>
 <body>
@@ -120,6 +135,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <button class="btn alt" id="b-keluar" type="button" hidden>Keluar pos</button>
   <button class="btn alt" id="b-pos1" type="button" hidden>Ke Pos 1</button>
   <button class="btn alt" id="b-kam" type="button">Ikuti</button>
+  <button class="btn alt" id="b-grafis" type="button">Grafis</button>
   <button class="btn alt" id="b-audit" type="button">Audit</button>
 </div>
 <canvas id="peta" width="220" height="220" hidden></canvas>
@@ -142,6 +158,14 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 <div id="hitung" hidden></div>
 <div id="joy" hidden><i></i></div>
 
+<div class="card" id="grafis" hidden>
+  <h2>Grafis</h2>
+  <p class="gj">Kualitas (seberapa berat)</p>
+  <div class="row" id="g-kual"></div>
+  <p class="gj">Gaya (seperti apa rupanya)</p>
+  <div class="row" id="g-gaya"></div>
+  <p class="gk" id="g-ket"></p>
+</div>
 <div class="card" id="audit" hidden>
   <h2>Panel audit</h2>
   <dl>
@@ -194,6 +218,6 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 </div>
 
 <script src="./vendor/supabase.js"></script>
-<script type="module" src="lobi.js?v=21"></script>
+<script type="module" src="lobi.js?v=22"></script>
 </body>
 </html>

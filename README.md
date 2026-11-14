@@ -98,3 +98,13 @@ Belum ada: panel dosen, pos 2 sampai 6, pemeriksaan skor di server.
 
 ### Pos 1 tahap 2 (medan)
 Tiga jalur (kiri, tengah, kanan), sungai dengan jembatan sempit, palu ayun, pintu geser, duri, ban berjalan, lantai runtuh, trampolin (babak 3) dan bola menggelinding. Semua bahaya dihitung dari jam dinding (`medan.js`), tanpa pesan jaringan. Tingkat kesulitan naik tiap babak. Perisai menahan satu tabrakan.
+
+### Pos 1 "Lembah Waduk" (v=22)
+- Dunia: lembah luas dengan tiga wilayah. Hutan (kiri: pintu geser, duri), Bukit (tengah: gelondong di lereng, palu di jembatan gantung, bola di punggung bukit), Sungai (kanan: batu pijakan yang tenggelam, ban berjalan, trampolin di babak 3).
+- Tiap wilayah punya jalur utama (pendek, berbahaya) dan jalur memutar (aman, panjang). Kamp saling terhubung lewat jalan lingkar. Jalan pintas bergerbang terbuka selama ada anggota tim berdiri di pelat TUAS.
+- Pemain hanya bisa berjalan di jalur (`boleh()` di `medan.js`). Terpental berarti meluncur ke jejak langkah sendiri, jadi selalu mendarat di jalur.
+- Tiga kamp balok dengan stok terbatas (30%, 40%, 30%; kamp Bukit terjauh dan terbanyak). Kapasitas bawa 4 balok.
+- Tanpa batas waktu. Stopwatch naik; kecepatan hanya bonus 12% yang habis di waktu patokan (`WAKTU`), ketepatan tetap 88%.
+- Koin petualang di sudut-sudut lembah (muncul lagi tiap babak) menambah saldo boost.
+- Grafis: 4 tingkat kualitas (rendah, sedang, tinggi, sangat tinggi) dan 2 gaya (realistik, sinematik), dipilih di tombol Grafis, tersimpan di perangkat. Kualitas awal ditebak dari perangkat dan turun sendiri bila tersendat (kecuali sudah dipilih manual).
+- Semua rintangan tetap dihitung dari jam dinding, tanpa pesan jaringan baru.

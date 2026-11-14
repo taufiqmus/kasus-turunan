@@ -2,7 +2,7 @@
    contoh kolom itu (kiri, kanan, atau tengah), dibulatkan ke 0,5. Kurva dan aturan diundi per tim per babak lewat roda,
    dengan benih dari kode ruang dan tim, jadi satu tim melihat hasil yang sama tanpa pesan jaringan.
    Modul ini hanya logika, tanpa tampilan 3D. */
-export const BABAK=[3,6,12],XMAX=3,YMAX=10,UBAG=.5,MAXBAG=19,CAP=2,WAKTU=[180,300,480];
+export const BABAK=[3,6,12],XMAX=3,YMAX=10,UBAG=.5,MAXBAG=19,CAP=4,WAKTU=[300,540,720];
 
 export const KURVA=[
   {tx:'y = x²',f:x=>x*x,F:x=>x**3/3},
@@ -44,7 +44,7 @@ export function skorRonde(r,c,w){
   return {luas,asli:luasAsli(r),selisih:luas-luasAsli(r),S,akurasi,skor};
 }
 /* tiga gudang dengan stok terbatas dan tidak mengisi ulang. Stok total = 1,5 kali kebutuhan balok babak itu, dibagi menurut jalur. */
-export const NDEP=3,GMAX=120,GBAGI=[.35,.25,.40];
+export const NDEP=3,GMAX=120,GBAGI=[.30,.40,.30];
 export function stokBabak(r){
   if(r>=BABAK.length)return [0,0,0];
   const butuh=targetH(r).reduce((a,h)=>a+Math.min(MAXBAG,Math.round(h/UBAG)),0),tot=Math.ceil(butuh*1.5)+4;
@@ -66,7 +66,7 @@ export function valid(s){
   if(!Array.isArray(s.w)||s.w.length!==s.r||!s.w.every(v=>bil(v,0,1000)))return false;
   if(s.f!==0&&s.f!==1)return false;
   if(s.g!==undefined&&!(Array.isArray(s.g)&&s.g.length===NDEP&&s.g.every(v=>bil(v,0,GMAX))))return false;
-  if(s.f===1&&!bil(s.m,0,600000))return false;
+  if(s.f===1&&!bil(s.m,-36000000,900000))return false;
   for(let i=0;i<s.r;i++)if(!cValid(i,s.sr[i]))return false;
   return s.r>=BABAK.length?Array.isArray(s.c)&&s.c.length===0:cValid(s.r,s.c);
 }
