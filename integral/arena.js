@@ -1,9 +1,9 @@
 /* Arena Pos 1: lantai, dinding berkurva, kolom balok, gudang balok, pad kunci.
    Dunia arena memakai titik asal yang sama dengan lobi, kelompoknya dinyalakan saat pemain masuk. */
 import * as THREE from './vendor/three.min.js';
-import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=17';
-import {labelSprite} from './util.js?v=17';
-import {medanBabak,xPalu,celahPintu,tinggiDuri,statusUbin,keadaanBola,kecBan,KIRI,KANAN,PAL_L,PAL_Y,PAL_A,PINTU_C,DURI_X,UBIN_W,UBIN_D,BOLA_R} from './medan.js?v=17';
+import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=18';
+import {labelSprite} from './util.js?v=18';
+import {medanBabak,xPalu,celahPintu,tinggiDuri,statusUbin,keadaanBola,kecBan,KIRI,KANAN,PAL_L,PAL_Y,PAL_A,PINTU_C,DURI_X,UBIN_W,UBIN_D,BOLA_R} from './medan.js?v=18';
 
 export const SY=.9,UB=UBAG*SY,WX=9;
 /* tiga gudang (kiri, tengah, kanan) dengan stok terbatas, satu pad kunci, satu sungai dengan jembatan di tengah */
@@ -122,16 +122,17 @@ export function buatArena(){
   /* tiga gudang: tumpukan peti menyusut sesuai stok, papan menampilkan sisa */
   const gudangs=[];
   function papan(){
-    const c=document.createElement('canvas');c.width=420;c.height=130;const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;
-    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true,depthTest:false}));sp.scale.set(5.4,1.67,1);sp.renderOrder=5;
+    const c=document.createElement('canvas');c.width=256;c.height=128;const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;
+    const sp=new THREE.Mesh(new THREE.PlaneGeometry(4.2,2.1),new THREE.MeshBasicMaterial({map:tx,transparent:true,depthWrite:false,toneMapped:false}));
+    sp.rotation.x=-Math.PI/2;sp.renderOrder=2;
     return {sp,c,tx,teks:''};
   }
   function tulis(o,l1,l2,warnaTeks){
-    const k=l1+'|'+l2+'|'+warnaTeks;if(o.teks===k)return;o.teks=k;
-    const g=o.c.getContext('2d');g.clearRect(0,0,420,130);g.fillStyle='#fff6e4';g.strokeStyle='#1c2230';g.lineWidth=5;
-    g.beginPath();if(g.roundRect)g.roundRect(4,4,412,122,18);else g.rect(4,4,412,122);g.fill();g.stroke();
-    g.textAlign='center';g.textBaseline='middle';g.fillStyle='#1c2230';g.font='700 34px "Chakra Petch",sans-serif';g.fillText(l1,210,40);
-    g.fillStyle=warnaTeks;g.font='800 44px "Bricolage Grotesque",sans-serif';g.fillText(l2,210,92);o.tx.needsUpdate=true;
+    const k=l2+'|'+warnaTeks;if(o.teks===k)return;o.teks=k;
+    const g=o.c.getContext('2d');g.clearRect(0,0,256,128);
+    g.textAlign='center';g.textBaseline='middle';g.font='800 96px "Bricolage Grotesque",sans-serif';
+    g.lineWidth=14;g.lineJoin='round';g.strokeStyle='#fff6e4';g.strokeText(l2,128,68);
+    g.fillStyle=warnaTeks;g.fillText(l2,128,68);o.tx.needsUpdate=true;
   }
   DEPOTS.forEach((d,di)=>{
     const g=new THREE.Group();g.position.set(d.x,0,d.z);grup.add(g);
@@ -142,7 +143,7 @@ export function buatArena(){
       const b=new THREE.Mesh(gb,new THREE.MeshLambertMaterial({color:warna,flatShading:true}));
       b.scale.set(1.1,.5,.8);b.position.set((j-(2-i)/2)*1.2,.26+i*.52,0);g.add(b);peti.push(b);
     }
-    const pb=papan();pb.sp.position.set(0,3.4,0);g.add(pb.sp);
+    const pb=papan();pb.sp.position.set(0,.06,d.r+1.2);g.add(pb.sp);
     gudangs.push({g,peti,pb,nama:d.nama});
   });
   const tumpuk=gudangs.flatMap(o=>o.peti);
@@ -150,7 +151,7 @@ export function buatArena(){
     gudangs.forEach((o,i)=>{
       const n=g[i]|0,mx=Math.max(1,g0[i]|0),vis=n<=0?0:Math.max(1,Math.ceil(6*n/mx));
       o.peti.forEach((b,j)=>{b.visible=j<vis;});
-      tulis(o.pb,'Gudang '+o.nama,n>0?'Stok '+n:'HABIS',n>0?(n/mx<.25?'#e5392b':'#1c2230'):'#e5392b');
+      tulis(o.pb,'',n>0?String(n):'0',n>0?(n/mx<.25?'#e5392b':'#1c2230'):'#e5392b');
     });
   }
   const pad=new THREE.Group();pad.position.set(PAD.x,0,PAD.z);grup.add(pad);
