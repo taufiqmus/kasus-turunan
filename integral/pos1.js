@@ -2,7 +2,7 @@
    contoh kolom itu (kiri, kanan, atau tengah), dibulatkan ke 0,5. Kurva dan aturan diundi per tim per babak lewat roda,
    dengan benih dari kode ruang dan tim, jadi satu tim melihat hasil yang sama tanpa pesan jaringan.
    Modul ini hanya logika, tanpa tampilan 3D. */
-export const BABAK=[3,6,12],XMAX=3,YMAX=10,UBAG=.5,MAXBAG=19,CAP=2,WAKTU=[100,140,200];
+export const BABAK=[3,6,12],XMAX=3,YMAX=10,UBAG=.5,MAXBAG=19,CAP=2,WAKTU=[110,160,230];
 
 export const KURVA=[
   {tx:'y = x²',f:x=>x*x,F:x=>x**3/3},

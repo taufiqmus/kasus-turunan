@@ -1,12 +1,12 @@
 /* Arena Pos 1: lantai, dinding berkurva, kolom balok, gudang balok, pad kunci.
    Dunia arena memakai titik asal yang sama dengan lobi, kelompoknya dinyalakan saat pemain masuk. */
 import * as THREE from './vendor/three.min.js';
-import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=6';
-import {labelSprite} from './util.js?v=6';
+import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=8';
+import {labelSprite} from './util.js?v=8';
 
-export const SY=.9,UB=UBAG*SY,WX=6;
-export const DEPOT={x:-8.5,z:7,r:2.5},PAD={x:8.5,z:7,r:2.5};
-export const BATAS={x0:-12,x1:12,z0:.4,z1:13.5},ZONA={z0:.2,z1:3.4};
+export const SY=.9,UB=UBAG*SY,WX=9;
+export const DEPOT={x:-13.5,z:10.5,r:2.5},PAD={x:13.5,z:10.5,r:2.5};
+export const BATAS={x0:-15,x1:15,z0:.4,z1:16.5},ZONA={z0:.2,z1:4.6};
 export const kolX=(n,i)=>-WX+(i+.5)*2*WX/n;
 export function kolomDari(n,x,z){
   if(z<ZONA.z0||z>ZONA.z1||x<-WX||x>WX)return -1;
@@ -15,10 +15,10 @@ export function kolomDari(n,x,z){
 export const diDepot=(x,z)=>Math.hypot(x-DEPOT.x,z-DEPOT.z)<DEPOT.r;
 export const diPad=(x,z)=>Math.hypot(x-PAD.x,z-PAD.z)<PAD.r;
 
-export const RINT_MAKS=6,RINT_AMP=6.3,RINT_R=.9; /* jari-jari tabrak ke samping (sumbu x) dan setengah panjang di sumbu z */
+export const RINT_MAKS=6,RINT_AMP=14.3,RINT_R=.9; /* jari-jari tabrak ke samping (sumbu x) dan setengah panjang di sumbu z */
 /* spesifikasi gelondong per babak: lajur z, periode detik, fase 0..1 */
 export function rintanganBabak(r){
-  const L=[[4.1,6.8,0],[5.2,7.6,.5],[4.1,6.8,.5],[5.2,7.6,0],[4.1,5.2,.25],[5.2,5.8,.75]];
+  const L=[[5.7,13,0],[6.9,14.5,.5],[5.7,13,.5],[6.9,14.5,0],[5.7,10,.25],[6.9,11,.75]];
   const n=[3,4,6][Math.min(r,2)],k=[.8,1,1.25][Math.min(r,2)];
   return L.slice(0,n).map(([z,T,f])=>({z,T:T/k,f}));
 }
@@ -26,15 +26,15 @@ export const xRint=(sp,tSec)=>RINT_AMP*Math.sin(2*Math.PI*(tSec/sp.T+sp.f));
 const mat=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
 export function buatArena(){
   const grup=new THREE.Group();grup.visible=false;
-  const lantai=new THREE.Mesh(new THREE.BoxGeometry(28,.3,17),mat(0xf2e3c2));lantai.position.set(0,-.16,6);grup.add(lantai);
-  const tepi=new THREE.Mesh(new THREE.BoxGeometry(28.6,.2,17.6),mat(0x1c2230));tepi.position.set(0,-.32,6);grup.add(tepi);
+  const lantai=new THREE.Mesh(new THREE.BoxGeometry(36,.3,22),mat(0xf2e3c2));lantai.position.set(0,-.16,8);grup.add(lantai);
+  const tepi=new THREE.Mesh(new THREE.BoxGeometry(36.6,.2,22.6),mat(0x1c2230));tepi.position.set(0,-.32,8);grup.add(tepi);
 
   /* dinding kurva */
-  const cw=document.createElement('canvas');cw.width=1400;cw.height=950;
+  const cw=document.createElement('canvas');cw.width=2000;cw.height=950;
   const tx=new THREE.CanvasTexture(cw);tx.colorSpace=THREE.SRGBColorSpace;tx.anisotropy=4;
-  const dinding=new THREE.Mesh(new THREE.PlaneGeometry(14,9.5),new THREE.MeshBasicMaterial({map:tx}));
+  const dinding=new THREE.Mesh(new THREE.PlaneGeometry(20,9.5),new THREE.MeshBasicMaterial({map:tx}));
   dinding.position.set(0,4.75,-2.2);grup.add(dinding);
-  const WW=1400,HH=950,px=wx=>(wx+7)/14*WW,py=wy=>HH-wy/9.5*HH;
+  const WW=2000,HH=950,px=wx=>(wx+10)/20*WW,py=wy=>HH-wy/9.5*HH;
   /* o: {n, rumus, aturan, fKurva (digambar hanya bila tampil)} */
   function gambarDinding(o){
     const n=o.n,g=cw.getContext('2d');

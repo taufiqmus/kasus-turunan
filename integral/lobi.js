@@ -1,12 +1,12 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=6';
-import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=6';
-import * as P1 from './pos1.js?v=6';
-import * as AR from './arena.js?v=6';
-import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=6';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=6';
-import {labelSprite,buangSprite,klem} from './util.js?v=6';
+import {sambung} from './rt.js?v=8';
+import {BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=8';
+import * as P1 from './pos1.js?v=8';
+import * as AR from './arena.js?v=8';
+import {buatArena,kolomDari,diDepot,diPad,BATAS,PAD,DEPOT,rintanganBabak,xRint,RINT_R} from './arena.js?v=8';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=8';
+import {labelSprite,buangSprite,klem} from './util.js?v=8';
 import {bacaSesi} from '../core/net.js';
 
 const $=id=>document.getElementById(id);
@@ -497,11 +497,11 @@ $('b-pos1').addEventListener('click',()=>{if(me.a!==0||blok())return;const g=ger
 
 /* ---------- arena dan aksi ---------- */
 function setArea(a){
-  me.a=a;arena.grup.visible=a===1;lobiGrup.visible=a===0;
+  me.a=a;arena.grup.visible=a===1;lobiGrup.visible=a===0;rumput.position.y=a===1?-.45:0;
   $('arhud').hidden=a!==1;$('peta').hidden=a!==0;$('c-koin').hidden=a!==0;$('b-pos1').hidden=a!==0;$('stam').hidden=a!==0;$('b-lari').hidden=a!==0;$('b-keluar').hidden=a!==1;$('b-lompat').hidden=false;
   me.siap=0;kirim('siap',{id:saya.id,v:0});
   if(a===1){
-    me.x=0;me.z=9;me.vx=me.vz=0;C.yaw=0;
+    me.x=0;me.z=12;me.vx=me.vz=0;C.yaw=0;
     aturArena();arena.setWarna(timById(saya.tim).warna);
     kotor=true;toast(selesai(st)?'Pos 1 sudah selesai.':(st.f===1?'Babak sedang berjalan. Hitung tinggi kolom dari rumus di dinding.':'Semua berdiri di pad hijau untuk mulai.'));
     if(selesai(st))bukaHasil();
@@ -896,7 +896,7 @@ function frame(now){
     const jy=me.grp.position.y;cam.position.set(me.x,2.7+jy,me.z);
     cam.lookAt(me.x-Math.sin(C.yaw)*cp,2.7+jy-sp,me.z-Math.cos(C.yaw)*cp);
   }else{
-    const ar=mulai&&me.a===1,D=C.d*ks*(ar?1.2:1),oy=ar?2.4:1.2,oz=ar?-3:0;
+    const ar=mulai&&me.a===1,D=C.d*ks*(ar?1.9:1),oy=ar?2.6:1.2,oz=ar?-1:0;
     kamP.set(tx+D*Math.sin(C.yaw)*cp,oy+D*sp,tz+oz+D*Math.cos(C.yaw)*cp);
     cam.position.copy(kamP);cam.lookAt(tx,oy,tz+oz);
   }
