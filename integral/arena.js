@@ -1,8 +1,8 @@
 /* Arena Pos 1: lantai, dinding berkurva, kolom balok, gudang balok, pad kunci.
    Dunia arena memakai titik asal yang sama dengan lobi, kelompoknya dinyalakan saat pemain masuk. */
 import * as THREE from './vendor/three.min.js';
-import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js';
-import {labelSprite} from './util.js';
+import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=5';
+import {labelSprite} from './util.js?v=5';
 
 export const SY=.9,UB=UBAG*SY,WX=6;
 export const DEPOT={x:-8.5,z:7,r:2.5},PAD={x:8.5,z:7,r:2.5};
