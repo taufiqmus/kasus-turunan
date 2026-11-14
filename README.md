@@ -65,3 +65,17 @@ Kit bersama untuk modul kasus: `core/kit.js` (bangunan, pohon, panel, tombol, pa
 
 Modul kasus mengekspor `THEORY` (kartu berisi judul dan HTML) dan `THEORY_START`.
 Panggil `teori('id')` saat aksi terkait terjadi; kartu terbuka, tombol Teori diberi tanda "baru".
+
+## Lobi Integral (prototipe untuk audit)
+
+`integral/index.html` adalah prototipe lobi 3D multipemain untuk game integral. Isinya satu lobi low-poly, tim, dan satu pos (Pos 1, Tambal Waduk).
+
+- `integral/lobi.js`: dunia 3D (Three.js), avatar, joystick sentuh, panel audit.
+- `integral/rt.js`: Supabase Realtime (presence dan broadcast). Jika server tidak terjangkau, turun ke mode luring antar-tab.
+- `integral/pos1.js`: Tambal Waduk, kanvas tim bersama.
+- `integral/vendor/`: Three.js dan supabase-js, disalin agar tidak bergantung pada CDN.
+- Uji: `python3 tests/lobi.py` (mode luring, `?lokal=1`).
+
+Panel audit (tombol Audit) menampilkan FPS, ping, jumlah pemain, dan pesan per detik, lalu "Salin laporan" untuk dikumpulkan dari HP mahasiswa.
+Jeda kirim posisi menyesuaikan jumlah pemain agar tetap di bawah batas pesan paket gratis Supabase Realtime.
+Belum ada: panel dosen, pos 2 sampai 6, pemeriksaan skor di server.

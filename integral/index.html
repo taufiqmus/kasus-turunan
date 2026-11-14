@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Lobi Integral (prototipe)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700..800&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../core/style.css">
+<style>
+html,body{background:#9fd4ee;overscroll-behavior:none}
+canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#lhud{position:fixed;z-index:3;top:calc(env(safe-area-inset-top,0px) + 10px);left:calc(env(safe-area-inset-left,0px) + 10px);right:calc(env(safe-area-inset-right,0px) + 10px);display:flex;gap:8px;align-items:flex-start;pointer-events:none}
+.lchip{pointer-events:auto;background:var(--paper);border:3px solid var(--ink);border-radius:999px;padding:5px 12px;font-weight:700;font-size:13px;box-shadow:0 3px 0 var(--ink);white-space:nowrap}
+.lchip .sw{display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);margin-right:6px;vertical-align:-1px}
+#lhud .sp{flex:1}
+#b-audit{pointer-events:auto;font-size:13px;padding:6px 12px}
+#aksi{position:fixed;z-index:3;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 26px)}
+#aksi:active{transform:translate(-50%,3px)}
+#ltoast{position:fixed;z-index:3;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 96px);background:var(--ink);color:var(--paper);font-weight:700;font-size:14px;padding:8px 14px;border-radius:12px;max-width:86vw;text-align:center;pointer-events:none}
+#joy{position:fixed;z-index:2;width:120px;height:120px;margin:-60px 0 0 -60px;border:3px solid rgba(28,34,48,.55);border-radius:50%;background:rgba(255,246,228,.35);pointer-events:none}
+#joy i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(28,34,48,.7)}
+#audit{position:fixed;z-index:4;top:calc(env(safe-area-inset-top,0px) + 54px);right:calc(env(safe-area-inset-right,0px) + 10px);width:min(300px,calc(100vw - 20px));padding:12px;font-size:13px}
+#audit dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0}
+#audit dt{font-weight:700}#audit dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+#audit .row{display:flex;gap:6px;flex-wrap:wrap}
+#audit .btn{font-size:12px;padding:6px 9px}
+#audit textarea{width:100%;height:110px;font:12px ui-monospace,monospace;margin-top:8px;border:2px solid var(--ink);border-radius:8px}
+.tims{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tims .tab{border-radius:12px;padding:10px;text-align:left}
+#waduk{position:fixed;inset:0;z-index:5;background:rgba(28,34,48,.55);display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 8px) 8px calc(env(safe-area-inset-bottom,0px) + 8px)}
+#waduk .card{width:min(760px,100%);max-height:100%;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px}
+#w-main{display:flex;flex-direction:column;gap:8px;min-height:0}
+#w-cv{width:100%;height:min(46vh,340px);border:3px solid var(--ink);border-radius:10px;touch-action:none;display:block;cursor:crosshair}
+.w-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.w-read{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.w-read div{border:3px solid var(--ink);border-radius:10px;padding:6px 10px;background:#fff}
+.w-read small{display:block;font-weight:700;font-size:12px}
+.w-read b{font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums}
+.w-read .w-bar{padding:0;height:12px;border:2px solid var(--ink);border-radius:999px;background:#fff;overflow:hidden}
+.w-bar i{display:block;height:100%;background:var(--blue);width:100%;transition:width .12s}
+.w-leg{font-size:12px;margin:0}
+.w-leg span{display:inline-block;width:11px;height:11px;border:2px solid var(--ink);vertical-align:-1px;margin:0 4px 0 8px}
+#w-tabel{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+#w-tabel th,#w-tabel td{border:2px solid var(--ink);padding:5px 8px;text-align:center}
+#w-tabel th{background:var(--apricot)}
+.skorbesar{font-family:var(--display);font-size:54px;line-height:1}
+@media (max-height:520px){#w-cv{height:42vh}.w-read b{font-size:18px}}
+@media (max-width:720px){.screen>.wrap{grid-template-columns:1fr;gap:12px}h1{font-size:44px}}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+
+<section class="screen" id="masuk">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Matematika 1 · prototipe untuk audit</p>
+      <h1>Lobi Integral</h1>
+      <p class="lede">Masuk ke lobi 3D, temui tim lain, lalu kerjakan Pos 1 bersama timmu: Tambal Waduk.</p>
+    </div>
+    <div class="card">
+      <h2>Masuk lobi</h2>
+      <label class="f" for="in-nama">Nama panggilan</label>
+      <input type="text" id="in-nama" maxlength="12" spellcheck="false" autocomplete="off">
+      <label class="f" for="in-kode">Kode ruang (samakan dengan teman)</label>
+      <input type="text" id="in-kode" maxlength="10" spellcheck="false" autocapitalize="characters" autocomplete="off" value="UJI">
+      <label class="f">Tim</label>
+      <div class="tims" id="in-tim"></div>
+      <button class="btn big" id="b-masuk" type="button" style="margin-top:14px;width:100%">Masuk</button>
+      <p class="fmsg" id="m-msg" role="alert"></p>
+    </div>
+  </div>
+</section>
+
+<div id="lhud" hidden>
+  <span class="lchip" id="c-ruang"></span>
+  <span class="lchip" id="c-tim"></span>
+  <span class="sp"></span>
+  <button class="btn alt" id="b-audit" type="button">Audit</button>
+</div>
+<button class="btn big" id="aksi" type="button" hidden>Masuk Pos 1</button>
+<div id="ltoast" hidden></div>
+<div id="joy" hidden><i></i></div>
+
+<div class="card" id="audit" hidden>
+  <h2>Panel audit</h2>
+  <dl>
+    <dt>FPS rata-rata</dt><dd id="a-fps">-</dd>
+    <dt>FPS terendah</dt><dd id="a-min">-</dd>
+    <dt>Ping server</dt><dd id="a-ping">-</dd>
+    <dt>Pemain</dt><dd id="a-n">-</dd>
+    <dt>Mode</dt><dd id="a-mode">-</dd>
+    <dt>Kualitas</dt><dd id="a-q">-</dd>
+    <dt>Pesan kirim/terima</dt><dd id="a-msg">-</dd>
+  </dl>
+  <div class="row">
+    <button class="btn alt" id="a-bot" type="button">Tambah 20 bot</button>
+    <button class="btn alt" id="a-nobot" type="button">Hapus bot</button>
+    <button class="btn" id="a-salin" type="button">Salin laporan</button>
+  </div>
+  <textarea id="a-lap" readonly hidden></textarea>
+</div>
+
+<div id="waduk" hidden>
+  <div class="card">
+    <div id="w-main">
+      <div class="w-top">
+        <div><p class="eyebrow" style="margin:0">Pos 1 · Tambal Waduk</p><h2 id="w-babak"></h2></div>
+        <button class="btn alt" id="w-tutup" type="button">Tutup</button>
+      </div>
+      <p style="margin:0;font-size:14px">Geser di atas balok untuk mengatur tingginya sampai menutup daerah di bawah kurva. Semua anggota tim mengubah waduk yang sama.</p>
+      <canvas id="w-cv"></canvas>
+      <p class="w-leg"><span style="background:rgba(47,127,193,.35);margin-left:0"></span>celah<span style="background:rgba(229,57,43,.55)"></span>tumpah</p>
+      <div class="w-read">
+        <div><small>Taksiran luas tim</small><b id="w-luas">0</b></div>
+        <div><small>Bocor (celah + tumpah)</small><b id="w-bocor">0</b><div class="w-bar"><i id="w-meter"></i></div></div>
+      </div>
+      <button class="btn big" id="w-kunci" type="button">Kunci babak ini</button>
+    </div>
+    <div id="w-hasil" hidden>
+      <p class="eyebrow" style="margin:0">Pos 1 selesai</p>
+      <h2>Makin tipis baloknya, makin kecil bocornya</h2>
+      <p>Luas sebenarnya di bawah kurva adalah <b>9</b>. Lihat taksiran timmu mendekat ke angka itu saat balok bertambah. Kalau lebar balok terus diperkecil sampai mendekati nol, jumlah itu disebut integral.</p>
+      <table id="w-tabel"></table>
+      <p style="margin:10px 0 0">Skor tim: <span class="skorbesar" id="w-skor">0</span> / 100</p>
+      <p id="w-waktu" style="font-size:13px"></p>
+      <button class="btn" id="w-tutup2" type="button">Kembali ke lobi</button>
+    </div>
+  </div>
+</div>
+
+<script src="./vendor/supabase.js"></script>
+<script type="module" src="./lobi.js"></script>
+</body>
+</html>
