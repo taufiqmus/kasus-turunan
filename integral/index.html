@@ -59,6 +59,10 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 .cr-row .s{width:24px;height:24px;border-radius:50%;border:3px solid var(--ink);padding:0;cursor:pointer}
 .cr-row .s[aria-pressed=true]{outline:3px solid var(--apricot);outline-offset:1px}
 @media (max-width:420px){#cr{grid-template-columns:1fr}#cr-prev{width:100%;height:150px}}
+#peta{position:fixed;z-index:3;left:calc(env(safe-area-inset-left,0px) + 10px);top:calc(env(safe-area-inset-top,0px) + 52px);width:110px;height:110px;border-radius:50%;pointer-events:none}
+#stam{position:fixed;z-index:3;left:calc(env(safe-area-inset-left,0px) + 14px);top:calc(env(safe-area-inset-top,0px) + 168px);width:100px;height:8px;border-radius:4px;background:rgba(28,34,48,.35);overflow:hidden}
+#stam i{display:block;height:100%;width:100%;background:#ff6f47}
+#b-lari{position:fixed;z-index:3;right:calc(env(safe-area-inset-right,0px) + 100px);bottom:calc(env(safe-area-inset-bottom,0px) + 34px);width:60px;height:60px;border-radius:50%;padding:0;font-size:12px;touch-action:none;user-select:none}
 #b-kam{pointer-events:auto;font-size:13px;padding:6px 12px}
 #b-keluar{pointer-events:auto;font-size:13px;padding:6px 12px}
 #b-lompat{position:fixed;z-index:3;right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 26px);width:76px;height:76px;border-radius:50%;padding:0;font-size:13px}
@@ -107,11 +111,14 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 <div id="lhud" hidden>
   <span class="lchip" id="c-ruang"></span>
   <span class="lchip" id="c-tim"></span>
+  <span class="lchip" id="c-koin" hidden>Koin 0/60</span>
   <span class="sp"></span>
   <button class="btn alt" id="b-keluar" type="button" hidden>Keluar pos</button>
   <button class="btn alt" id="b-kam" type="button">Ikuti</button>
   <button class="btn alt" id="b-audit" type="button">Audit</button>
 </div>
+<canvas id="peta" width="220" height="220" hidden></canvas>
+<div id="stam" hidden><i id="stam-i"></i></div>
 <div class="card" id="arhud" hidden>
   <div class="r"><span id="ar-babak">Babak 1/3</span><span id="ar-bawa">Bawa 0/2</span></div>
   <canvas id="mini" width="320" height="184"></canvas>
@@ -123,6 +130,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   </div>
 <button class="btn big" id="aksi" type="button" hidden>Masuk Pos 1</button>
 <button class="btn alt" id="b-lompat" type="button" hidden>Lompat</button>
+<button class="btn alt" id="b-lari" type="button" hidden>Lari</button>
 <div id="ltoast" hidden></div>
 <div id="hitung" hidden></div>
 <div id="joy" hidden><i></i></div>

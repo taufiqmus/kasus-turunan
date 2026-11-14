@@ -88,3 +88,9 @@ Batas paket gratis sekitar 100 pesan per detik per proyek, dan satu pesan dihitu
 
 Panel audit menampilkan FPS, ping, pesan kirim dan terima, jeda, serta perkiraan beban proyek. Kotak "Simulasi kelas 40" memakai asumsi 40 pemain dan 5 per tim. Uji beban sungguhan harus memakai proyek Supabase terpisah, bukan proyek kelas.
 Belum ada: panel dosen, pos 2 sampai 6, pemeriksaan skor di server.
+
+
+## Pos 1 v3 dan semesta luas
+
+- Pos 1: kurva diundi lewat roda (seed dari kode ruang dan tim, tanpa pesan jaringan), aturan titik sampel kiri, kanan, tengah, kurva dan luas disembunyikan, batas waktu, skor ketat dengan bonus waktu, gelondong rintangan.
+- Lobi: peta radius 95 dengan enam zona bertema (Padang, Gurun, Salju, Hutan, Pantai, Gunung), tiang cahaya di tiap gerbang, peta mini, lari (Shift atau tombol Lari, stamina 100), 60 koin yang membuka kosmetik (penyihir 10, helm 20, kacamata hitam 15, ransel 30, bebek 40). Koin tersimpan di perangkat (`ki-koin`).
