@@ -64,9 +64,12 @@ export const KOIN_A=[[-42.5,29],[-41,26.5],[-36,18],[-39,31],[16,34.5],[15.4,32.
 /* ---------- rintangan ---------- */
 export const PAL_L=3.6,PAL_A=3.0,PAL_Y=4.4;
 export const PINTU={cx:X_HUTAN,x0:X_HUTAN-HW,x1:X_HUTAN+HW,min:.3,max:3.6};
-export const DURI_X=[X_HUTAN-1.5,X_HUTAN,X_HUTAN+1.5],DURI_HIT=.8;
+export const DURI_HIT=.8;
+const barisH=z=>[[X_HUTAN-1.5,z],[X_HUTAN,z],[X_HUTAN+1.5,z]];
 export const UBIN_W=2*HW,UBIN_D=1.6,UBIN_Z=[15.8,17.4,19.0];
-export const BOLA_R=1.1,RINT_R=.9,RINT_A=4.5,RINT_MAKS=4;
+export const BOLA_R=1.1,RINT_R=.9,RINT_A=4.5,RINT_MAKS=10,DURI_MAKS=9;
+/* tiga petak duri melintang tegak lurus arah ruas (dx,dz) di titik (x,z) */
+function lintang(x,z,dx,dz){const L=Math.hypot(dx,dz),px=dz/L,pz=-dx/L;return [-1.4,0,1.4].map(o=>[x+px*o,z+pz*o]);}
 export const BAN={x0:X_SUNGAI-HW,x1:X_SUNGAI+HW,z0:22.8,z1:27.6};
 export const TRAMP={x:24.5,z:21,r:1.2,x1:21,z1:13.2,dur:1100};
 
@@ -75,19 +78,29 @@ export function medanBabak(r){
   const k=Math.max(0,Math.min(r,2));
   if(CACHE[k])return CACHE[k];
   const m={
-    /* gelondong menyapu lereng bukit */
-    kayu:[[12.5,0],[17,.5],[21,.25],[14.8,.75]].slice(0,[2,3,4][k]).map(([z,f])=>({z,f,T:[6,5,4.2][k],cx:0,A:RINT_A})),
+    /* gelondong: menyapu lereng bukit (utama), lalu satu lajur lebih lambat di tiap jalur memutar, jalan lingkar, dan jalan pintas.
+       ax = sumbu sapuan, c = koordinat tetap, m = pusat sapuan, A = amplitudo */
+    kayu:[[12.5,0],[17,.5],[21,.25],[14.8,.75]].slice(0,[2,3,4][k]).map(([z,f])=>({ax:'x',c:z,m:0,A:RINT_A,f,T:[6,5,4.2][k]})).concat([
+      {ax:'x',c:30,m:-38.5,A:2.7,f:.1},{ax:'x',c:37,m:10.8,A:2.9,f:.4},{ax:'x',c:30,m:38.86,A:2.7,f:.7},
+      {ax:'z',c:-21,m:46,A:2.9,f:.2},{ax:'z',c:21,m:46,A:2.9,f:.6},{ax:'x',c:27,m:-10.5,A:2.7,f:.9}
+    ].map(o=>({...o,T:[6.5,5.6,4.8][k]}))),
     palu:[[{z:29,T:4.2,f:0}],[{z:29,T:3.6,f:0}],[{z:27.7,T:3.4,f:0},{z:30.3,T:3.0,f:.5}]][k],
     pintu:[{z:15.5,T:[6.2,5.2,4.4][k],f:0}],
-    duri:[[{z:20,T:3.6,f:0}],[{z:20,T:3.0,f:0}],[{z:20,T:3.0,f:0},{z:22.4,T:2.6,f:.5}]][k],
+    /* duri: baris di jalur hutan (utama), lalu satu baris di tiap jalur memutar, jalan lingkar, dan jalan pintas */
+    duri:[[{pts:barisH(20),T:3.6,f:0}],[{pts:barisH(20),T:3.0,f:0}],[{pts:barisH(20),T:3.0,f:0},{pts:barisH(22.4),T:2.6,f:.5}]][k].concat([
+      {pts:lintang(-36,18.5,-6,11),f:.2},{pts:lintang(10,17,-4,10),f:.5},{pts:lintang(38.29,34,-2,14),f:.8},
+      {pts:lintang(-7,51.5,14,3),f:.35},{pts:lintang(7,51.5,14,-3),f:.65},{pts:lintang(-13,42,-2,16),f:.05}
+    ].map(o=>({...o,T:[4.2,3.6,3.2][k]}))),
     ubin:UBIN_Z.map((z,n)=>({x:X_SUNGAI,z,f:fr(n*.37),T:[7,6,5][k]})),
     ban:{...BAN,balik:k===2,v:[2.0,2.8,3.4][k],T:12},
     tramp:k===2?TRAMP:null,
-    bola:[[],[{x:-1.2,T:11,f:0}],[{x:-1.2,T:10,f:0},{x:1.2,T:10,f:.5}]][k].map(b=>({...b,z0:51,z1:33.5}))
+    bola:[[{x:-1.2,T:13,f:0}],[{x:-1.2,T:11,f:0}],[{x:-1.2,T:10,f:0},{x:1.2,T:10,f:.5}]][k].map(b=>({...b,z0:51,z1:33.5}))
   };
   return CACHE[k]=m;
 }
-export const xKayu=(s,t)=>s.cx+s.A*Math.sin(TAU*(t/s.T+s.f));
+export const xKayu=(s,t)=>s.m+s.A*Math.sin(TAU*(t/s.T+s.f));
+/* posisi gelondong di dunia: [x,z] */
+export const posKayu=(s,t)=>{const v=xKayu(s,t);return s.ax==='x'?[v,s.c]:[s.c,v];};
 export const xPalu=(p,t)=>PAL_A*Math.sin(TAU*(t/p.T+p.f));
 export const celahPintu=(p,t)=>PINTU.min+(PINTU.max-PINTU.min)*(.5+.5*Math.sin(TAU*(t/p.T+p.f)));
 /* duri: fraksi tinggi 0..1; naik penuh pada fase awal, turun cepat, lalu naik pelan sebagai peringatan */
@@ -119,9 +132,9 @@ export function bahaya(r,x,z,t,udara){
     const ce=celahPintu(p,t);if(ce<.9||Math.abs(x-PINTU.cx)>ce/2)return {j:'pintu',mundur:3,msg:'Terjepit pintu geser!'};
   }
   if(udara)return null;
-  for(const s of m.kayu)if(Math.abs(z-s.z)<.95&&Math.abs(x-xKayu(s,t))<RINT_R)return {j:'kayu',mundur:2.4,msg:'Tertabrak gelondong!'};
-  for(const p of m.duri)if(Math.abs(z-p.z)<.7)for(let i=0;i<DURI_X.length;i++)
-    if(duriNaik(p,i,t)&&Math.abs(x-DURI_X[i])<DURI_HIT)return {j:'duri',mundur:3,msg:'Terkena duri!'};
+  for(const s of m.kayu){const [kx,kz]=posKayu(s,t);if(s.ax==='x'?(Math.abs(z-kz)<.95&&Math.abs(x-kx)<RINT_R):(Math.abs(x-kx)<.95&&Math.abs(z-kz)<RINT_R))return {j:'kayu',mundur:2.4,msg:'Tertabrak gelondong!'};}
+  for(const p of m.duri)for(let i=0;i<p.pts.length;i++)
+    if(duriNaik(p,i,t)&&Math.hypot(x-p.pts[i][0],z-p.pts[i][1])<DURI_HIT)return {j:'duri',mundur:3,msg:'Terkena duri!'};
   for(const u of m.ubin)if(Math.abs(x-u.x)<=UBIN_W/2+.3&&Math.abs(z-u.z)<UBIN_D/2&&statusUbin(u,t)===2)return {j:'ubin',mundur:7,msg:'Batu pijakan tenggelam! Hanyut.'};
   for(const b of m.bola){const s=keadaanBola(b,t);if(s.fase==='gulir'&&Math.abs(x-b.x)<BOLA_R&&Math.abs(z-s.z)<BOLA_R)return {j:'bola',mundur:4,msg:'Tertabrak bola!'};}
   return null;

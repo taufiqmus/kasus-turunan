@@ -1,9 +1,9 @@
 /* Arena Pos 1 "Lembah Waduk": bendungan berkurva di utara, lembah dengan tiga wilayah (hutan, bukit, sungai),
    kamp balok, jalur bercabang, dan rintangan. Logika murni ada di medan.js; berkas ini hanya tampilan 3D. */
 import * as THREE from './vendor/three.min.js';
-import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=23';
+import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=24';
 import {DUNIA,PLAZA,KAMP,PAD,TUAS,JALUR,GERBANG,JURANG,SUNGAI,JEMB_KAYU,KOIN_A,jarakJalan,tinggi,medanBabak,xKayu,xPalu,celahPintu,tinggiDuri,statusUbin,keadaanBola,kecBan,
-  PAL_L,PAL_Y,PAL_A,PINTU,DURI_X,UBIN_W,UBIN_D,BOLA_R,RINT_MAKS,BAN,TRAMP} from './medan.js?v=23';
+  PAL_L,PAL_Y,PAL_A,PINTU,UBIN_W,UBIN_D,BOLA_R,RINT_MAKS,DURI_MAKS,BAN,TRAMP,posKayu} from './medan.js?v=24';
 
 export const SY=.9,UB=UBAG*SY,WX=9;
 export const ZONA={z0:.2,z1:4.6};
@@ -350,7 +350,7 @@ export function buatArena(){
     for(let i=0;i<2;i++){const m=new THREE.Mesh(pg,oranye);m.position.y=1.1;m.visible=false;grup.add(m);MD.pintu.push(m);}
     for(const sx of [PINTU.x0-.25,PINTU.x1+.25]){const t=new THREE.Mesh(new THREE.BoxGeometry(.5,2.8,1.1),mat(0x6b4a26));t.position.set(sx,1.4,medanBabak(0).pintu[0].z);grup.add(t);}
   }
-  for(let j=0;j<2;j++)for(let i=0;i<DURI_X.length;i++){
+  for(let j=0;j<DURI_MAKS;j++)for(let i=0;i<3;i++){
     const g=new THREE.Group(),dasar=new THREE.Mesh(new THREE.CylinderGeometry(.72,.72,.05,14),gelap);dasar.position.y=.03;g.add(dasar);
     const kn=new THREE.Group();
     for(const [ox,oz] of [[-.3,-.2],[.3,-.2],[0,.28]]){const c=new THREE.Mesh(new THREE.ConeGeometry(.24,1.0,6),merah);c.position.set(ox,.5,oz);kn.add(c);}
@@ -396,14 +396,14 @@ export function buatArena(){
     MD.kayu.forEach((o,i)=>{o.g.visible=!!mSpec.kayu[i];});
     MD.palu.forEach((o,i)=>{const p=mSpec.palu[i];o.g.visible=!!p;if(p)o.g.position.set(0,Y(0,p.z),p.z);});
     MD.pintu.forEach(m=>{m.visible=true;m.position.z=mSpec.pintu[0].z;});
-    MD.duri.forEach(o=>{const p=mSpec.duri[o.j];o.g.visible=!!p;if(p)o.g.position.set(DURI_X[o.i],Y(DURI_X[o.i],p.z),p.z);});
+    MD.duri.forEach(o=>{const p=mSpec.duri[o.j];o.g.visible=!!p;if(p){const [dx,dz]=p.pts[o.i];o.g.position.set(dx,Y(dx,dz),dz);}});
     MD.ubin.forEach((u,n)=>{const s=mSpec.ubin[n];u.visible=!!s;if(s)u.position.set(s.x,-.2,s.z);});
     MD.bola.forEach((o,n)=>{const s=mSpec.bola[n];o.b.visible=false;o.w.visible=!!s;
       if(s){const L=Math.abs(s.z1-s.z0);o.w.scale.set(1,L,1);o.w.position.set(s.x,Y(s.x,(s.z0+s.z1)/2)+.07,(s.z0+s.z1)/2);o.w.material.opacity=0;}});
     if(mSpec.tramp){tramp.visible=true;tramp.position.set(mSpec.tramp.x,Y(mSpec.tramp.x,mSpec.tramp.z),mSpec.tramp.z);}else tramp.visible=false;
   }
   function animMedan(t,dt){
-    mSpec.kayu.forEach((s,i)=>{const x=xKayu(s,t),o=MD.kayu[i];o.g.position.set(x,Y(x,s.z)+.55,s.z);o.b.rotation.z=-x/.55;});
+    mSpec.kayu.forEach((s,i)=>{const [x,z]=posKayu(s,t),o=MD.kayu[i];o.g.position.set(x,Y(x,z)+.55,z);o.g.rotation.y=s.ax==='x'?0:-Math.PI/2;o.b.rotation.z=-xKayu(s,t)/.55;});
     mSpec.palu.forEach((p,i)=>{const x=xPalu(p,t);MD.palu[i].lengan.rotation.z=Math.asin(Math.max(-1,Math.min(1,x/PAL_L)));});
     {
       const p=mSpec.pintu[0],g=celahPintu(p,t),ce=g<.9?0:g,izq=PINTU.cx-ce/2,dr=PINTU.cx+ce/2;

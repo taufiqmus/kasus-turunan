@@ -105,7 +105,7 @@ with sync_playwright() as p:
     A.evaluate("__L.tp(0,40)");A.wait_for_timeout(2200)
     # gelondong di lereng
     s0=A.evaluate('__L.stunTil')
-    sp=A.evaluate("(()=>{const s=__L.MED.medanBabak(__L.st.r).kayu[0];return [__L.MED.xKayu(s,Date.now()/1000+.15),s.z]})()")
+    sp=A.evaluate("(()=>{const s=__L.MED.medanBabak(__L.st.r).kayu[0];return [__L.MED.xKayu(s,Date.now()/1000+.15),s.c]})()")
     A.evaluate(f"__L.tp({sp[0]},{sp[1]})");A.wait_for_timeout(700)
     cek('gelondong menabrak pemain',A.evaluate('__L.stunTil')>s0)
     A.wait_for_timeout(1800)
