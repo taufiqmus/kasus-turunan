@@ -46,7 +46,7 @@ export function buatMedan(D){
   M.diTuas=(x,z)=>Math.hypot(x-D.TUAS.x,z-D.TUAS.z)<D.TUAS.r;
   const CACHE=[];
   M.medanBabak=r=>{const k=Math.max(0,Math.min(r,2));if(CACHE[k])return CACHE[k];
-    const m=D.rintangan(k);for(const j of ['kayu','palu','pintu','duri','ubin','bola','penekan','lengan','rakit','jatuh'])m[j]=m[j]||[];
+    const m=D.rintangan(k);for(const j of ['kayu','palu','pintu','duri','ubin','bola','penekan','lengan','rakit','jatuh','patroli','pasang'])m[j]=m[j]||[];
     m.ban=m.ban||{x0:0,x1:0,z0:0,z1:0,v:0,T:12};return CACHE[k]=m;};
   M.xKayu=(s,t)=>s.m+s.A*Math.sin(TAU*(t/s.T+s.f));
   M.posKayu=(s,t)=>{const v=M.xKayu(s,t);return s.ax==='x'?[v,s.c]:[s.c,v];};
@@ -83,11 +83,17 @@ export function buatMedan(D){
   const acak=(c,i,k)=>fr(Math.sin(c*12.9898+i*78.233+k*37.719)*43758.5453);
   M.titikJatuh=(J,t)=>{const v=t/J.T+J.f,c=Math.floor(v),u=v-c,L=[];
     for(let i=0;i<J.n;i++){const ui=fr(u+i*.13);L.push({x:J.x0+(J.x1-J.x0)*acak(c,i,1),z:J.z0+(J.z1-J.z0)*acak(c,i,2),u:ui});}return L;};
+  /* kawanan berpatroli bolak-balik di sepanjang ruas (x0,z0)-(x1,z1) */
+  M.posPatroli=(P,t)=>{const u=fr(t/P.T+P.f),k=u<.5?ss(0,1,u*2):1-ss(0,1,(u-.5)*2);return [P.x0+(P.x1-P.x0)*k,P.z0+(P.z1-P.z0)*k];};
+  /* pasang surut: zona kering, lalu air naik (peringatan), lalu tergenang (bahaya), lalu surut. h = tinggi air 0..1 */
+  M.pasang=(Z,t)=>{const u=fr(t/Z.T+Z.f);if(u<.5)return {fase:0,h:0};if(u<.65)return {fase:1,h:(u-.5)/.15*.6};if(u<.85)return {fase:2,h:1};return {fase:3,h:1-(u-.85)/.15};};
   /* Apakah titik (x,z) terkena bahaya pada waktu t? udara = pemain sedang di puncak lompatan.
      Palu dan pintu tidak bisa dilompati. Hasil: {j, mundur (jarak terpental ke belakang), msg}. */
   M.bahaya=(r,x,z,t,udara)=>{
     const m=M.medanBabak(r);
     for(const p of m.penekan)if(x>p.x0&&x<p.x1&&z>p.z0&&z<p.z1&&M.penekan(p,t).fase===2)return {j:'penekan',mundur:3,msg:D.teks.penekan};
+    for(const P of m.patroli){const [px,pz]=M.posPatroli(P,t);if(Math.hypot(x-px,z-pz)<P.r+.3)return {j:'patroli',mundur:3,msg:D.teks.patroli};}
+    for(const Z of m.pasang)if(x>Z.x0&&x<Z.x1&&z>Z.z0&&z<Z.z1&&M.pasang(Z,t).fase===2)return {j:'pasang',mundur:4,msg:D.teks.pasang};
     for(const R of m.rakit)if(diLajur(R,x,z)&&!diAtasRakit(R,x,z,t))return {j:'air',mundur:4,msg:D.teks.air};
     for(const J of m.jatuh)for(const q of M.titikJatuh(J,t))if(q.u>.55&&q.u<.68&&Math.hypot(x-q.x,z-q.z)<J.r)return {j:'jatuh',mundur:2.5,msg:D.teks.jatuh};
     for(const p of m.palu)if(Math.abs(z-p.z)<.65&&Math.abs(x-p.x-M.xPalu(p,t))<.85)return {j:'palu',mundur:3,msg:D.teks.palu};
@@ -263,6 +269,56 @@ export const M3=buatMedan({
       lengan:[{x:0,z:30,L:4.6,w:[1.3,1.7,2.1][k],n:[2,2,3][k],f:0}],
       rakit:[{ax:'z',c:0,a0:17,a1:25.7,len:3,lebar:1.5,T:[8,7,6][k],f:0},{ax:'z',c:0,a0:34.3,a1:43,len:3,lebar:1.5,T:[8,7,6][k],f:.5}],
       jatuh:[{x0:-23.5,x1:-15,z0:44,z1:52.5,n:[3,4,5][k],T:4.5,f:0,r:1.2}].concat(k===2?[{x0:15,x1:23.5,z0:8,z1:16,n:4,T:4,f:.5,r:1.2}]:[])
+    };
+  }
+});
+
+/* ================= Pos 4: Hutan Sungai ================= */
+/* Sungai melintang di tengah hutan. Empat penyeberangan: rakit batang kayu (barat), jembatan gantung dengan kawanan lebah (tengah),
+   batu pijakan (timur), jembatan kayu (jalur memutar paling barat), ditambah jembatan jalan pintas bertuas.
+   Sumber air: Mata Air (ember 1 L, dekat, selatan sungai), Air Terjun (drum 5 L, paling jauh, utara), Sumur (jeriken 2 L, barat laut). */
+export const M4=buatMedan({
+  nama:'Hutan Sungai',
+  DUNIA:{x0:-46,x1:46,z0:-6,z1:64},
+  PLAZA:{x0:-15,x1:15,z0:.4,z1:8.6},
+  KAMP:[{x:24,z:16,r:4.2,nama:'Mata Air'},{x:0,z:52,r:4.2,nama:'Air Terjun'},{x:-26,z:40,r:4.2,nama:'Sumur'}],
+  PAD:{x:12.5,z:6.6,r:2},TUAS:{x:-12.5,z:6.6,r:1.8},
+  JALUR:[
+    [6,8,10,18,2],[10,18,10,32,1.4],[10,32,16,38,2],
+    /* batang tengah, jembatan gantung, tanjakan ke air terjun */
+    [0,8,0,22,HW],[0,22,0,32,1.4],[0,32,0,44,HW],[0,44,0,52,HW],
+    /* barat: jalan ke rakit, lalu ke sumur */
+    [-4,8,-12,16,HW],[-12,16,-20,20,HW],[-20,20,-20,24,HW],[-20,24,-20,30,1.5],[-20,30,-24,36,HW],[-24,36,-26,40,HW],
+    /* memutar paling barat lewat jembatan kayu */
+    [-13,5,-30,10,2],[-30,10,-34,20,2],[-34,20,-34,34,2],[-34,34,-26,40,2],[-30,10,-38,7,1.8],
+    /* timur: mata air, batu pijakan, kembali ke air terjun */
+    [14,4,20,10,HW],[20,10,24,16,HW],[24,16,24,24,2],[24,24,24,30,2],[24,30,18,40,2],[18,40,8,48,2],[8,48,0,52,2],[24,16,31,14,1.8],
+    /* lingkar utara */
+    [-26,40,-14,48,2],[-14,48,0,52,2]
+  ],
+  GERBANG:{ruas:0,z0:11,z1:12.3,x0:5.5,x1:9.5},
+  AIR:{x0:-46,x1:46,z0:24,z1:30},AIR_JATUH:'timur',
+  GANTUNG:[{x:0,z0:23,z1:31},{x:10,z0:23,z1:31}],
+  JEMB_KAYU:[-34,20,-34,34],
+  tinggi:(x,z)=>2.2*ss(36,52,z)*(1-ss(8,24,Math.abs(x))),
+  tebing:(x,z)=>Math.max(ss(38,46,Math.abs(x)),ss(56,64,z)),
+  KOIN_A:[[-38,7],[-36.6,7.6],[31,14],[29.6,14.6],[-34,27],[10,25],[-20,18],[13,42],[-10,49],[0,40],[24,20],[-28,10]],
+  PINTU:{cx:0,x0:-2.2,x1:2.2,min:.3,max:3.6},
+  UBIN:{W:4,D:1.9},
+  BAN:{x0:0,x1:0,z0:0,z1:0},
+  teks:{palu:'Terkena batang ayun!',pintu:'Terjepit pintu kayu!',kayu:'Tertabrak gelondong!',duri:'Kena jebakan duri!',ubin:'Batu pijakan tenggelam! Hanyut.',bola:'Tertabrak!',
+    penekan:'Tertimpa batang penekan!',air:'Tercebur ke sungai! Naik rakit saat merapat.',jatuh:'Tertimpa buah pinus!',lengan:'Tersapu!',patroli:'Disengat kawanan lebah!'},
+  rintangan(k){
+    const T=[6.5,5.6,4.8][k],Td=[4.2,3.6,3.2][k];
+    return {
+      kayu:[{ax:'x',c:14,m:0,A:2.6,f:0},{ax:'x',c:18,m:0,A:2.6,f:.5},{ax:'x',c:44,m:13,A:2.8,f:.25}].map(o=>({...o,T})),
+      palu:[[{x:-22,z:33,T:4.2,f:0}],[{x:-22,z:33,T:3.6,f:0}],[{x:-22,z:33,T:3.2,f:0}]][k],
+      penekan:[{x0:-2.6,x1:2.6,z0:37.2,z1:38.8,f:0,T:[5,4.4,3.8][k]},{x0:18.4,x1:23.6,z0:34.2,z1:35.8,f:.5,T:[5,4.4,3.8][k]}],
+      duri:[{pts:lintang(-8,12,-8,8),f:0},{pts:lintang(-34,32,0,14),f:.4},{pts:lintang(17,7,6,6),f:.2},{pts:lintang(-7,50,14,4),f:.6},{pts:lintang(13,35,6,6),f:.8}].map(o=>({...o,T:Td})),
+      ubin:[25,27,29].map((z,n)=>({x:24,z,w:4,d:1.9,f:fr(n*.37),T:[7,6,5][k]})),
+      rakit:[{ax:'z',c:-20,a0:24,a1:30,len:2.6,lebar:1.5,T:[7,6,5][k],f:0}],
+      patroli:[{x0:0,z0:23.2,x1:0,z1:30.8,r:1.3,T:[6,5,4.2][k],f:0},{x0:-30,z0:10,x1:-34,z1:20,r:2,T:[7,6,5][k],f:.3}].concat(k===2?[{x0:14,z0:4,x1:20,z1:10,r:2.2,T:5,f:.6}]:[]),
+      jatuh:[{x0:-22,x1:-8,z0:42,z1:51,n:[3,4,5][k],T:4.5,f:0,r:1.2}]
     };
   }
 });

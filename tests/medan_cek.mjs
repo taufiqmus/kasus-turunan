@@ -36,6 +36,8 @@ for(const W of DUNIA_LIST){
       for(const L of m.lengan)if(Math.hypot(x-L.x,z-L.z)<L.L+.35)return true;
       for(const R of m.rakit){const a=R.ax==='x'?x:z,c=R.ax==='x'?z:x;if(Math.abs(c-R.c)<R.lebar+.25&&a>R.a0&&a<R.a1)return true;}
       for(const J of m.jatuh)if(x>J.x0&&x<J.x1&&z>J.z0&&z<J.z1)return true;
+      for(const P of m.patroli){const dx=P.x1-P.x0,dz=P.z1-P.z0,L=dx*dx+dz*dz,u=L?Math.max(0,Math.min(1,((x-P.x0)*dx+(z-P.z0)*dz)/L)):0;if(Math.hypot(x-P.x0-dx*u,z-P.z0-dz*u)<P.r+.3)return true;}
+      for(const Z of m.pasang)if(x>Z.x0&&x<Z.x1&&z>Z.z0&&z<Z.z1)return true;
       return false;};
     f=bfs(jejak,true);const bebas=W.KAMP.filter(k=>f(k.x,k.z)).map(k=>k.nama);
     cek(N+' babak '+(r+1)+': tiap rute ke kamp melewati rintangan',!bebas.length,'bebas ke '+bebas.join(','));
@@ -56,6 +58,8 @@ for(const W of DUNIA_LIST){
     m.palu.forEach((p,i)=>{c+=garis('palu '+i,p.x,p.z,1,0,4,true);});
     m.penekan.forEach((p,i)=>{const cx=(p.x0+p.x1)/2,cz=(p.z0+p.z1)/2,lebar=p.x1-p.x0>p.z1-p.z0;c+=garis('penekan '+i,cx,cz,lebar?1:0,lebar?0:1,5,false);});
     m.lengan.forEach((L,i)=>{c+=garis('lengan '+i,L.x,L.z,1,0,L.L+.2,false);c+=garis('lengan '+i+' (z)',L.x,L.z,0,1,L.L+.2,false);});
+    m.patroli.forEach((P,i)=>{const dx=P.x1-P.x0,dz=P.z1-P.z0,L=Math.hypot(dx,dz);c+=garis('patroli '+i,(P.x0+P.x1)/2,(P.z0+P.z1)/2,-dz/L,dx/L,P.r+2,false);});
+    m.pasang.forEach((Z,i)=>{const w=Z.x1-Z.x0,d=Z.z1-Z.z0;c+=garis('pasang '+i,(Z.x0+Z.x1)/2,(Z.z0+Z.z1)/2,w>=d?1:0,w>=d?0:1,Math.max(w,d)/2+2,false);});
     m.rakit.forEach((R,i)=>{const mid=(R.a0+R.a1)/2;c+=R.ax==='x'?garis('rakit '+i,mid,R.c,0,1,3,false):garis('rakit '+i,R.c,mid,1,0,3,false);});
     if(!c)cek(N+' babak '+(r+1)+': semua rintangan rapat selebar jalur',true);
   }

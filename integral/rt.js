@@ -5,7 +5,7 @@
    Antarmuka: kirim(ev,p), ping(), tutup(). Panggilan balik: status(s), hadir(daftar), pesan(ev,p). */
 import {SB} from '../core/net.js';
 
-export const EV_TIM=['p','d','st','siap','kunci','mulai','minta','emo','d2','st2','kunci2','mulai2'];
+export const EV_TIM=['p','d','st','siap','kunci','mulai','minta','emo','d2','st2','kunci2','mulai2','d3','st3','kunci3','mulai3','d4','st4','kunci4','mulai4','d5','st5','kunci5','mulai5','d6','st6','kunci6','mulai6'];
 export const EV_PAPAN=['ro'];
 const kePapan=ev=>EV_PAPAN.includes(ev);
 

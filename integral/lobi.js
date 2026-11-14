@@ -1,18 +1,20 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=27';
-import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=27';
-import * as P1 from './pos1.js?v=27';
-import * as AR from './arena.js?v=27';
-import {buatArena,kolomDari,uTembus} from './arena.js?v=27';
-import {buatArena2,gambarSandi} from './arena2.js?v=27';
-import * as P2 from './pos2.js?v=27';
-import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=27';
-import * as P3 from './pos3.js?v=27';
-import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=27';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=27';
-import {labelSprite,buangSprite,klem} from './util.js?v=27';
-import {M1,M2,M3} from './medan.js?v=27';
+import {sambung} from './rt.js?v=28';
+import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=28';
+import * as P1 from './pos1.js?v=28';
+import * as AR from './arena.js?v=28';
+import {buatArena,kolomDari,uTembus} from './arena.js?v=28';
+import {buatArena2,gambarSandi} from './arena2.js?v=28';
+import * as P2 from './pos2.js?v=28';
+import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=28';
+import * as P3 from './pos3.js?v=28';
+import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=28';
+import * as P4 from './pos4.js?v=28';
+import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=28';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=28';
+import {labelSprite,buangSprite,klem} from './util.js?v=28';
+import {M1,M2,M3,M4} from './medan.js?v=28';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
 let W=M1;
@@ -22,7 +24,7 @@ const $=id=>document.getElementById(id);
 const TIM=[['merah','Merah','#e5392b'],['biru','Biru','#2f7fc1'],['hijau','Hijau','#2f9e5b'],['kuning','Kuning','#e0a200'],
   ['ungu','Ungu','#7a4bc4'],['oranye','Oranye','#ee7d1a'],['tosca','Tosca','#17a2a2'],['pink','Pink','#e0559b']].map(a=>({id:a[0],nama:a[1],warna:a[2]}));
 const timById=id=>TIM.find(t=>t.id===id)||TIM[0];
-const POS_AKTIF=3;
+const POS_AKTIF=4;
 const POS=['Tambal Waduk','Rakit Sandi','Mesin Putar Balik','Misteri Tangki','Brankas Batas','Final'];
 const SPD=7,RMAX=95,RZ=62,SPRINT=1.8;
 const Q=new URLSearchParams(location.search);
@@ -208,7 +210,8 @@ const papan={c:document.createElement('canvas')};
 }
 const arena=buatArena();scene.add(arena.grup);
 const arena2=buatArena2();scene.add(arena2.grup);
-const arena3=buatArena3();scene.add(arena3.grup);bayang(scene);
+const arena3=buatArena3();scene.add(arena3.grup);
+const arena4=buatArena4();scene.add(arena4.grup);bayang(scene);
 
 /* ---------- keadaan ---------- */
 let saya=null,me=null,rt=null,mulai=false,hasilBuka=false,rodaBuka=false,revBuka=false,kotor=true,tGabung=0;
@@ -291,7 +294,7 @@ function onPesan(ev,p){
     const q=tim.get(p.id);if(!q||q.bot)return;
     if(![p.x,p.z,p.vx,p.vz].every(Number.isFinite)||Math.abs(p.x)>120||Math.abs(p.z)>120)return;
     q.tx=p.x;q.tz=p.z;q.vx=klem(p.vx,-14,14);q.vz=klem(p.vz,-14,14);q.c=ang(p.c,0,8)?p.c:0;q.carry=q.c;
-    const a=ang(p.a,0,2)?p.a:0;if(a!==q.a){q.a=a;q.siap=0;}
+    const a=ang(p.a,0,6)?p.a:0;if(a!==q.a){q.a=a;q.siap=0;}
     if(!q.tMsg||Math.hypot(q.tx-q.x,q.tz-q.z)>8){q.x=p.x;q.z=p.z;}
     q.tMsg=performance.now();
   }else if(ev==='d'){
@@ -579,6 +582,50 @@ const CFG3={id:3,setSeed:P3.setSeed3,NB:P3.NB3,WAKTU:P3.WAKTU3,M:M3,mode:'set',c
   }
 };
 ALUR[3]=buatAlur(CFG3);
+
+/* ================= Pos 4: Misteri Tangki ================= */
+let kunciMini4='';
+const CFG4={id:4,setSeed:P4.setSeed4,NB:P4.NB4,WAKTU:P4.WAKTU4,M:M4,mode:'jumlah',cap:P4.CAP4,get arena(){return arena4;},
+  stateBaru:P4.stateBaru4,stateBabak:r=>{const n=r<P4.NB4?P4.nSlot4(r):0;return {s:Array(n).fill(0),k:Array(n).fill(0)};},
+  maxKode:()=>P4.VMAX,batasSlot:()=>[0,P4.VMAX],sValid:P4.sValid4,valid:P4.valid4,skorRonde:P4.skorRonde4,skorTim:P4.skorTim4,
+  bolehKunci:st=>st.s.some(v=>v>0),pesanBelum:'Isi tangki dulu sebelum dikunci.',
+  sambut:A=>A.selesai()?'Pos 4 sudah selesai.':(A.st.f===1?'Babak sedang berjalan. Isi tiap tangki sesuai volume pada waktunya.':'Hutan Sungai. Baca grafik debit di papan, lalu semua berdiri di pad hijau untuk mulai.'),
+  atur(r){
+    arena4.setBabak(r);arena4.setMedan(r);kunciMini4='';$('a2-cv').hidden=false;
+    $('a2-p').textContent='Tangki ke-n = volume pada garis merah ke-n. Ember 1 L di Mata Air, jeriken 2 L di Sumur, drum 5 L di Air Terjun.';
+  },
+  hud(r,s){
+    if(kunciMini4!==String(r)){kunciMini4=String(r);gambarDebit($('a2-cv'),r,{kecil:true});}
+    const jml=me.tiles.reduce((a,v)=>a+v,0);
+    return {isi:s.join(' · ')+' L',bawa:me.tiles.length?me.tiles.map(v=>v+' L').join(' + ')+' = '+jml+' L':'-'};
+  },
+  ulasan:(r,s,w,h)=>({gambar:cv=>gambarDebit(cv,r),
+    baris:[['Isi tangki tim',s.join(', ')+' L'],['Isi benar',P4.soal4(r).V.join(', ')+' L'],['Tangki tepat',h.benar+' / '+h.total],['Ketepatan',h.akurasi+' / 100'],['Bonus kecepatan',Math.round(w/10)+'%']],
+    catatan:h.catatan.length?h.catatan.map(c=>P4.PESAN4[c]).filter(Boolean).join(' '):'Tepat. Volume adalah akumulasi laju: tiap tangki = V0 + luas bertanda di bawah grafik debit sampai waktunya.'}),
+  hasil:st=>({kolom:['Babak','V0','Isi tim','Isi benar','Skor'],baris:st.sr.map((s,i)=>[i+1,P4.soal4(i).v0+' L',s.join(', '),P4.soal4(i).V.join(', '),P4.skorRonde4(i,s,st.w[i]).skor]),
+    judul:'Volume = akumulasi debit',teks:'Luas di bawah grafik laju adalah perubahan total. Bagian di atas sumbu menambah, bagian di bawah sumbu mengurangi. Inilah ide integral sebagai akumulasi.'}),
+  bingkai(A,o){
+    const r=o.r,dk=W.diKamp(me.x,me.z),ti=o.main?tangkiDi(me.x,me.z):-1,penuh=me.tiles.length>=capNow(),jml=me.tiles.reduce((a,v)=>a+v,0),tk=me.tiles.join(',');
+    if(dk>=0){
+      const wd=P4.WADAH[dk];
+      panelUmum(true,!o.main?'Kamp '+W.KAMP[dk].nama+'. Air bisa diambil setelah babak mulai.':(penuh?'Tangan penuh ('+capNow()+' wadah).':W.KAMP[dk].nama+': '+wd.nama+' '+wd.L+' liter'),
+        [{t:'Ambil '+wd.nama+' '+wd.L+' L',mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()){me.tiles.push(wd.L);me.carry=me.tiles.length;kirimPosisi();}}}].concat(me.tiles.length?[taruhKembali()]:[]),
+        'k|'+dk+'|'+o.main+'|'+tk);
+    }else if(ti>=0){
+      const v=A.st.s[ti];
+      panelUmum(true,'Tangki '+(ti+1)+' (t = '+P4.soal4(r).t[ti]+'): '+v+' L',
+        [{t:'Tuang +'+jml+' L',utama:true,mati:!jml,aksi:()=>{if(A.tambah(ti,jml)){me.tiles=[];me.carry=0;kirimPosisi();}}},
+         {t:'Kuras 1 L',mati:v<1,aksi:()=>A.tambah(ti,-1)},{t:'Kuras 5 L',mati:v<5,aksi:()=>A.tambah(ti,-5)}],
+        't|'+ti+'|'+v+'|'+tk);
+    }else panelUmum(false);
+    const b=$('aksi'),bisa=ti>=0&&jml>0;
+    b.hidden=o.blk||!bisa;if(bisa)b.textContent='Tuang +'+jml+' L ke tangki '+(ti+1);
+    if(tahan&&bisa&&o.now-tAksi>350){tahan=false;tAksi=o.now;if(A.tambah(ti,jml)){me.tiles=[];me.carry=0;kirimPosisi();}}
+    if(tahan&&!bisa)tahan=false;
+    return ti;
+  }
+};
+ALUR[4]=buatAlur(CFG4);
 function ambilBatu(kode){
   const A=ALUR[2];
   if(me.a!==2||A.st.f!==1||me.tiles.length>=capNow()||blok())return;
@@ -1217,7 +1264,7 @@ function perluPosisi(now){
   if(now-lalu.t<jedaPos())return false;
   if(now-lalu.t>15000)return true;
   const px=lalu.x+lalu.vx*dt,pz=lalu.z+lalu.vz*dt;
-  return Math.hypot(me.x-px,me.z-pz)>1||Math.hypot(me.vx-lalu.vx,me.vz-lalu.vz)>.8||me.carry!==lalu.c;
+  return Math.hypot(me.x-px,me.z-pz)>1||Math.hypot(me.vx-lalu.vx,me.vz-lalu.vz)>.8||me.carry!==lalu.c||me.a!==lalu.a;
 }
 
 /* ---------- animasi avatar ---------- */
@@ -1451,4 +1498,4 @@ document.fonts&&document.fonts.ready.then(gambarPapan);
 
 /* kait uji */
 window.__L={P1,AR,arena,get endAt(){return endAt;},get stunTil(){return stunTil;},get me(){return me;},tim,luar,papanData,get st(){return st;},aud,get rt(){return rt;},gerbang,C,hit,
-  MED,M2,M3,P2,P3,arena2,arena3,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca};},setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};
+  MED,M2,M3,M4,P2,P3,P4,arena2,arena3,arena4,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca};},setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};
