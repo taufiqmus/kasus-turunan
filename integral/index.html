@@ -30,6 +30,15 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 .tims{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tims .tab{border-radius:12px;padding:10px;text-align:left}
 .skorbesar{font-family:var(--display);font-size:54px;line-height:1}
+
+.modal{position:fixed;inset:0;z-index:6;background:rgba(28,34,48,.6);display:flex;align-items:center;justify-content:center;padding:10px}
+.modal .card{width:min(460px,100%);max-height:100%;overflow:auto;padding:14px;text-align:center}
+#roda-cv{width:min(360px,80vw);height:auto;display:block;margin:0 auto}
+#rev-cv{width:100%;height:auto;border:2px solid var(--ink);border-radius:8px}
+#rev-t{margin:8px 0;text-align:left}
+#rev-t .r{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed #cdbf9c;font-weight:700}
+.kecil{font-size:12px;margin:6px 0}
+#hitung{position:fixed;z-index:4;left:50%;top:38%;transform:translate(-50%,-50%);font-family:var(--display);font-size:120px;color:#fff6e4;-webkit-text-stroke:6px var(--ink);paint-order:stroke fill;pointer-events:none}
 @media (max-width:560px){
 #c-ruang{display:none}
 .lchip,#b-kam,#b-keluar,#b-audit{font-size:12px;padding:5px 9px}
@@ -104,15 +113,18 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <button class="btn alt" id="b-audit" type="button">Audit</button>
 </div>
 <div class="card" id="arhud" hidden>
-  <div class="r"><span id="ar-babak">Babak 1/3</span><span id="ar-bawa">Bawa 0/4</span></div>
+  <div class="r"><span id="ar-babak">Babak 1/3</span><span id="ar-bawa">Bawa 0/2</span></div>
   <canvas id="mini" width="320" height="184"></canvas>
-  <div class="r"><span>Taksiran luas</span><span id="ar-luas">0</span></div>
-  <div class="r"><span>Bocor</span><span id="ar-bocor">0</span></div>
+  <div class="r"><span>Waktu</span><span id="ar-waktu">-</span></div>
+  <div class="r"><span>Rumus</span><span id="ar-rumus">-</span></div>
+  <div class="r"><span>Titik</span><span id="ar-titik">-</span></div>
+  <div class="r"><span>Total balok</span><span id="ar-total">0</span></div>
   <div class="r"><span>Siap di pad</span><span id="ar-siap">0/1</span></div>
   </div>
 <button class="btn big" id="aksi" type="button" hidden>Masuk Pos 1</button>
 <button class="btn alt" id="b-lompat" type="button" hidden>Lompat</button>
 <div id="ltoast" hidden></div>
+<div id="hitung" hidden></div>
 <div id="joy" hidden><i></i></div>
 
 <div class="card" id="audit" hidden>
@@ -137,11 +149,29 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <textarea id="a-lap" readonly hidden></textarea>
 </div>
 
+<div id="roda" class="modal" hidden>
+  <div class="card">
+    <h2 id="roda-h">Roda kurva</h2>
+    <canvas id="roda-cv" width="420" height="420"></canvas>
+    <p id="roda-p"></p>
+    <p class="kecil">Hasil roda ditentukan dari kode ruang dan timmu, jadi sama untuk semua anggota tim.</p>
+    <button class="btn" id="roda-ok" type="button" hidden>Lanjut</button>
+  </div>
+</div>
+<div id="rev" class="modal" hidden>
+  <div class="card">
+    <h2 id="rev-h"></h2>
+    <canvas id="rev-cv" width="480" height="280"></canvas>
+    <div id="rev-t"></div>
+    <p id="rev-p"></p>
+    <button class="btn" id="rev-ok" type="button">Lanjut</button>
+  </div>
+</div>
 <div id="hasil" hidden>
   <div class="card">
     <p class="eyebrow" style="margin:0">Pos 1 selesai</p>
-    <h2>Makin tipis kolomnya, makin kecil bocornya</h2>
-    <p>Luas sebenarnya di bawah kurva adalah <b>9</b>. Lihat taksiran timmu mendekat ke angka itu saat kolom bertambah. Kalau lebar kolom terus diperkecil sampai mendekati nol, jumlah itu disebut integral.</p>
+    <h2>Makin tipis kolomnya, makin dekat ke luas sebenarnya</h2>
+    <p>Bandingkan taksiran timmu dengan luas asli tiap babak. Kalau lebar kolom terus diperkecil sampai mendekati nol, jumlah luas kolom itu mendekati luas sebenarnya, dan itulah integral.</p>
     <table id="w-tabel"></table>
     <p style="margin:10px 0 0">Skor tim: <span class="skorbesar" id="w-skor">0</span> / 100</p>
     <button class="btn" id="w-tutup" type="button" style="margin-top:10px">Kembali ke lobi</button>

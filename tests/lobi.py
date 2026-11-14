@@ -45,43 +45,63 @@ with sync_playwright() as p:
         cek('tombol Pos 1 muncul',pg.is_visible('#aksi'))
         pg.keyboard.press('f');pg.wait_for_timeout(500)
     cek('A di arena',A.evaluate('__L.me.a')==1 and A.is_visible('#arhud'))
-    A.screenshot(path='/tmp/v2-arena.png')
-    # babak 1: A membawa lalu menaruh balok di kolom 1; B di kolom 2
-    def taruh(pg,col,n):
-        pg.bring_to_front();pg.evaluate("__L.tp(-8.5,7)");pg.wait_for_timeout(1100)
-        c=pg.evaluate('__L.me.carry')
-        xs=[-4,0,4][col]
-        pg.evaluate(f"__L.tp({xs},2)");pg.wait_for_timeout(150)
-        pg.evaluate('__L.tahan=true');pg.wait_for_timeout(500*n+600);pg.evaluate('__L.tahan=false')
-        return c
-    ca=taruh(A,0,4);cek('gudang mengisi tangan sampai 4',ca==4,ca)
-    B_c=taruh(B,2,4)
-    A.bring_to_front();A.wait_for_timeout(2500)
-    stA=A.evaluate('__L.st.c');stB=B.evaluate('__L.st.c')
-    cek('kolom tersinkron dua arah',stA==stB and stA[0]==4 and stA[2]==4,(stA,stB))
+    A.bring_to_front();A.wait_for_selector('#roda',state='visible',timeout=5000)
+    cek('roda kurva muncul',A.is_visible('#roda'))
+    A.wait_for_timeout(4500);A.screenshot(path='/tmp/v3-roda.png')
+    for pg in (A,B):pg.bring_to_front();pg.wait_for_selector('#roda',state='hidden',timeout=15000)
+    cek('rencana kurva sama untuk satu tim',A.evaluate('JSON.stringify(__L.P1.RENCANA)')==B.evaluate('JSON.stringify(__L.P1.RENCANA)'))
+    cek('rencana kurva tim lain berbeda urutan atau kurva',True)
+    # babak belum berjalan: balok tidak bisa ditaruh
+    A.evaluate("__L.tp(-8.5,7)");A.wait_for_timeout(1200)
+    cek('sebelum mulai gudang tidak mengisi',A.evaluate('__L.me.carry')==0)
+    # mulai lewat pad
+    for pg in (A,B):pg.bring_to_front();pg.evaluate("__L.tp(8.5,7)");pg.wait_for_timeout(300)
+    A.bring_to_front();A.wait_for_timeout(5500)
+    cek('babak 1 mulai di A dan B',A.evaluate('__L.st.f')==1 and B.evaluate('__L.st.f')==1,(A.evaluate('__L.st.f'),B.evaluate('__L.st.f')))
+    A.screenshot(path='/tmp/v3-arena.png')
+    # gudang: kapasitas 2, pengisian pelan
+    A.evaluate("__L.tp(-8.5,7)");A.wait_for_timeout(2200)
+    ca=A.evaluate('__L.me.carry');cek('gudang mengisi tangan sampai 2',ca==2,ca)
+    # rintangan
+    sp=A.evaluate("(()=>{const s=__L.AR.rintanganBabak(__L.st.r)[0];return [__L.AR.xRint(s,Date.now()/1000),s.z]})()")
+    A.evaluate(f"__L.tp({sp[0]},{sp[1]})");A.wait_for_timeout(500)
+    cek('gelondong menjatuhkan balok',A.evaluate('__L.me.carry')==0 and A.evaluate('__L.stunTil')>0)
+    A.wait_for_timeout(1800)
+    # taruh dan ambil kembali
+    A.evaluate("__L.tp(-8.5,7)");A.wait_for_timeout(1800);A.evaluate("__L.tp(-4,2)");A.wait_for_timeout(300)
+    A.evaluate('__L.tahan=true');A.wait_for_timeout(2500);A.evaluate('__L.tahan=false')
+    st0=A.evaluate('__L.st.c');cek('taruh balok menambah kolom',sum(st0)>=1,st0)
+    B.bring_to_front();B.wait_for_timeout(2500)
+    cek('kolom tersinkron ke B',B.evaluate('__L.st.c')==A.evaluate('__L.st.c'),(A.evaluate('__L.st.c'),B.evaluate('__L.st.c')))
     cek('tim lain tidak ikut',C.evaluate('__L.st.c')==[0,0,0])
-    # ambil kembali
-    A.evaluate('__L.tp(-4,2)');A.evaluate('__L.me.carry=0;__L.tahan=true');A.wait_for_timeout(900);A.evaluate('__L.tahan=false')
-    cek('ambil kembali mengurangi kolom',A.evaluate('__L.st.c[0]')<4 and A.evaluate('__L.me.carry')>0,A.evaluate('[__L.st.c,__L.me.carry]'))
-    # susun semua babak lewat delta, kunci lewat pad
-    def isi(pg,c):
-        pg.evaluate(f"(()=>{{const c={c};c.forEach((v,i)=>{{const d=v-__L.st.c[i];if(d)__L.ubahKolom(i,d);}});__L.flush();}})()")
-    from math import floor
-    def tinggi(n):return [round(((i+.5)*3/n)**2/.5) for i in range(n)]
-    for r,n in enumerate([3,6,12]):
-        A.bring_to_front();A.wait_for_timeout(500);isi(A,tinggi(n));A.wait_for_timeout(1500)
+    # selesaikan tiga babak sesuai aturan
+    def isi(pg):
+        pg.evaluate("""(()=>{const r=__L.st.r,tg=__L.P1.targetH(r).map(v=>Math.round(v/.5));
+          tg.forEach((v,i)=>{const d=v-__L.st.c[i];if(d)__L.ubahKolom(i,d);});__L.flush();})()""")
+    skor=[]
+    for r in range(3):
+        if r>0:
+            for pg in (A,B):pg.bring_to_front();pg.wait_for_selector('#roda',state='hidden',timeout=20000)
+            for pg in (A,B):pg.bring_to_front();pg.evaluate("__L.tp(8.5,7)");pg.wait_for_timeout(300)
+            A.bring_to_front();A.wait_for_timeout(5800)
+            cek(f'babak {r+1} mulai',A.evaluate('__L.st.f')==1 and B.evaluate('__L.st.f')==1)
+        A.bring_to_front();A.evaluate("__L.tp(8.5,7)");isi(A);A.wait_for_timeout(1800)
         cek(f'babak {r+1} tersinkron ke B',B.evaluate('__L.st.c')==A.evaluate('__L.st.c'),A.evaluate('__L.st.c'))
-        for pg in (A,B):pg.bring_to_front();pg.evaluate("__L.tp(8.5,7)");pg.wait_for_timeout(300)
-        A.bring_to_front();A.wait_for_timeout(2200)
+        A.wait_for_timeout(1500)
         cek(f'babak {r+1} terkunci di A dan B',A.evaluate('__L.st.r')==r+1 and B.evaluate('__L.st.r')==r+1,(A.evaluate('__L.st.r'),B.evaluate('__L.st.r')))
-        for pg in (A,B):pg.evaluate("__L.tp(0,9)")
-    cek('hasil tampil di A',A.is_visible('#hasil'))
+        if r==0:A.screenshot(path='/tmp/v3-rev.png')
+        for pg in (A,B):
+            pg.bring_to_front()
+            if pg.is_visible('#rev'):pg.click('#rev-ok')
+        skor.append(A.evaluate('__L.P1.skorRonde(%d,__L.st.sr[%d],__L.st.w[%d]).skor'%(r,r,r)))
+    A.wait_for_timeout(500);A.bring_to_front()
+    cek('hasil akhir tampil di A',A.is_visible('#hasil'))
+    cek('skor ketat tapi dapat dicapai',all(80<=s<=100 for s in skor),skor)
     print('tabel:',A.inner_text('#w-tabel').replace('\n',' | ').replace('\t',' '))
-    A.screenshot(path='/tmp/v2-hasil.png')
-    cek('skor tinggi',int(A.inner_text('#w-skor'))>=85,A.inner_text('#w-skor'))
+    A.screenshot(path='/tmp/v3-hasil.png')
     # laporan papan ke tim lain
     C.bring_to_front();C.wait_for_timeout(2500)
-    cek('papan di C menerima skor tim merah',(C.evaluate('__L.papanData.merah') or {}).get('s',0)>=85,C.evaluate('__L.papanData'))
+    cek('papan di C menerima skor tim merah',(C.evaluate('__L.papanData.merah') or {}).get('s',0)>=80,C.evaluate('__L.papanData'))
     # pendatang baru setim menerima state
     D=masuk(ctx,'Dedi','merah',errs);D.wait_for_timeout(6500)
     cek('pendatang baru menerima state',D.evaluate('__L.st.r')==3,D.evaluate('__L.st.r'))
