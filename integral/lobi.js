@@ -431,6 +431,10 @@ function petaMini(t){
     miniX.fillStyle=gerbang[i].aktif?'#ff6f47':'#7d8792';miniX.fillRect(px-3,py-3,6,6);});
   miniX.fillStyle='#e6a800';for(let i=0;i<KOIN_N;i++){if(koinAmbil.has(i))continue;[px,py]=P(koinPos[i].x,koinPos[i].z);if(Math.hypot(px-cx,py-cy)<W/2)miniX.fillRect(px-1.5,py-1.5,3,3);}
   miniX.fillStyle='#2b6cff';for(const p of tim.values()){if(p.a!==0||p.id===saya.id)continue;[px,py]=P(p.x,p.z);miniX.beginPath();miniX.arc(px,py,3,0,7);miniX.fill();}
+  {const g=gerbang[0];[px,py]=P(g.x,g.z);const dd=Math.hypot(px-cx,py-cy),ed=W/2-9;
+   if(dd>ed){px=cx+(px-cx)/dd*ed;py=cy+(py-cy)/dd*ed;}
+   miniX.fillStyle='#ff6f47';miniX.strokeStyle='#fff';miniX.lineWidth=2;miniX.beginPath();miniX.arc(px,py,7,0,7);miniX.fill();miniX.stroke();
+   miniX.fillStyle='#fff';miniX.font='bold 9px sans-serif';miniX.textAlign='center';miniX.fillText('1',px,py+3);}
   miniX.restore();
   miniX.fillStyle='#e8412c';miniX.beginPath();miniX.moveTo(cx,cy-6);miniX.lineTo(cx-5,cy+5);miniX.lineTo(cx+5,cy+5);miniX.fill();
   miniX.strokeStyle='#1c2230';miniX.lineWidth=2;miniX.beginPath();miniX.arc(cx,cy,W/2-2,0,7);miniX.stroke();
@@ -487,13 +491,14 @@ function emote(k){
   me.emo={k,t:now};kirim('emo',{id:saya.id,k});
 }
 $('b-lompat').addEventListener('click',()=>emote(1));
+$('b-pos1').addEventListener('click',()=>{if(me.a!==0||blok())return;const g=gerbang[0];me.x=g.ax;me.z=g.az;me.vx=me.vz=0;kirimPosisi();toast('Sampai di gerbang Pos 1. Tekan Masuk Pos 1.');});
 {const b=$('b-lari'),on=e=>{btnLari=true;e.preventDefault();},off=()=>{btnLari=false;};
  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off);}
 
 /* ---------- arena dan aksi ---------- */
 function setArea(a){
   me.a=a;arena.grup.visible=a===1;lobiGrup.visible=a===0;
-  $('arhud').hidden=a!==1;$('peta').hidden=a!==0;$('c-koin').hidden=a!==0;$('stam').hidden=a!==0;$('b-lari').hidden=a!==0;$('b-keluar').hidden=a!==1;$('b-lompat').hidden=false;
+  $('arhud').hidden=a!==1;$('peta').hidden=a!==0;$('c-koin').hidden=a!==0;$('b-pos1').hidden=a!==0;$('stam').hidden=a!==0;$('b-lari').hidden=a!==0;$('b-keluar').hidden=a!==1;$('b-lompat').hidden=false;
   me.siap=0;kirim('siap',{id:saya.id,v:0});
   if(a===1){
     me.x=0;me.z=9;me.vx=me.vz=0;C.yaw=0;
@@ -708,7 +713,7 @@ $('b-masuk').addEventListener('click',()=>{
     },hadir:onHadir,pesan:onPesan},Q.has('lokal'));
   setInterval(async()=>{if(!rt||rt.mode!=='daring'||document.hidden)return;const p=await rt.ping();if(p!=null){aud.ping=p;aud.pings.push(p);if(aud.pings.length>60)aud.pings.shift();}},8000);
   setInterval(()=>{laporPapan(false);gambarPapan();selaraskanLuar();const ct=$('c-tim');if(ct.lastChild)ct.lastChild.textContent='Tim '+timById(saya.tim).nama+' · '+(1+anggota().length);},1500);
-  mulai=true;gambarPapan();setPre(0);$('b-lompat').hidden=false;$('peta').hidden=false;$('c-koin').hidden=false;$('stam').hidden=false;$('b-lari').hidden=false;
+  mulai=true;gambarPapan();setPre(0);$('b-lompat').hidden=false;$('peta').hidden=false;$('c-koin').hidden=false;$('b-pos1').hidden=false;toast('Pos 1 ada di titik oranye pada peta mini. Atau tekan Ke Pos 1.');$('stam').hidden=false;$('b-lari').hidden=false;
   toast('Geser layar kiri untuk berjalan, geser kanan untuk memutar kamera. Dekati gerbang Pos 1.');
 });
 function pemainBaru0(){
