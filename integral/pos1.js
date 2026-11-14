@@ -57,7 +57,7 @@ export function valid(s){
   if(!s||typeof s!=='object'||!bil(s.r,0,BABAK.length)||!Array.isArray(s.sr)||s.sr.length!==s.r)return false;
   if(!Array.isArray(s.w)||s.w.length!==s.r||!s.w.every(v=>bil(v,0,1000)))return false;
   if(s.f!==0&&s.f!==1)return false;
-  if(s.f===1&&!bil(s.m,0,400000))return false;
+  if(s.f===1&&!bil(s.m,0,600000))return false;
   for(let i=0;i<s.r;i++)if(!cValid(i,s.sr[i]))return false;
   return s.r>=BABAK.length?Array.isArray(s.c)&&s.c.length===0:cValid(s.r,s.c);
 }
