@@ -1,3 +1,10 @@
+
+def cek_event_terdaftar():
+    import re
+    src=open('integral/lobi.js').read();rt=open('integral/rt.js').read()
+    dipakai=set(re.findall(r"kirim\('([a-z]+)'",src))
+    terdaftar=set(re.findall(r"'([a-z]+)'",rt.split('EV_TIM=')[1].split(';')[0]+rt.split('EV_PAPAN=')[1].split(';')[0]))
+    return dipakai-terdaftar
 """Uji asap Lobi Integral v2: tiga pemain (dua setim, satu tim lain), mode luring (BroadcastChannel)."""
 from playwright.sync_api import sync_playwright
 URL='http://localhost:8077/integral/index.html?lokal=1'
@@ -109,5 +116,6 @@ with sync_playwright() as p:
     cek('jeda posisi 2 pemain di batas bawah',A.evaluate('__L.jedaPos()')<=400,A.evaluate('__L.jedaPos()'))
     A.evaluate('__L.sim.on=true');cek('simulasi kelas 40',A.evaluate('__L.ntot()')==40 and A.evaluate('__L.jedaPos()')==4000)
     cek('tanpa galat konsol',not errs,errs)
+    hilang=cek_event_terdaftar();cek('semua event jaringan terdaftar di kanal',not hilang,str(hilang))
     print('SEMUA LULUS' if ok else 'ADA YANG GAGAL')
     b.close()
