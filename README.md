@@ -82,7 +82,7 @@ Panggil `teori('id')` saat aksi terkait terjadi; kartu terbuka, tombol Teori dib
 Batas paket gratis sekitar 100 pesan per detik per proyek, dan satu pesan dihitung sekali saat dikirim dan sekali per penerima. Jika semua pemain satu ruang saling bicara, beban tumbuh sebagai N kuadrat kali laju kirim, jadi sekadar menjarangkan posisi tidak cukup. Karena itu:
 
 - Pesan posisi dan aksi hanya disebar ke satu tim (kanal tim). Beban satu tim M orang adalah M kuadrat kali laju, bukan N kuadrat.
-- Tim lain tidak digambar langsung. Mereka tampil di papan skor lewat laporan jarang (jumlah anggota dan skor, sekitar tiap 20 detik).
+- Tim lain tidak digambar langsung. Mereka tampil di papan skor lewat laporan jarang (jumlah anggota dan skor, sekitar tiap 15 detik).
 - Posisi dikirim jarang dengan ekstrapolasi: hanya saat kecepatan berubah, berhenti, selisih prediksi lebih dari 1, atau denyut 15 detik. Jeda mengikuti perkiraan jumlah pemain.
 - Aksi balok Pos 1 dikumpulkan jadi selisih per kolom dan dikirim berkala, dengan penyelarasan oleh anggota tertua.
 

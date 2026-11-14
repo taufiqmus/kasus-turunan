@@ -46,20 +46,20 @@ const PUTIH=new THREE.Color(1,1,1);
 function mix(hex,k){const c=new THREE.Color(hex);if(k>=0)c.lerp(PUTIH,k);else c.multiplyScalar(1+k);return c;}
 
 function bangun(av){
-  const L=[],m=WARNA[av.c],t=av.t,terang=mix(m,.55),gelap=mix(m,-.4);
+  const L=[],LK=[],LN=[],AK=[],AN=[],m=WARNA[av.c],t=av.t,terang=mix(m,.55),gelap=mix(m,-.4);
   const kepala=t===0?KULIT[av.k]:m,kaki=t===0?'#34425e':(t===5?'#f08a1e':m),gz=.56;
   /* kaki, badan, kepala */
-  part(L,GB,kaki,-.3,.3,0,.34,.6,.38);part(L,GB,kaki,.3,.3,0,.34,.6,.38);
+  part(LK,GB,kaki,0,-.3,0,.34,.6,.38);part(LN,GB,kaki,0,-.3,0,.34,.6,.38);
   part(L,GC,m,0,1.15,0,.58,1.1,.46);
   part(L,GS,kepala,0,2.0,0,.56,.52,.54);
   const ey=t===5?2.1:2.04;
   part(L,GB,'#1b1b22',-.2,ey,.53,.1,.14,.08);part(L,GB,'#1b1b22',.2,ey,.53,.1,.14,.08);
   /* lengan atau sayap */
-  if(t===5){part(L,GB,gelap,-.72,1.3,0,.14,.55,.55,0,0,.15);part(L,GB,gelap,.72,1.3,0,.14,.55,.55,0,0,-.15);}
-  else{part(L,GB,m,-.74,1.2,0,.22,.75,.26,0,0,.12);part(L,GB,m,.74,1.2,0,.22,.75,.26,0,0,-.12);}
+  if(t===5){part(AK,GB,gelap,-.02,-.25,0,.14,.55,.55,0,0,.15);part(AN,GB,gelap,.02,-.25,0,.14,.55,.55,0,0,-.15);}
+  else{part(AK,GB,m,0,-.35,0,.22,.75,.26,0,0,.12);part(AN,GB,m,0,-.35,0,.22,.75,.26,0,0,-.12);}
   /* ciri tiap tipe */
   if(t===0){
-    part(L,GB,KULIT[av.k],-.77,.78,0,.2,.2,.24);part(L,GB,KULIT[av.k],.77,.78,0,.2,.2,.24);
+    part(AK,GB,KULIT[av.k],-.03,-.77,0,.2,.2,.24);part(AN,GB,KULIT[av.k],.03,-.77,0,.2,.2,.24);
     part(L,GS,'#3b2a20',0,2.28,-.02,.58,.34,.56);
   }else if(t===1){
     part(L,GK,m,-.34,2.55,0,.2,.42,.2,0,0,.28);part(L,GK,m,.34,2.55,0,.2,.42,.2,0,0,-.28);
@@ -100,13 +100,19 @@ function bangun(av){
     part(L,GK,'#d94a4a',-.17,1.58,.5,.16,.3,.16,0,0,-Math.PI/2);part(L,GK,'#d94a4a',.17,1.58,.5,.16,.3,.16,0,0,Math.PI/2);
     part(L,GS,'#b23030',0,1.58,.5,.08,.08,.08);
   }else if(av.a===3){part(L,GB,'#3d7bd8',0,1.25,-.62,.74,.9,.34);part(L,GB,'#2f62b0',0,1.0,-.82,.5,.3,.1);}
-  return gabung(L);
+  return {badan:gabung(L),kakiK:gabung(LK),kakiN:gabung(LN),lenganK:gabung(AK),lenganN:gabung(AN)};
 }
 
 const MAT=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});
 const cache=new Map();
+/* Kembalikan Group: badan + dua kaki + dua lengan (sendi di pinggul dan bahu), agar bisa diayun saat berjalan. */
 export function meshAvatar(av){
   const kode=kodeAv(av);let g=cache.get(kode);
   if(!g){g=bangun(av);cache.set(kode,g);}
-  return new THREE.Mesh(g,MAT);
+  const grp=new THREE.Group(),mk=geo=>new THREE.Mesh(geo,MAT);
+  const badan=mk(g.badan),kk=new THREE.Group(),kn=new THREE.Group(),lk=new THREE.Group(),ln=new THREE.Group();
+  kk.position.set(-.3,.6,0);kn.position.set(.3,.6,0);lk.position.set(-.74,1.55,0);ln.position.set(.74,1.55,0);
+  kk.add(mk(g.kakiK));kn.add(mk(g.kakiN));lk.add(mk(g.lenganK));ln.add(mk(g.lenganN));
+  grp.add(badan,kk,kn,lk,ln);grp.userData={kakiK:kk,kakiN:kn,lenganK:lk,lenganN:ln};
+  return grp;
 }

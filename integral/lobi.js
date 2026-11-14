@@ -121,6 +121,7 @@ const arena=buatArena();scene.add(arena.grup);
 /* ---------- keadaan ---------- */
 let saya=null,me=null,rt=null,mulai=false,hasilBuka=false,kotor=true,tGabung=0;
 const tim=new Map();      /* anggota tim lain: id -> pemain (termasuk bot render) */
+const luar=new Map();    /* pemain tim lain: hanya roster dari papan, bergerak simulasi lokal (bukan posisi asli) */
 const papanData={};       /* tim -> {n,s,r,t} laporan jarang dari tiap tim */
 let st=stateBaru();const pend=new Map();
 let tDelta=0,tStKirim=0,ubahSt=false,tFlush=0,tPos=0,tLapor=0,lastLapor='';
@@ -211,7 +212,8 @@ function onPesan(ev,p){
     const q=tim.get(p.id);if(q&&(p.k===1||p.k===2))q.emo={k:p.k,t:performance.now()};
   }else if(ev==='ro'){
     if(typeof p.t==='string'&&TIM.some(t=>t.id===p.t)&&ang(p.n,0,99)){
-      papanData[p.t]={n:p.n,s:ang(p.s,0,100)?p.s:null,r:ang(p.r,0,3)?p.r:0,t:performance.now()};gambarPapan();
+      const m=[];if(Array.isArray(p.m))for(const e of p.m.slice(0,12)){if(Array.isArray(e)&&typeof e[0]==='string'&&e[0].length<=12&&typeof e[1]==='string'&&/^[0-9]{6}$/.test(e[2]))m.push([e[0],e[1].slice(0,12),e[2]]);}
+      papanData[p.t]={n:p.n,s:ang(p.s,0,100)?p.s:null,r:ang(p.r,0,3)?p.r:0,m,t:performance.now()};gambarPapan();selaraskanLuar();
     }
   }
 }
@@ -273,9 +275,26 @@ function gambarPapan(){
 }
 function laporPapan(paksa){
   if(!rt||!otoritas())return;
-  const n=1+anggota().length,s=skorTim(st),key=n+'/'+s+'/'+st.r,now=performance.now();
-  if(!paksa&&key===lastLapor&&now-tLapor<20000)return;
-  lastLapor=key;tLapor=now;kirim('ro',{t:saya.tim,n,s,r:Math.min(st.r,3)});
+  const ang2=anggota(),n=1+ang2.length,s=skorTim(st),key=n+'/'+s+'/'+st.r+'/'+ang2.map(p=>p.id).sort().join(','),now=performance.now();
+  if(!paksa&&key===lastLapor&&now-tLapor<15000)return;
+  lastLapor=key;tLapor=now;kirim('ro',{t:saya.tim,n,s,r:Math.min(st.r,3),m:[[saya.id,saya.nama,kodeAv(saya.av)],...ang2.slice(0,11).map(p=>[p.id,p.nama,kodeAv(p.av)])]});
+}
+
+/* Tim lain: roster nyata dari papan, tetapi gerakannya simulasi lokal karena posisi asli seluruh kelas melampaui batas pesan. */
+function selaraskanLuar(){
+  if(!saya)return;
+  const now=performance.now(),ada=new Set();
+  for(const t in papanData){
+    const d=papanData[t];if(t===saya.tim||now-d.t>70000)continue;
+    for(const [id,nama,av] of d.m){
+      if(id===saya.id)continue;ada.add(id);
+      if(!luar.has(id)){
+        const p=pemainBaru({id,nama,tim:t,av},true);tim.delete(id);p.amb=true;luar.set(id,p);
+        const a=Math.random()*Math.PI*2,r=4+Math.random()*13;p.x=Math.cos(a)*r;p.z=Math.sin(a)*r;
+      }
+    }
+  }
+  for(const [id,p] of luar)if(!ada.has(id)){buangAv(p.grp);luar.delete(id);}
 }
 
 /* ---------- kamera ---------- */
@@ -497,7 +516,7 @@ $('b-masuk').addEventListener('click',()=>{
       isiAudit();
     },hadir:onHadir,pesan:onPesan},Q.has('lokal'));
   setInterval(async()=>{if(!rt||rt.mode!=='daring'||document.hidden)return;const p=await rt.ping();if(p!=null){aud.ping=p;aud.pings.push(p);if(aud.pings.length>60)aud.pings.shift();}},8000);
-  setInterval(()=>{laporPapan(false);gambarPapan();},1500);
+  setInterval(()=>{laporPapan(false);gambarPapan();selaraskanLuar();const ct=$('c-tim');if(ct.lastChild)ct.lastChild.textContent='Tim '+timById(saya.tim).nama+' · '+(1+anggota().length);},1500);
   mulai=true;gambarPapan();setPre(0);$('b-lompat').hidden=false;
   toast('Geser layar kiri untuk berjalan, geser kanan untuk memutar kamera. Dekati gerbang Pos 1.');
 });
@@ -523,16 +542,25 @@ function perluPosisi(now){
 
 /* ---------- animasi avatar ---------- */
 function animAv(p,dt,t,now){
-  const u=p.grp.userData,gerak=Math.hypot(p.vx,p.vz)>.3;
-  let y=0,spin=0;
+  const u=p.grp.userData,sp=Math.hypot(p.vx,p.vz),gerak=sp>.3;
+  let y=0,spin=0,lompat=0;
   if(p.emo){
     const k=(now-p.emo.t)/700;
-    if(k>=1)p.emo=null;else if(p.emo.k===1)y=Math.sin(k*Math.PI)*1.6;else spin=k*Math.PI*2;
+    if(k>=1)p.emo=null;else if(p.emo.k===1){y=Math.sin(k*Math.PI)*1.6;lompat=1;}else spin=k*Math.PI*2;
   }
-  p.grp.position.set(p.x,gerak?y+Math.abs(Math.sin(t*9+p.fase))*.18:y,p.z);
+  /* fase langkah maju sebanding dengan kecepatan; saat diam, ayunan mereda ke nol */
+  if(gerak)p.ph=(p.ph||0)+dt*sp*1.5;
+  const amp=gerak?Math.min(1,sp/6)*.85:0,sw=Math.sin(p.ph||0)*amp,m=u.mesh.userData;
+  const k=Math.min(1,dt*14);
+  const rel=(o,tg)=>{o.rotation.x+=(tg-o.rotation.x)*k;};
+  rel(m.kakiK,lompat?-.5:sw);rel(m.kakiN,lompat?.5:-sw);
+  rel(m.lenganK,lompat?0:-sw*.8);rel(m.lenganN,lompat?0:sw*.8);
+  m.lenganK.rotation.z+=((lompat?-2.6:0)-m.lenganK.rotation.z)*k;m.lenganN.rotation.z+=((lompat?2.6:0)-m.lenganN.rotation.z)*k;
+  const bob=gerak?Math.abs(Math.cos(p.ph||0))*.14*amp/.85:0;
+  p.grp.position.set(p.x,y+bob,p.z);
   if(gerak&&!spin){const a=Math.atan2(p.vx,p.vz);let d=a-p.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));p.yaw+=d*Math.min(1,dt*10);}
   u.pivot.rotation.y=p.yaw+spin;
-  u.mesh.rotation.z=gerak?Math.sin(t*9+p.fase)*.09:0;
+  u.mesh.rotation.z=gerak?Math.sin(p.ph||0)*.05:0;
   u.mesh.scale.y=1+(gerak?0:Math.sin(t*2.2+p.fase)*.015);
   u.ring.position.y=.05-p.grp.position.y;
 }
@@ -554,8 +582,9 @@ function frame(now){
     let ix=joy.x+key.d-key.a,iz=joy.y+key.s-key.w;const m=Math.hypot(ix,iz);
     if(m>1){ix/=m;iz/=m;}
     if(hasilBuka||m<.12){ix=0;iz=0;}
-    const sy=Math.sin(C.yaw),cy=Math.cos(C.yaw),v=SPD*(1-.07*me.carry);
-    me.vx=(cy*ix+sy*iz)*v;me.vz=(-sy*ix+cy*iz)*v;
+    /* kamera hanya mengubah sudut pandang: arah jalan tetap terkunci pada sumbu dunia */
+    const v=SPD*(1-.07*me.carry);
+    me.vx=ix*v;me.vz=iz*v;
     me.x+=me.vx*dt;me.z+=me.vz*dt;
     if(me.a===0){const r=Math.hypot(me.x,me.z);if(r>RMAX){me.x*=RMAX/r;me.z*=RMAX/r;}}
     else{me.x=klem(me.x,BATAS.x0,BATAS.x1);me.z=klem(me.z,BATAS.z0,BATAS.z1);}
@@ -575,6 +604,11 @@ function frame(now){
       }
       p.grp.visible=p.a===me.a;
       if(p.grp.visible)animAv(p,dt,t,now);
+    }
+    for(const p of luar.values()){
+      p.fase+=dt;if(p.fase>3){p.fase=0;const a=Math.random()*Math.PI*2,vv=Math.random()<.4?0:2+Math.random()*2.5;p.vx=Math.cos(a)*vv;p.vz=Math.sin(a)*vv;}
+      p.x+=p.vx*dt;p.z+=p.vz*dt;const rr=Math.hypot(p.x,p.z);if(rr>19){p.vx=-p.x/rr*3;p.vz=-p.z/rr*3;}
+      p.grp.visible=me.a===0;if(p.grp.visible)animAv(p,dt,t,now);
     }
     me.grp.visible=C.d>2;
 
@@ -636,5 +670,5 @@ terapKual();gambarPapan();requestAnimationFrame(frame);
 document.fonts&&document.fonts.ready.then(gambarPapan);
 
 /* kait uji */
-window.__L={get me(){return me;},tim,papanData,get st(){return st;},aud,get rt(){return rt;},gerbang,C,hit,
+window.__L={get me(){return me;},tim,luar,papanData,get st(){return st;},aud,get rt(){return rt;},gerbang,C,hit,
   tp:(x,z)=>{me.x=x;me.z=z;},kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};
