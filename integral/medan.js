@@ -18,9 +18,9 @@ export function medanBabak(r){
   const m={
     palu:[[{z:9.3,T:4.2,f:0}],[{z:9.3,T:3.6,f:0}],[{z:9.9,T:3.4,f:0},{z:8.3,T:3.0,f:.5}]][k],
     pintu:[{z:11.2,T:[6.2,5.2,4.4][k],f:0}],
-    duri:[[],[{z:8.4,T:3.0,f:0}],[{z:8.4,T:3.0,f:0},{z:9.8,T:2.6,f:.5}]][k],
+    duri:[[{z:8.4,T:3.6,f:0}],[{z:8.4,T:3.0,f:0}],[{z:8.4,T:3.0,f:0},{z:9.8,T:2.6,f:.5}]][k],
     ban:{x0:KANAN.x0,x1:KANAN.x1,z0:9.4,z1:12.0,balik:k===2,v:[2.0,2.8,3.4][k],T:12},
-    ubin:UBIN_URUT.slice(0,[0,4,6][k]).map(([i,j],n)=>({x:UBIN_X[i],z:UBIN_Z[j],f:fr(n*.37)})),
+    ubin:UBIN_URUT.slice(0,[2,4,6][k]).map(([i,j],n)=>({x:UBIN_X[i],z:UBIN_Z[j],f:fr(n*.37)})),
     tramp:k===2?{x:4.6,z:12.6,r:1.3,x1:4.6,z1:6.15,dur:1000}:null,
     bola:k===2?[{x:-5.5,T:11,f:0},{x:3.2,T:11,f:.5}]:[]
   };

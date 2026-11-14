@@ -31,8 +31,9 @@ with sync_playwright() as p:
     cek('C melihat Ani dan Budi sebagai pemain tim lain',C.evaluate('__L.luar.size')==2,C.evaluate('[...__L.luar.values()].map(p=>p.nama)'))
     cek('mode luring',A.evaluate('__L.rt.mode')=='luring')
     # kamera dan gerak relatif kamera
-    A.bring_to_front();p0=A.evaluate('[__L.me.x,__L.me.z]');A.evaluate('__L.C.yaw=Math.PI/2');A.keyboard.down('w');A.wait_for_timeout(1000)
-    kaki=A.evaluate('Math.abs(__L.me.grp.userData.mesh.userData.kakiK.rotation.x)+Math.abs(__L.me.grp.userData.mesh.userData.kakiN.rotation.x)')
+    A.bring_to_front();p0=A.evaluate('[__L.me.x,__L.me.z]');A.evaluate('__L.C.yaw=Math.PI/2');A.keyboard.down('w');A.wait_for_timeout(600);kaki=0
+    for _ in range(6):
+        kaki=max(kaki,A.evaluate('Math.abs(__L.me.grp.userData.mesh.userData.kakiK.rotation.x)+Math.abs(__L.me.grp.userData.mesh.userData.kakiN.rotation.x)'));A.wait_for_timeout(70)
     A.keyboard.up('w')
     pos=A.evaluate('[__L.me.x,__L.me.z]');cek('W maju searah kamera setelah diputar 90 derajat',pos[0]-p0[0]<-1 and abs(pos[1]-p0[1])<.8,(p0,pos))
     cek('kaki berayun saat berjalan',kaki>.05,kaki)
@@ -91,7 +92,7 @@ with sync_playwright() as p:
     A.evaluate("__L.tp(-3,5)");A.wait_for_timeout(2600)
     s0=A.evaluate('__L.stunTil');A.evaluate("__L.tp(0,9.3)");A.wait_for_timeout(2500)
     s1=A.evaluate('__L.stunTil');cek('palu ayun mengenai pemain',s1>s0,(s0,s1))
-    A.wait_for_timeout(2500)
+    A.evaluate("__L.tp(-4,2)");A.wait_for_timeout(3500)
     A.evaluate("__L.tp(-12.5,14.5)");A.wait_for_timeout(2200)
     # rintangan
     sp=A.evaluate("(()=>{const s=__L.AR.rintanganBabak(__L.st.r)[0];return [__L.AR.xRint(s,Date.now()/1000),s.z]})()")

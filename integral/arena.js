@@ -1,9 +1,9 @@
 /* Arena Pos 1: lantai, dinding berkurva, kolom balok, gudang balok, pad kunci.
    Dunia arena memakai titik asal yang sama dengan lobi, kelompoknya dinyalakan saat pemain masuk. */
 import * as THREE from './vendor/three.min.js';
-import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=20';
-import {labelSprite} from './util.js?v=20';
-import {medanBabak,xPalu,celahPintu,tinggiDuri,statusUbin,keadaanBola,kecBan,KIRI,KANAN,PAL_L,PAL_Y,PAL_A,PINTU_C,DURI_X,UBIN_W,UBIN_D,BOLA_R} from './medan.js?v=20';
+import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=21';
+import {labelSprite} from './util.js?v=21';
+import {medanBabak,xPalu,celahPintu,tinggiDuri,statusUbin,keadaanBola,kecBan,KIRI,KANAN,PAL_L,PAL_Y,PAL_A,PINTU_C,DURI_X,UBIN_W,UBIN_D,BOLA_R} from './medan.js?v=21';
 
 export const SY=.9,UB=UBAG*SY,WX=9;
 /* tiga gudang (kiri, tengah, kanan) dengan stok terbatas, satu pad kunci, satu sungai dengan jembatan di tengah */
