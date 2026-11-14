@@ -1,0 +1,18 @@
+<!DOCTYPE html><meta charset="utf-8"><title>Galeri karakter</title>
+<body style="margin:0;background:#cfe9f6"><canvas id="c" style="width:100vw;height:100vh;display:block"></canvas>
+<script type="module">
+import * as THREE from '../integral/vendor/three.min.js';
+import {TIPE,WARNA,TOPI,KACAMATA,AKS,meshAvatar,acakAv} from '../integral/avatar.js';
+const c=document.getElementById('c'),r=new THREE.WebGLRenderer({canvas:c,antialias:true});r.setSize(innerWidth,innerHeight,false);
+const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x9a9a9a,1.6));const d=new THREE.DirectionalLight(0xffffff,1.5);d.position.set(4,8,10);sc.add(d);
+const cam=new THREE.PerspectiveCamera(30,innerWidth/innerHeight,.5,200);
+const baris=[];
+/* baris 1: enam jenis, baris 2: topi, baris 3: kacamata + aksesori + acak */
+for(let i=0;i<6;i++)baris.push([i,{t:i,c:(i*3)%8,h:0,g:0,a:0,k:i%4}]);
+for(let i=0;i<5;i++)baris.push([6+i,{t:i%6,c:(i+2)%8,h:i,g:0,a:0,k:1}]);
+for(let i=0;i<4;i++)baris.push([11+i,{t:(i+1)%6,c:i,h:0,g:i,a:0,k:2}]);
+for(let i=0;i<4;i++)baris.push([15+i,{t:i%6,c:i+4,h:i+1,g:i%4,a:i,k:3}]);
+let n=0;
+const cols=6;baris.forEach(([i,av],k)=>{const m=meshAvatar(av);m.position.set((k%cols-2.5)*4,-Math.floor(k/cols)*5,0);sc.add(m);n++;});
+cam.position.set(0,-6,44);cam.lookAt(0,-6,0);r.render(sc,cam);window.__n=n;
+</script>

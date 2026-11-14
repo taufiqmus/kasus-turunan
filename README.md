@@ -66,16 +66,25 @@ Kit bersama untuk modul kasus: `core/kit.js` (bangunan, pohon, panel, tombol, pa
 Modul kasus mengekspor `THEORY` (kartu berisi judul dan HTML) dan `THEORY_START`.
 Panggil `teori('id')` saat aksi terkait terjadi; kartu terbuka, tombol Teori diberi tanda "baru".
 
-## Lobi Integral (prototipe untuk audit)
+## Lobi Integral (prototipe v2 untuk audit)
 
-`integral/index.html` adalah prototipe lobi 3D multipemain untuk game integral. Isinya satu lobi low-poly, tim, dan satu pos (Pos 1, Tambal Waduk).
+`integral/index.html` adalah prototipe lobi 3D multipemain untuk game integral. Isinya satu lobi low-poly, delapan tim, karakter kustom, dan satu pos (Pos 1, Tambal Waduk) yang dikerjakan secara fisik.
 
-- `integral/lobi.js`: dunia 3D (Three.js), avatar, joystick sentuh, panel audit.
-- `integral/rt.js`: Supabase Realtime (presence dan broadcast). Jika server tidak terjangkau, turun ke mode luring antar-tab.
-- `integral/pos1.js`: Tambal Waduk, kanvas tim bersama.
+- `integral/lobi.js`: dunia 3D (Three.js), kamera bebas (putar, zoom, preset termasuk orang pertama), joystick sentuh, panel audit.
+- `integral/avatar.js`: karakter kustom (orang, kucing, anjing, kelinci, beruang, bebek; topi, kacamata, aksesori). Dikirim lewat jaringan sebagai kode 6 digit.
+- `integral/arena.js` dan `integral/pos1.js`: arena Pos 1 dan logikanya. Tim membawa balok dari gudang ke kolom di depan kurva y = x², lalu semua berdiri di pad untuk mengunci babak.
+- `integral/rt.js`: Supabase Realtime, satu kanal per tim ditambah kanal papan yang jarang dipakai. Jika server tidak terjangkau, turun ke mode luring antar-tab.
 - `integral/vendor/`: Three.js dan supabase-js, disalin agar tidak bergantung pada CDN.
-- Uji: `python3 tests/lobi.py` (mode luring, `?lokal=1`).
+- Uji: `python3 tests/lobi.py` (mode luring, `?lokal=1`) dan `tests/galeri.html` (galeri karakter).
 
-Panel audit (tombol Audit) menampilkan FPS, ping, jumlah pemain, dan pesan per detik, lalu "Salin laporan" untuk dikumpulkan dari HP mahasiswa.
-Jeda kirim posisi menyesuaikan jumlah pemain agar tetap di bawah batas pesan paket gratis Supabase Realtime.
+### Anggaran pesan (paket gratis Supabase Realtime)
+
+Batas paket gratis sekitar 100 pesan per detik per proyek, dan satu pesan dihitung sekali saat dikirim dan sekali per penerima. Jika semua pemain satu ruang saling bicara, beban tumbuh sebagai N kuadrat kali laju kirim, jadi sekadar menjarangkan posisi tidak cukup. Karena itu:
+
+- Pesan posisi dan aksi hanya disebar ke satu tim (kanal tim). Beban satu tim M orang adalah M kuadrat kali laju, bukan N kuadrat.
+- Tim lain tidak digambar langsung. Mereka tampil di papan skor lewat laporan jarang (jumlah anggota dan skor, sekitar tiap 20 detik).
+- Posisi dikirim jarang dengan ekstrapolasi: hanya saat kecepatan berubah, berhenti, selisih prediksi lebih dari 1, atau denyut 15 detik. Jeda mengikuti perkiraan jumlah pemain.
+- Aksi balok Pos 1 dikumpulkan jadi selisih per kolom dan dikirim berkala, dengan penyelarasan oleh anggota tertua.
+
+Panel audit menampilkan FPS, ping, pesan kirim dan terima, jeda, serta perkiraan beban proyek. Kotak "Simulasi kelas 40" memakai asumsi 40 pemain dan 5 per tim. Uji beban sungguhan harus memakai proyek Supabase terpisah, bukan proyek kelas.
 Belum ada: panel dosen, pos 2 sampai 6, pemeriksaan skor di server.

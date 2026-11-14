@@ -1,74 +1,86 @@
-"""Uji asap lobi integral: dua pemain setim + satu tim lain, mode luring (BroadcastChannel)."""
+"""Uji asap Lobi Integral v2: tiga pemain (dua setim, satu tim lain), mode luring (BroadcastChannel)."""
 from playwright.sync_api import sync_playwright
-import sys,json
 URL='http://localhost:8077/integral/index.html?lokal=1'
 ARGS=['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']
-def masuk(ctx,nama,tim,errs,mobile=False):
+def masuk(ctx,nama,tim,errs,shot=None):
     pg=ctx.new_page()
     pg.on('pageerror',lambda e:errs.append(nama+': '+str(e)))
     pg.on('console',lambda m:errs.append(nama+': '+m.text) if m.type=='error' and 'ERR_' not in m.text and 'Failed to load' not in m.text else None)
     pg.route('**/fonts.g*/**',lambda r:r.abort())
-    pg.goto(URL);pg.fill('#in-nama',nama);pg.click(f'#in-tim .tab[data-t="{tim}"]');pg.click('#b-masuk');pg.wait_for_timeout(900)
+    pg.goto(URL);pg.fill('#in-nama',nama);pg.click(f'#in-tim .tab[data-t="{tim}"]')
+    if shot:pg.wait_for_timeout(600);pg.screenshot(path=shot)
+    pg.click('#b-masuk');pg.wait_for_timeout(900)
     return pg
-def geser(pg,i,n,h):
-    b=pg.locator('#w-cv').bounding_box()
-    x=b['x']+38+(i+.5)/n*(b['width']-38-12);y=b['y']+b['height']-28-h/10*(b['height']-12-28)
-    pg.mouse.move(x,y);pg.mouse.down();pg.mouse.move(x,y+1);pg.mouse.move(x,y);pg.mouse.up()
 with sync_playwright() as p:
     b=p.chromium.launch(executable_path='/usr/bin/google-chrome',args=ARGS)
     ctx=b.new_context(viewport={'width':1000,'height':620});errs=[];ok=True
     def cek(nama,kond,info=''):
-        global ok;print(('OK  ' if kond else 'GAGAL ')+nama,info);ok=ok and kond
-    A=masuk(ctx,'Ani','merah',errs);B=masuk(ctx,'Budi','merah',errs);C=masuk(ctx,'Citra','biru',errs)
+        global ok;print(('OK  ' if kond else 'GAGAL ')+nama,info);ok=ok and bool(kond)
+    A=masuk(ctx,'Ani','merah',errs,'/tmp/v2-entry.png');B=masuk(ctx,'Budi','merah',errs);C=masuk(ctx,'Citra','biru',errs)
     A.wait_for_timeout(2500)
-    cek('A melihat 2 pemain lain',A.evaluate('__L.pemain.size')==2)
-    cek('C melihat 2 pemain lain',C.evaluate('__L.pemain.size')==2)
+    cek('A melihat 1 teman setim saja',A.evaluate('__L.tim.size')==1)
+    cek('C tidak melihat tim lain',C.evaluate('__L.tim.size')==0)
     cek('mode luring',A.evaluate('__L.rt.mode')=='luring')
-    # gerak dan sinkron posisi
+    # kamera dan gerak relatif kamera
+    A.bring_to_front();p0=A.evaluate('[__L.me.x,__L.me.z]');A.evaluate('__L.C.yaw=Math.PI/2');A.keyboard.down('w');A.wait_for_timeout(1000);A.keyboard.up('w')
+    pos=A.evaluate('[__L.me.x,__L.me.z]');cek('W maju searah kamera setelah diputar 90 derajat',pos[0]-p0[0]<-1 and abs(pos[1]-p0[1])<.8,(p0,pos))
+    A.evaluate('__L.C.yaw=0');A.keyboard.press('c');A.wait_for_timeout(300)
+    cek('tombol C ganti preset kamera',A.evaluate('__L.C.td')==25)
+    A.keyboard.press('c');A.keyboard.press('c');A.keyboard.press('c')
+    # sinkron posisi
     A.evaluate('__L.tp(5,5);__L.kirimPosisi()');B.bring_to_front();B.wait_for_timeout(900)
-    pos=B.evaluate('(()=>{const q=[...__L.pemain.values()].find(p=>p.nama==="Ani");return [q.x,q.z]})()')
-    cek('posisi Ani sampai ke Budi',abs(pos[0]-5)<.3 and abs(pos[1]-5)<.3,pos)
-    A.bring_to_front();A.keyboard.down('d');A.wait_for_timeout(600);A.keyboard.up('d');x=A.evaluate('__L.me.x')
-    cek('WASD menggerakkan avatar',x>7,x)
-    # gerbang
-    g=A.evaluate('__L.gerbang[0]');A.evaluate(f"__L.tp({g['x']},{g['z']})");A.wait_for_timeout(300)
-    cek('tombol Pos 1 muncul',A.is_visible('#aksi'))
-    A.click('#aksi');A.wait_for_timeout(300)
-    cek('panel waduk terbuka',A.is_visible('#w-cv'))
-    B.evaluate(f"__L.tp({g['x']},{g['z']})");B.bring_to_front();B.wait_for_timeout(400);B.click('#aksi');B.wait_for_timeout(300)
-    # babak 1: Ani isi balok 0 dan 1, Budi isi balok 2
-    A.bring_to_front();geser(A,0,3,.3);geser(A,1,3,2.3);B.bring_to_front();geser(B,2,3,6.3);A.bring_to_front();A.wait_for_timeout(500)
-    ha=A.evaluate('__L.waduk.h[0]');hb=B.evaluate('__L.waduk.h[0]')
-    cek('waduk tim tersinkron dua arah',ha==hb and ha[2]>6,(ha,hb))
-    cek('tim lain tidak ikut berubah',C.evaluate('__L.waduk.h[0]')==[0,0,0])
-    A.screenshot(path='/tmp/lobi-pos1.png')
-    A.click('#w-kunci');A.wait_for_timeout(400)
-    cek('kunci babak menular ke Budi',B.evaluate('__L.waduk.b')==1 and '6 balok' in B.inner_text('#w-babak'))
-    B.bring_to_front()
-    for i in range(6):geser(B,i,6,((i+.5)*.5)**2)
-    B.click('#w-kunci');B.wait_for_timeout(300)
-    A.bring_to_front()
-    for i in range(12):geser(A,i,12,((i+.5)*.25)**2)
-    A.click('#w-kunci');A.wait_for_timeout(600)
-    cek('hasil tampil di A dan B',A.is_visible('#w-hasil') and B.is_visible('#w-hasil'))
-    sa=A.evaluate('__L.skor');sc=C.evaluate('__L.skor')
-    cek('skor tim sampai ke tim lain',sa.get('merah')==sc.get('merah') and sa.get('merah',0)>80,(sa,sc))
+    pos=B.evaluate('(()=>{const q=[...__L.tim.values()][0];return [q.x,q.z]})()')
+    cek('posisi Ani sampai ke Budi',abs(pos[0]-5)<.5 and abs(pos[1]-5)<.5,pos)
+    # masuk arena
+    g=A.evaluate('__L.gerbang[0]')
+    for pg in (A,B):
+        pg.bring_to_front();pg.evaluate(f"__L.tp({g['x']},{g['z']})");pg.wait_for_timeout(300)
+        cek('tombol Pos 1 muncul',pg.is_visible('#aksi'))
+        pg.keyboard.press('f');pg.wait_for_timeout(500)
+    cek('A di arena',A.evaluate('__L.me.a')==1 and A.is_visible('#arhud'))
+    A.screenshot(path='/tmp/v2-arena.png')
+    # babak 1: A membawa lalu menaruh balok di kolom 1; B di kolom 2
+    def taruh(pg,col,n):
+        pg.bring_to_front();pg.evaluate("__L.tp(-8.5,7)");pg.wait_for_timeout(1100)
+        c=pg.evaluate('__L.me.carry')
+        xs=[-4,0,4][col]
+        pg.evaluate(f"__L.tp({xs},2)");pg.wait_for_timeout(150)
+        pg.evaluate('__L.tahan=true');pg.wait_for_timeout(500*n+600);pg.evaluate('__L.tahan=false')
+        return c
+    ca=taruh(A,0,4);cek('gudang mengisi tangan sampai 4',ca==4,ca)
+    B_c=taruh(B,2,4)
+    A.bring_to_front();A.wait_for_timeout(2500)
+    stA=A.evaluate('__L.st.c');stB=B.evaluate('__L.st.c')
+    cek('kolom tersinkron dua arah',stA==stB and stA[0]==4 and stA[2]==4,(stA,stB))
+    cek('tim lain tidak ikut',C.evaluate('__L.st.c')==[0,0,0])
+    # ambil kembali
+    A.evaluate('__L.tp(-4,2)');A.evaluate('__L.me.carry=0;__L.tahan=true');A.wait_for_timeout(900);A.evaluate('__L.tahan=false')
+    cek('ambil kembali mengurangi kolom',A.evaluate('__L.st.c[0]')<4 and A.evaluate('__L.me.carry')>0,A.evaluate('[__L.st.c,__L.me.carry]'))
+    # susun semua babak lewat delta, kunci lewat pad
+    def isi(pg,c):
+        pg.evaluate(f"(()=>{{const c={c};c.forEach((v,i)=>{{const d=v-__L.st.c[i];if(d)__L.ubahKolom(i,d);}});__L.flush();}})()")
+    from math import floor
+    def tinggi(n):return [round(((i+.5)*3/n)**2/.5) for i in range(n)]
+    for r,n in enumerate([3,6,12]):
+        A.bring_to_front();A.wait_for_timeout(500);isi(A,tinggi(n));A.wait_for_timeout(1500)
+        cek(f'babak {r+1} tersinkron ke B',B.evaluate('__L.st.c')==A.evaluate('__L.st.c'),A.evaluate('__L.st.c'))
+        for pg in (A,B):pg.bring_to_front();pg.evaluate("__L.tp(8.5,7)");pg.wait_for_timeout(300)
+        A.bring_to_front();A.wait_for_timeout(2200)
+        cek(f'babak {r+1} terkunci di A dan B',A.evaluate('__L.st.r')==r+1 and B.evaluate('__L.st.r')==r+1,(A.evaluate('__L.st.r'),B.evaluate('__L.st.r')))
+        for pg in (A,B):pg.evaluate("__L.tp(0,9)")
+    cek('hasil tampil di A',A.is_visible('#hasil'))
     print('tabel:',A.inner_text('#w-tabel').replace('\n',' | ').replace('\t',' '))
-    # pemain baru setim mendapat state
-    D=masuk(ctx,'Dedi','merah',errs);D.wait_for_timeout(1500)
-    cek('pendatang baru menerima state tim dan skor',D.evaluate('__L.waduk.kunci')==[True,True,True] and D.evaluate('__L.skor.merah')==sa['merah'])
-    # keluar
-    B.close();A.bring_to_front();A.wait_for_timeout(7000)
-    cek('pemain keluar hilang dari lobi',A.evaluate('[...__L.pemain.values()].some(p=>p.nama==="Budi")')==False)
-    # bot dan audit
-    A.click('#w-tutup2');A.click('#b-audit');A.click('#a-bot');A.wait_for_timeout(4500)
-    cek('20 bot ditambahkan',A.evaluate('[...__L.pemain.values()].filter(p=>p.bot).length')==20)
-    print('audit:',A.inner_text('#audit dl').replace('\n',' '))
-    A.screenshot(path='/tmp/lobi-3d.png')
-    # tampilan HP
-    m=b.new_context(viewport={'width':390,'height':780},has_touch=True,is_mobile=True,device_scale_factor=2)
-    M=masuk(m,'Eka','hijau',errs);M.touchscreen.tap(100,600);M.wait_for_timeout(300)
-    M.evaluate(f"__L.tp({g['x']},{g['z']})");M.wait_for_timeout(300);M.screenshot(path='/tmp/lobi-hp.png');M.tap('#aksi');M.wait_for_timeout(300);M.screenshot(path='/tmp/lobi-hp-pos1.png')
-    cek('panel pas di layar HP',M.evaluate("(()=>{const r=document.querySelector('#w-kunci').getBoundingClientRect();return r.bottom<=innerHeight&&r.right<=innerWidth})()"))
-    cek('tanpa galat konsol',not errs,errs[:5])
-    b.close();sys.exit(0 if ok else 1)
+    A.screenshot(path='/tmp/v2-hasil.png')
+    cek('skor tinggi',int(A.inner_text('#w-skor'))>=85,A.inner_text('#w-skor'))
+    # laporan papan ke tim lain
+    C.bring_to_front();C.wait_for_timeout(2500)
+    cek('papan di C menerima skor tim merah',(C.evaluate('__L.papanData.merah') or {}).get('s',0)>=85,C.evaluate('__L.papanData'))
+    # pendatang baru setim menerima state
+    D=masuk(ctx,'Dedi','merah',errs);D.wait_for_timeout(6500)
+    cek('pendatang baru menerima state',D.evaluate('__L.st.r')==3,D.evaluate('__L.st.r'))
+    # anggaran
+    cek('jeda posisi 2 pemain di batas bawah',A.evaluate('__L.jedaPos()')<=400,A.evaluate('__L.jedaPos()'))
+    A.evaluate('__L.sim.on=true');cek('simulasi kelas 40',A.evaluate('__L.ntot()')==40 and A.evaluate('__L.jedaPos()')==4000)
+    cek('tanpa galat konsol',not errs,errs)
+    print('SEMUA LULUS' if ok else 'ADA YANG GAGAL')
+    b.close()

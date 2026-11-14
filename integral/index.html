@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Lobi Integral (prototipe)</title>
+<title>Lobi Integral (prototipe v2)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700..800&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet">
@@ -29,24 +29,43 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #audit textarea{width:100%;height:110px;font:12px ui-monospace,monospace;margin-top:8px;border:2px solid var(--ink);border-radius:8px}
 .tims{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tims .tab{border-radius:12px;padding:10px;text-align:left}
-#waduk{position:fixed;inset:0;z-index:5;background:rgba(28,34,48,.55);display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 8px) 8px calc(env(safe-area-inset-bottom,0px) + 8px)}
-#waduk .card{width:min(760px,100%);max-height:100%;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px}
-#w-main{display:flex;flex-direction:column;gap:8px;min-height:0}
-#w-cv{width:100%;height:min(46vh,340px);border:3px solid var(--ink);border-radius:10px;touch-action:none;display:block;cursor:crosshair}
-.w-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.w-read{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.w-read div{border:3px solid var(--ink);border-radius:10px;padding:6px 10px;background:#fff}
-.w-read small{display:block;font-weight:700;font-size:12px}
-.w-read b{font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums}
-.w-read .w-bar{padding:0;height:12px;border:2px solid var(--ink);border-radius:999px;background:#fff;overflow:hidden}
-.w-bar i{display:block;height:100%;background:var(--blue);width:100%;transition:width .12s}
-.w-leg{font-size:12px;margin:0}
-.w-leg span{display:inline-block;width:11px;height:11px;border:2px solid var(--ink);vertical-align:-1px;margin:0 4px 0 8px}
+.skorbesar{font-family:var(--display);font-size:54px;line-height:1}
+@media (max-width:560px){
+#c-ruang{display:none}
+.lchip,#b-kam,#b-keluar,#b-audit{font-size:12px;padding:5px 9px}
+#arhud{width:min(165px,40vw);font-size:12px;padding:6px;gap:3px}
+#arhud .r{flex-wrap:wrap;gap:0 6px}
+}
+@media (max-width:720px){.screen>.wrap{grid-template-columns:1fr;gap:12px}h1{font-size:44px}}
+
+.tims{grid-template-columns:repeat(4,1fr)}
+.tims .tab{padding:8px 6px;font-size:13px;text-align:center}
+#cr{display:grid;grid-template-columns:150px 1fr;gap:10px;margin-top:6px}
+#cr-prev{width:150px;height:190px;border:3px solid var(--ink);border-radius:12px;background:#cfe9f6;display:block}
+#cr-opsi{display:flex;flex-direction:column;gap:6px;min-width:0}
+.cr-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cr-row>b{font-size:12px;width:62px;flex:none}
+.cr-row .c{border:2px solid var(--ink);border-radius:999px;background:#fff;font:600 12px var(--body,inherit);padding:3px 8px;cursor:pointer}
+.cr-row .c[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.cr-row .s{width:24px;height:24px;border-radius:50%;border:3px solid var(--ink);padding:0;cursor:pointer}
+.cr-row .s[aria-pressed=true]{outline:3px solid var(--apricot);outline-offset:1px}
+@media (max-width:420px){#cr{grid-template-columns:1fr}#cr-prev{width:100%;height:150px}}
+#b-kam{pointer-events:auto;font-size:13px;padding:6px 12px}
+#b-keluar{pointer-events:auto;font-size:13px;padding:6px 12px}
+#b-lompat{position:fixed;z-index:3;right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 26px);width:76px;height:76px;border-radius:50%;padding:0;font-size:13px}
+#aksi{min-width:150px;touch-action:none;user-select:none;-webkit-user-select:none}
+#arhud{position:fixed;z-index:3;left:calc(env(safe-area-inset-left,0px) + 10px);top:calc(env(safe-area-inset-top,0px) + 54px);width:min(190px,46vw);padding:8px;display:flex;flex-direction:column;gap:5px;font-size:13px;pointer-events:none}
+#arhud canvas{width:100%;height:auto;aspect-ratio:2/1.15;border:2px solid var(--ink);border-radius:8px;display:block}
+#arhud .r{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+#arhud .r span:last-child{font-variant-numeric:tabular-nums}
+#arhud p{margin:0;font-size:12px;line-height:1.3}
+#hasil{position:fixed;inset:0;z-index:5;background:rgba(28,34,48,.55);display:flex;align-items:center;justify-content:center;padding:10px}
+#hasil .card{width:min(560px,100%);max-height:100%;overflow:auto;padding:14px}
 #w-tabel{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
 #w-tabel th,#w-tabel td{border:2px solid var(--ink);padding:5px 8px;text-align:center}
 #w-tabel th{background:var(--apricot)}
 .skorbesar{font-family:var(--display);font-size:54px;line-height:1}
-@media (max-height:520px){#w-cv{height:42vh}.w-read b{font-size:18px}}
+#audit .tgl{display:flex;gap:6px;align-items:center;margin:6px 0;font-weight:700}
 @media (max-width:720px){.screen>.wrap{grid-template-columns:1fr;gap:12px}h1{font-size:44px}}
 </style>
 </head>
@@ -58,7 +77,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
     <div>
       <p class="eyebrow">Matematika 1 · prototipe untuk audit</p>
       <h1>Lobi Integral</h1>
-      <p class="lede">Masuk ke lobi 3D, temui tim lain, lalu kerjakan Pos 1 bersama timmu: Tambal Waduk.</p>
+      <p class="lede">Pilih karakter, masuk lobi 3D, lalu kerjakan Pos 1 bersama timmu dengan membawa balok untuk menambal waduk.</p>
     </div>
     <div class="card">
       <h2>Masuk lobi</h2>
@@ -68,6 +87,8 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
       <input type="text" id="in-kode" maxlength="10" spellcheck="false" autocapitalize="characters" autocomplete="off" value="UJI">
       <label class="f">Tim</label>
       <div class="tims" id="in-tim"></div>
+      <label class="f">Karakter</label>
+      <div id="cr"><canvas id="cr-prev" width="300" height="380"></canvas><div id="cr-opsi"></div></div>
       <button class="btn big" id="b-masuk" type="button" style="margin-top:14px;width:100%">Masuk</button>
       <p class="fmsg" id="m-msg" role="alert"></p>
     </div>
@@ -78,9 +99,19 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <span class="lchip" id="c-ruang"></span>
   <span class="lchip" id="c-tim"></span>
   <span class="sp"></span>
+  <button class="btn alt" id="b-keluar" type="button" hidden>Keluar pos</button>
+  <button class="btn alt" id="b-kam" type="button">Ikuti</button>
   <button class="btn alt" id="b-audit" type="button">Audit</button>
 </div>
+<div class="card" id="arhud" hidden>
+  <div class="r"><span id="ar-babak">Babak 1/3</span><span id="ar-bawa">Bawa 0/4</span></div>
+  <canvas id="mini" width="320" height="184"></canvas>
+  <div class="r"><span>Taksiran luas</span><span id="ar-luas">0</span></div>
+  <div class="r"><span>Bocor</span><span id="ar-bocor">0</span></div>
+  <div class="r"><span>Siap di pad</span><span id="ar-siap">0/1</span></div>
+  </div>
 <button class="btn big" id="aksi" type="button" hidden>Masuk Pos 1</button>
+<button class="btn alt" id="b-lompat" type="button" hidden>Lompat</button>
 <div id="ltoast" hidden></div>
 <div id="joy" hidden><i></i></div>
 
@@ -94,7 +125,10 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
     <dt>Mode</dt><dd id="a-mode">-</dd>
     <dt>Kualitas</dt><dd id="a-q">-</dd>
     <dt>Pesan kirim/terima</dt><dd id="a-msg">-</dd>
+    <dt>Jeda posisi / kirim aksi</dt><dd id="a-jeda">-</dd>
+    <dt>Perkiraan beban proyek</dt><dd id="a-beban">-</dd>
   </dl>
+  <label class="tgl"><input type="checkbox" id="a-sim"> Simulasi kelas 40 (5 per tim)</label>
   <div class="row">
     <button class="btn alt" id="a-bot" type="button">Tambah 20 bot</button>
     <button class="btn alt" id="a-nobot" type="button">Hapus bot</button>
@@ -103,31 +137,14 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <textarea id="a-lap" readonly hidden></textarea>
 </div>
 
-<div id="waduk" hidden>
+<div id="hasil" hidden>
   <div class="card">
-    <div id="w-main">
-      <div class="w-top">
-        <div><p class="eyebrow" style="margin:0">Pos 1 · Tambal Waduk</p><h2 id="w-babak"></h2></div>
-        <button class="btn alt" id="w-tutup" type="button">Tutup</button>
-      </div>
-      <p style="margin:0;font-size:14px">Geser di atas balok untuk mengatur tingginya sampai menutup daerah di bawah kurva. Semua anggota tim mengubah waduk yang sama.</p>
-      <canvas id="w-cv"></canvas>
-      <p class="w-leg"><span style="background:rgba(47,127,193,.35);margin-left:0"></span>celah<span style="background:rgba(229,57,43,.55)"></span>tumpah</p>
-      <div class="w-read">
-        <div><small>Taksiran luas tim</small><b id="w-luas">0</b></div>
-        <div><small>Bocor (celah + tumpah)</small><b id="w-bocor">0</b><div class="w-bar"><i id="w-meter"></i></div></div>
-      </div>
-      <button class="btn big" id="w-kunci" type="button">Kunci babak ini</button>
-    </div>
-    <div id="w-hasil" hidden>
-      <p class="eyebrow" style="margin:0">Pos 1 selesai</p>
-      <h2>Makin tipis baloknya, makin kecil bocornya</h2>
-      <p>Luas sebenarnya di bawah kurva adalah <b>9</b>. Lihat taksiran timmu mendekat ke angka itu saat balok bertambah. Kalau lebar balok terus diperkecil sampai mendekati nol, jumlah itu disebut integral.</p>
-      <table id="w-tabel"></table>
-      <p style="margin:10px 0 0">Skor tim: <span class="skorbesar" id="w-skor">0</span> / 100</p>
-      <p id="w-waktu" style="font-size:13px"></p>
-      <button class="btn" id="w-tutup2" type="button">Kembali ke lobi</button>
-    </div>
+    <p class="eyebrow" style="margin:0">Pos 1 selesai</p>
+    <h2>Makin tipis kolomnya, makin kecil bocornya</h2>
+    <p>Luas sebenarnya di bawah kurva adalah <b>9</b>. Lihat taksiran timmu mendekat ke angka itu saat kolom bertambah. Kalau lebar kolom terus diperkecil sampai mendekati nol, jumlah itu disebut integral.</p>
+    <table id="w-tabel"></table>
+    <p style="margin:10px 0 0">Skor tim: <span class="skorbesar" id="w-skor">0</span> / 100</p>
+    <button class="btn" id="w-tutup" type="button" style="margin-top:10px">Kembali ke lobi</button>
   </div>
 </div>
 
