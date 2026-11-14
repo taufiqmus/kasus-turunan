@@ -43,7 +43,15 @@ export function skorRonde(r,c,w){
   const skor=Math.round(akurasi*(.88+.12*w/1000));
   return {luas,asli:luasAsli(r),selisih:luas-luasAsli(r),S,akurasi,skor};
 }
-export const stateBaru=()=>({r:0,c:Array(BABAK[0]).fill(0),sr:[],w:[],f:0});
+/* tiga gudang dengan stok terbatas dan tidak mengisi ulang. Stok total = 1,5 kali kebutuhan balok babak itu, dibagi menurut jalur. */
+export const NDEP=3,GMAX=120,GBAGI=[.35,.25,.40];
+export function stokBabak(r){
+  if(r>=BABAK.length)return [0,0,0];
+  const butuh=targetH(r).reduce((a,h)=>a+Math.min(MAXBAG,Math.round(h/UBAG)),0),tot=Math.ceil(butuh*1.5)+4;
+  const a=Math.floor(tot*GBAGI[0]),b=Math.floor(tot*GBAGI[1]);
+  return [a,b,tot-a-b].map(v=>Math.min(GMAX,v));
+}
+export const stateBaru=()=>({r:0,c:Array(BABAK[0]).fill(0),sr:[],w:[],f:0,g:stokBabak(0)});
 export const selesai=st=>st.r>=BABAK.length;
 export function skorTim(st){
   if(!selesai(st))return null;
@@ -57,6 +65,7 @@ export function valid(s){
   if(!s||typeof s!=='object'||!bil(s.r,0,BABAK.length)||!Array.isArray(s.sr)||s.sr.length!==s.r)return false;
   if(!Array.isArray(s.w)||s.w.length!==s.r||!s.w.every(v=>bil(v,0,1000)))return false;
   if(s.f!==0&&s.f!==1)return false;
+  if(s.g!==undefined&&!(Array.isArray(s.g)&&s.g.length===NDEP&&s.g.every(v=>bil(v,0,GMAX))))return false;
   if(s.f===1&&!bil(s.m,0,600000))return false;
   for(let i=0;i<s.r;i++)if(!cValid(i,s.sr[i]))return false;
   return s.r>=BABAK.length?Array.isArray(s.c)&&s.c.length===0:cValid(s.r,s.c);
