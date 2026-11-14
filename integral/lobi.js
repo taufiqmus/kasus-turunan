@@ -1,16 +1,18 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=26';
-import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=26';
-import * as P1 from './pos1.js?v=26';
-import * as AR from './arena.js?v=26';
-import {buatArena,kolomDari,uTembus} from './arena.js?v=26';
-import {buatArena2,gambarSandi} from './arena2.js?v=26';
-import * as P2 from './pos2.js?v=26';
-import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=26';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=26';
-import {labelSprite,buangSprite,klem} from './util.js?v=26';
-import {M1,M2} from './medan.js?v=26';
+import {sambung} from './rt.js?v=27';
+import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=27';
+import * as P1 from './pos1.js?v=27';
+import * as AR from './arena.js?v=27';
+import {buatArena,kolomDari,uTembus} from './arena.js?v=27';
+import {buatArena2,gambarSandi} from './arena2.js?v=27';
+import * as P2 from './pos2.js?v=27';
+import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=27';
+import * as P3 from './pos3.js?v=27';
+import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=27';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=27';
+import {labelSprite,buangSprite,klem} from './util.js?v=27';
+import {M1,M2,M3} from './medan.js?v=27';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
 let W=M1;
@@ -20,6 +22,7 @@ const $=id=>document.getElementById(id);
 const TIM=[['merah','Merah','#e5392b'],['biru','Biru','#2f7fc1'],['hijau','Hijau','#2f9e5b'],['kuning','Kuning','#e0a200'],
   ['ungu','Ungu','#7a4bc4'],['oranye','Oranye','#ee7d1a'],['tosca','Tosca','#17a2a2'],['pink','Pink','#e0559b']].map(a=>({id:a[0],nama:a[1],warna:a[2]}));
 const timById=id=>TIM.find(t=>t.id===id)||TIM[0];
+const POS_AKTIF=3;
 const POS=['Tambal Waduk','Rakit Sandi','Mesin Putar Balik','Misteri Tangki','Brankas Batas','Final'];
 const SPD=7,RMAX=95,RZ=62,SPRINT=1.8;
 const Q=new URLSearchParams(location.search);
@@ -165,7 +168,7 @@ const gerbang=[];
 {
   const gp=new THREE.BoxGeometry(.9,4.2,.9),gl=new THREE.BoxGeometry(5.2,.9,1.1);
   POS.forEach((nama,i)=>{
-    const x=ZP[i].x,z=ZP[i].z,aktif=i<=1,len=Math.hypot(x,z),dx=-x/len,dz=-z/len;
+    const x=ZP[i].x,z=ZP[i].z,aktif=i<POS_AKTIF,len=Math.hypot(x,z),dx=-x/len,dz=-z/len;
     const grp=new THREE.Group();grp.position.set(x,0,z);grp.rotation.y=Math.atan2(dx,dz);
     const m=mat(aktif?0xff6f47:0x9aa3ad);
     const p1=new THREE.Mesh(gp,m),p2=new THREE.Mesh(gp,m),lt=new THREE.Mesh(gl,mat(aktif?0xffc83d:0x7d8792));
@@ -204,7 +207,8 @@ const papan={c:document.createElement('canvas')};
   const kaki=mat(0x1c2230),k1=new THREE.Mesh(new THREE.BoxGeometry(.5,6.5,.5),kaki),k2=k1.clone();k1.position.set(-5,3.2,-24.2);k2.position.set(5,3.2,-24.2);lobiGrup.add(k1,k2);
 }
 const arena=buatArena();scene.add(arena.grup);
-const arena2=buatArena2();scene.add(arena2.grup);bayang(scene);
+const arena2=buatArena2();scene.add(arena2.grup);
+const arena3=buatArena3();scene.add(arena3.grup);bayang(scene);
 
 /* ---------- keadaan ---------- */
 let saya=null,me=null,rt=null,mulai=false,hasilBuka=false,rodaBuka=false,revBuka=false,kotor=true,tGabung=0;
@@ -215,7 +219,8 @@ const luar=new Map();    /* pemain tim lain: hanya roster dari papan, bergerak s
 const papanData={};       /* tim -> {n,s,r,t} laporan jarang dari tiap tim */
 let st=stateBaru();const pend=new Map();
 /* Pos 2: keadaan tim, kiriman slot tertunda (slot -> [kode, cap waktu]) */
-let st2=stateBaru2();const pend2=new Map();let endAt2=0,hitung2=0,kotor2=true,ubahSt2=false,tDelta2=0,tSt2=0,tFlush2=0,revPos=1;
+const ALUR={};let revPos=1;
+const AL=()=>me?ALUR[me.a]:null;
 let tDelta=0,tStKirim=0,ubahSt=false,tFlush=0,tPos=0,tLapor=0,lastLapor='';
 const sim={on:false};
 const semua=()=>{const L=[];if(me)L.push(me);for(const p of tim.values())L.push(p);return L;};
@@ -281,6 +286,7 @@ function deltaSah(e){
 function onPesan(ev,p){
   hit.terima++;
   if(!p||typeof p!=='object')return;
+  for(const k in ALUR)if(ALUR[k].pesan(ev,p))return;
   if(ev==='p'){
     const q=tim.get(p.id);if(!q||q.bot)return;
     if(![p.x,p.z,p.vx,p.vz].every(Number.isFinite)||Math.abs(p.x)>120||Math.abs(p.z)>120)return;
@@ -307,30 +313,16 @@ function onPesan(ev,p){
   }else if(ev==='mulai'){
     if(p.r===st.r&&st.f===0&&!hitungMundur&&!selesai(st))mulaiHitung();
   }else if(ev==='minta'){
-    if(otoritas())setTimeout(()=>{flush();stKirim();flush2();stKirim2();},100+Math.random()*400);
+    if(otoritas())setTimeout(()=>{flush();stKirim();for(const k in ALUR){ALUR[k].flush();ALUR[k].stKirim();}},100+Math.random()*400);
     /* pendatang belum tahu posisi kita: kirim satu sinyal posisi */
     setTimeout(()=>kirimPosisi(true),200+Math.random()*800);
   }else if(ev==='emo'){
     const q=tim.get(p.id);if(q&&(p.k===1||p.k===2||p.k===3))q.emo={k:p.k,t:performance.now(),d:p.k===3?1000:0};
-  }else if(ev==='d2'){
-    if(!ang(p.r,0,NB2-1)||p.r!==st2.r||!Array.isArray(p.c)||selesai2(st2))return;
-    for(const e of p.c.slice(0,16))terapSlot2(e);tDelta2=performance.now();ubahSt2=true;
-  }else if(ev==='st2'){
-    if(!valid2(p.s))return;const s=p.s;
-    if(s.r>st2.r)adopsi2(s);
-    else if(s.r===st2.r&&!selesai2(st2)){
-      for(let i=0;i<s.s.length;i++)terapSlot2([i,s.s[i],s.k[i]]);
-      if(s.f===1&&st2.f===0){st2.f=1;endAt2=performance.now()+s.m;hitung2=0;}
-    }
-  }else if(ev==='kunci2'){
-    if(!ang(p.r,0,NB2-1)||p.r!==st2.r||!sValid(p.r,p.s)||!ang(p.w,0,1000))return;
-    kunciBabak2(p.s,p.w);
-  }else if(ev==='mulai2'){
-    if(p.r===st2.r&&st2.f===0&&!hitung2&&!selesai2(st2))mulaiHitung2();
   }else if(ev==='ro'){
     if(typeof p.t==='string'&&TIM.some(t=>t.id===p.t)&&ang(p.n,0,99)){
       const m=[];if(Array.isArray(p.m))for(const e of p.m.slice(0,12)){if(Array.isArray(e)&&typeof e[0]==='string'&&e[0].length<=12&&typeof e[1]==='string'&&/^[0-9]{6}$/.test(e[2]))m.push([e[0],e[1].slice(0,12),e[2]]);}
-      papanData[p.t]={n:p.n,s:ang(p.s,0,100)?p.s:null,r:ang(p.r,0,3)?p.r:0,s2:ang(p.s2,0,100)?p.s2:null,r2:ang(p.r2,0,3)?p.r2:0,m,t:performance.now()};gambarPapan();selaraskanLuar();
+      const sk=Array.isArray(p.sk)?p.sk.slice(0,NPOS).map(v=>ang(v,0,100)?v:null):[];
+      papanData[p.t]={n:p.n,sk,m,t:performance.now()};gambarPapan();selaraskanLuar();
     }
   }
 }
@@ -358,108 +350,249 @@ function kunciBabak(c,w){
   if(me.a===1)tampilRev(r,c,w,h);
   if(selesai(st)){laporPapan(true);}
 }
-/* ---------- Pos 2: slot batu sandi. Tiap slot memakai kiriman terbaru (cap waktu terbesar), jadi urutan pesan tidak penting. ---------- */
-function terapSlot2(e){
-  if(!Array.isArray(e)||e.length!==3)return;
-  const [i,kode,k]=e;
-  if(!ang(i,0,st2.s.length-1)||!ang(kode,0,soal(st2.r).batu.length)||!Number.isFinite(k)||k<0)return;
-  if(k>st2.k[i]||(k===st2.k[i]&&kode>st2.s[i])){st2.s[i]=kode;st2.k[i]=k;kotor2=true;}
+/* ---------- mesin alur umum untuk pos berbasis slot (Pos 2 sampai 6) ----------
+   Dua mode slot. 'set': slot berisi kode, kiriman terbaru (cap waktu terbesar) menang, jadi urutan pesan tidak penting.
+   'jumlah': slot berisi bilangan bulat yang diubah lewat selisih (seperti kolom Pos 1), otoritas menyiarkan keadaan.
+   Event jaringan per pos: d<id>, st<id>, mulai<id>, kunci<id>. */
+function buatAlur(P){
+  const id=P.id,ev=k=>k+id,jml=P.mode==='jumlah';
+  const A={P,id,st:P.stateBaru(),pend:new Map(),endAt:0,hitung:0,kotor:true,ubahSt:false,tDelta:0,tSt:0,tFlush:0};
+  A.r=()=>Math.min(A.st.r,P.NB-1);
+  A.selesai=()=>A.st.r>=P.NB;
+  A.tampilS=()=>A.selesai()?A.st.sr[P.NB-1]:A.st.s;
+  const batas=(i)=>P.batasSlot?P.batasSlot(A.st.r,i):[0,P.maxKode(A.st.r)];
+  A.terapSlot=e=>{
+    if(!Array.isArray(e)||e.length!==3)return;const [i,kode,k]=e;
+    if(!ang(i,0,A.st.s.length-1)||!ang(kode,0,P.maxKode(A.st.r))||!Number.isFinite(k)||k<0)return;
+    if(k>A.st.k[i]||(k===A.st.k[i]&&kode>A.st.s[i])){A.st.s[i]=kode;A.st.k[i]=k;A.kotor=true;}
+  };
+  A.terapJumlah=e=>{
+    if(!Array.isArray(e)||e.length!==2)return;const [i,d]=e;
+    if(!ang(i,0,A.st.s.length-1)||!ang(d,-99,99))return;
+    const [lo,hi]=batas(i);A.st.s[i]=klem(A.st.s[i]+d,lo,hi);A.kotor=true;
+  };
+  A.ubahSlot=(i,kode)=>{const k=Date.now()+Math.random();A.st.s[i]=kode;A.st.k[i]=k;A.pend.set(i,[kode,k]);A.tDelta=performance.now();A.ubahSt=true;A.kotor=true;};
+  /* mode jumlah: kembalikan true bila berubah */
+  A.tambah=(i,d)=>{
+    const [lo,hi]=batas(i),v=klem(A.st.s[i]+d,lo,hi);if(v===A.st.s[i])return false;
+    const dd=v-A.st.s[i];A.st.s[i]=v;A.pend.set(i,(A.pend.get(i)||0)+dd);if(A.pend.get(i)===0)A.pend.delete(i);
+    A.tDelta=performance.now();A.ubahSt=true;A.kotor=true;return true;
+  };
+  A.flush=()=>{
+    if(!A.pend.size)return;
+    kirim(ev('d'),{r:A.st.r,c:jml?[...A.pend]:[...A.pend].map(([i,[kode,k]])=>[i,kode,k])});A.pend.clear();A.tFlush=performance.now();
+  };
+  A.stKirim=()=>{kirim(ev('st'),{s:{...A.st,m:A.st.f===1?Math.round(A.endAt-performance.now()):undefined}});A.tSt=performance.now();};
+  A.atur=()=>{P.atur(A.r(),A);A.kotor=true;};
+  A.reset=()=>{if(me.a===id){me.tiles=[];me.carry=0;me.siap=0;}for(const p of anggota())if(p.a===id)p.siap=0;};
+  A.adopsi=s=>{
+    const lama=A.st.r;A.st={r:s.r,s:s.s.slice(),k:s.k?s.k.slice():s.s.map(()=>0),sr:s.sr.map(x=>x.slice()),w:s.w.slice(),f:s.f};A.pend.clear();
+    if(s.f===1)A.endAt=performance.now()+s.m;A.hitung=0;
+    if(A.st.r!==lama)A.reset();
+    A.atur();if(A.selesai()&&me.a===id)A.bukaHasil();
+  };
+  A.mulaiHitung=()=>{A.hitung=performance.now()+3000;if(me.a===id)toast('Bersiap...');};
+  A.kunci=(s,w)=>{
+    const r=A.st.r,h=P.skorRonde(r,s,w);
+    A.st.sr.push(s.slice());A.st.w.push(w);A.st.r++;A.st.f=0;A.hitung=0;
+    const b=P.stateBabak(A.st.r);A.st.s=b.s;A.st.k=b.k;
+    A.pend.clear();koinAS[id].clear();P.arena.setKoin(P.M.KOIN_A.map(()=>true));A.reset();A.atur();
+    if(me.a===id)A.tampilRev(r,s,w,h);
+    if(A.selesai())laporPapan(true);
+  };
+  A.pesan=(e,p)=>{
+    if(e===ev('d')){
+      if(!ang(p.r,0,P.NB-1)||p.r!==A.st.r||!Array.isArray(p.c)||A.selesai())return true;
+      for(const x of p.c.slice(0,24))jml?A.terapJumlah(x):A.terapSlot(x);A.tDelta=performance.now();A.ubahSt=true;return true;
+    }
+    if(e===ev('st')){
+      if(!P.valid(p.s))return true;const s=p.s;
+      if(s.r>A.st.r)A.adopsi(s);
+      else if(s.r===A.st.r&&!A.selesai()){
+        if(jml){const c=s.s.slice();for(const [i,d] of A.pend){const [lo,hi]=batas(i);c[i]=klem(c[i]+d,lo,hi);}A.st.s=c;A.kotor=true;}
+        else for(let i=0;i<s.s.length;i++)A.terapSlot([i,s.s[i],s.k[i]]);
+        if(s.f===1&&A.st.f===0){A.st.f=1;A.endAt=performance.now()+s.m;A.hitung=0;}
+      }
+      return true;
+    }
+    if(e===ev('kunci')){if(!ang(p.r,0,P.NB-1)||p.r!==A.st.r||!P.sValid(p.r,p.s)||!ang(p.w,0,1000))return true;A.kunci(p.s,p.w);return true;}
+    if(e===ev('mulai')){if(p.r===A.st.r&&A.st.f===0&&!A.hitung&&!A.selesai())A.mulaiHitung();return true;}
+    return false;
+  };
+  /* mulai dan kunci babak; dipanggil tiap bingkai saat pemain berada di pos ini */
+  A.alur=(now,blk)=>{
+    if(A.selesai()){tSiap=0;return;}
+    const L=[me,...anggota().filter(p=>p.a===id)],semua=L.every(p=>p.siap),pem=pemimpinKunci(),st=A.st;
+    if(st.f===0){
+      if(A.hitung){if(now>=A.hitung){A.hitung=0;st.f=1;A.endAt=now+P.WAKTU[st.r]*1000;pakaiBoost();toast('MULAI!'+(boostAktif?' Boost: '+BOOST[boostAktif].n+'.':''));A.kotor=true;}}
+      else if(pem&&semua&&!blk){if(!tSiap)tSiap=now;if(now-tSiap>1200){tSiap=0;kirim(ev('mulai'),{r:st.r});A.mulaiHitung();}}
+      else tSiap=0;
+    }else{
+      const siap=P.bolehKunci?P.bolehKunci(st):st.s.every(v=>v>0);
+      if(pem&&semua&&!blk&&!siap&&now-tHabis>4000){tHabis=now;toast(P.pesanBelum||'Semua slot harus terisi sebelum dikunci.');}
+      if(pem&&semua&&siap&&!blk){if(!tSiap)tSiap=now;if(now-tSiap>1200){tSiap=0;A.flush();const s=st.s.slice(),w=Math.round(1000*Math.max(0,A.endAt-now)/(P.WAKTU[st.r]*1000));kirim(ev('kunci'),{r:st.r,s,w});A.kunci(s,w);}}
+      else tSiap=0;
+    }
+  };
+  A.rekon=now=>{
+    if(A.ubahSt&&otoritas()&&now-A.tDelta>3000&&now-A.tSt>8000&&!A.pend.size){A.stKirim();A.ubahSt=false;}
+    if(A.pend.size&&now-A.tFlush>jedaFlush())A.flush();
+  };
+  A.waktu=now=>{
+    const st=A.st;let w='-';
+    if(A.selesai())w='selesai';
+    else if(st.f===0)w=A.hitung?String(Math.max(1,Math.ceil((A.hitung-now)/1000))):'siap';
+    else{const d=Math.max(0,Math.floor((P.WAKTU[st.r]*1000-(A.endAt-now))/1000));w=Math.floor(d/60)+':'+String(d%60).padStart(2,'0');}
+    const hm=$('hitung');if(A.hitung&&st.f===0){hm.hidden=false;hm.textContent=String(Math.max(1,Math.ceil((A.hitung-now)/1000)));}else hm.hidden=true;
+    return w;
+  };
+  /* HUD umum (kartu #ar2): babak, isi, waktu, bawa, siap; isi khusus dari P.hud */
+  A.hud=now=>{
+    const r=A.r(),sel=A.selesai(),h=P.hud(r,A.tampilS(),A);
+    $('a2-babak').textContent=sel?'Selesai':'Babak '+(r+1)+'/'+P.NB;
+    $('a2-isi').textContent=h.isi;$('a2-bawa').textContent=h.bawa;
+    const L=[me,...anggota().filter(p=>p.a===id)];$('a2-siap').textContent=L.filter(p=>p.siap).length+'/'+L.length;
+    $('a2-waktu').textContent=A.waktu(now);
+  };
+  A.tampilRev=(r,s,w,h)=>{
+    revBuka=true;revPos=id;key.w=key.a=key.s=key.d=0;joy.x=joy.y=0;tahan=false;
+    const o=P.ulasan(r,s,w,h);
+    $('rev-h').textContent='Babak '+(r+1)+' terkunci: skor '+h.skor;o.gambar($('rev-cv'));
+    const box=$('rev-t');box.textContent='';
+    for(const [a,b] of o.baris){const d=document.createElement('div');d.className='r';const s1=document.createElement('span'),s2=document.createElement('span');s1.textContent=a;s2.textContent=b;d.append(s1,s2);box.append(d);}
+    $('rev-p').textContent=o.catatan;$('rev').hidden=false;
+    $('rev-ok').onclick=()=>{revBuka=false;$('rev').hidden=true;if(A.selesai())A.bukaHasil();};
+  };
+  A.bukaHasil=()=>{
+    if(hasilBuka)return;const o=P.hasil(A.st);
+    const t=$('w-tabel');t.textContent='';
+    const head=t.insertRow();for(const h of o.kolom){const th=document.createElement('th');th.textContent=h;head.append(th);}
+    for(const b of o.baris){const row=t.insertRow();b.forEach(v=>row.insertCell().textContent=v);}
+    $('w-pos').textContent='Pos '+id+' selesai';$('w-h').textContent=o.judul;$('w-p').textContent=o.teks;$('w-skor').textContent=String(P.skorTim(A.st));
+    $('hasil').hidden=false;hasilBuka=true;key.w=key.a=key.s=key.d=0;joy.x=joy.y=0;tahan=false;
+  };
+  return A;
 }
-function ubahSlot2(i,kode){
-  const k=Date.now()+Math.random();st2.s[i]=kode;st2.k[i]=k;pend2.set(i,[kode,k]);
-  tDelta2=performance.now();ubahSt2=true;kotor2=true;
-}
-function flush2(){
-  if(!pend2.size)return;
-  kirim('d2',{r:st2.r,c:[...pend2].map(([i,[kode,k]])=>[i,kode,k])});pend2.clear();tFlush2=performance.now();
-}
-function stKirim2(){kirim('st2',{s:{...st2,m:st2.f===1?Math.round(endAt2-performance.now()):undefined}});tSt2=performance.now();}
-function adopsi2(s){
-  const lama=st2.r;st2={r:s.r,s:s.s.slice(),k:s.k?s.k.slice():[],sr:s.sr.map(x=>x.slice()),w:s.w.slice(),f:s.f};pend2.clear();
-  if(s.f===1)endAt2=performance.now()+s.m;hitung2=0;
-  if(st2.r!==lama&&me.a===2){me.tiles=[];me.carry=0;me.siap=0;for(const p of anggota())p.siap=0;}
-  aturArena2();kotor2=true;
-  if(selesai2(st2)&&me.a===2)bukaHasil2();
-}
-function mulaiHitung2(){hitung2=performance.now()+3000;if(me.a===2)toast('Bersiap...');}
-function kunciBabak2(s,w){
-  const r=st2.r,h=skorRonde2(r,s,w);
-  st2.sr.push(s.slice());st2.w.push(w);st2.r++;st2.f=0;hitung2=0;
-  const n=st2.r<NB2?nSlot(st2.r):0;st2.s=Array(n).fill(0);st2.k=Array(n).fill(0);
-  pend2.clear();koinAS[2].clear();arena2.setKoin(M2.KOIN_A.map(()=>true));
-  if(me.a===2){me.tiles=[];me.carry=0;me.siap=0;}for(const p of anggota())if(p.a===2)p.siap=0;
-  aturArena2();kotor2=true;
-  if(me.a===2)tampilRev2(r,s,w,h);
-  if(selesai2(st2))laporPapan(true);
-}
-function aturArena2(){
-  const r=Math.min(st2.r,NB2-1),S=soal(r),cerita=S.jenis==='cerita';arena2.setBabak(r);arena2.setMedan(r);
-  /* cerita dibaca di HUD sebagai teks (lebih jelas di HP); grafik digambar kecil */
-  $('a2-cv').hidden=cerita;if(!cerita)gambarSandi($('a2-cv'),r,{judul:false});
-  $('a2-p').textContent=(cerita?S.tx+' ':'')+'a dan dx di Oasis, f di Menara, b di Reruntuhan.';kotor2=true;
-}
-function isiAr2(now){
-  const r=Math.min(st2.r,NB2-1),sel=selesai2(st2),s=sel?st2.sr[NB2-1]:st2.s;
-  $('a2-babak').textContent=sel?'Selesai':'Babak '+(r+1)+'/'+NB2;
-  $('a2-isi').textContent=s.filter(v=>v>0).length+'/'+s.length+' slot';
-  $('a2-bawa').textContent=me.tiles.length?me.tiles.map(k=>teksBatu(r,k)).join('  ·  '):'-';
-  const L=[me,...anggota().filter(p=>p.a===2)];$('a2-siap').textContent=L.filter(p=>p.siap).length+'/'+L.length;
-  let w='-';
-  if(sel)w='selesai';
-  else if(st2.f===0)w=hitung2?String(Math.max(1,Math.ceil((hitung2-now)/1000))):'siap';
-  else{const d=Math.max(0,Math.floor((WAKTU2[st2.r]*1000-(endAt2-now))/1000));w=Math.floor(d/60)+':'+String(d%60).padStart(2,'0');}
-  $('a2-waktu').textContent=w;
-  const hm=$('hitung');if(hitung2&&st2.f===0){hm.hidden=false;hm.textContent=String(Math.max(1,Math.ceil((hitung2-now)/1000)));}else hm.hidden=true;
-}
-/* panel pilihan batu di kamp; dibangun ulang hanya bila isinya berubah */
+/* panel pilihan di kamp atau stasiun; dibangun ulang hanya bila kuncinya berubah.
+   pilihan: [{t (teks tombol), judul, mati, aksi()}] */
 let pilihKey='';
-function panelPilih(kamp,boleh){
-  const box=$('pilih'),tampil=kamp>=0&&!blok();
-  box.hidden=!tampil;if(!tampil){pilihKey='';return;}
-  const r=Math.min(st2.r,NB2-1),L=batuKamp(r,kamp),penuh=me.tiles.length>=capNow(),key=kamp+'|'+r+'|'+boleh+'|'+penuh+'|'+me.tiles.join(',');
-  if(key===pilihKey)return;pilihKey=key;box.textContent='';
-  const j=document.createElement('div');j.className='bj';
-  j.textContent=!boleh?'Kamp '+W.KAMP[kamp].nama+'. Batu bisa diambil setelah babak mulai.':(penuh?'Tangan penuh ('+capNow()+' batu). Pasang dulu di altar.':'Pilih batu sandi (bawa maks '+capNow()+')');box.append(j);
-  L.forEach((b,i)=>{
-    const t=document.createElement('button');t.type='button';t.className='btn alt';t.textContent=b.t;t.title=P2.NAMA_JENIS[b.k]+' (tombol '+(i+1)+')';
-    t.disabled=!boleh||penuh;t.addEventListener('click',()=>ambilBatu(b.kode));box.append(t);
-  });
-  if(me.tiles.length){const t=document.createElement('button');t.type='button';t.className='btn';t.textContent='Taruh kembali';t.addEventListener('click',()=>{me.tiles=[];me.carry=0;pilihKey='';kotor2=true;kirimPosisi();});box.append(t);}
+function panelUmum(tampil,judul,pilihan,kunci){
+  const box=$('pilih');box.hidden=!tampil||blok();if(box.hidden){pilihKey='';return;}
+  if(kunci===pilihKey)return;pilihKey=kunci;box.textContent='';
+  const j=document.createElement('div');j.className='bj';j.textContent=judul;box.append(j);
+  for(const o of pilihan){
+    const t=document.createElement('button');t.type='button';t.className=o.utama?'btn':'btn alt';t.textContent=o.t;if(o.judul)t.title=o.judul;
+    t.disabled=!!o.mati;t.addEventListener('click',()=>{o.aksi();pilihKey='';});box.append(t);
+  }
 }
+const taruhKembali=()=>({t:'Taruh kembali',utama:true,aksi:()=>{me.tiles=[];me.carry=0;kirimPosisi();}});
+
+/* ================= Pos 2: Rakit Sandi ================= */
+const CFG2={id:2,setSeed:setSeed2,NB:NB2,WAKTU:WAKTU2,M:M2,mode:'set',get arena(){return arena2;},
+  stateBaru:stateBaru2,stateBabak:r=>{const n=r<NB2?nSlot(r):0;return {s:Array(n).fill(0),k:Array(n).fill(0)};},
+  maxKode:r=>soal(Math.min(r,NB2-1)).batu.length,sValid,valid:valid2,skorRonde:skorRonde2,skorTim:skorTim2,
+  pesanBelum:'Semua slot harus terisi sebelum sandi dikunci.',
+  sambut:A=>A.selesai()?'Pos 2 sudah selesai.':(A.st.f===1?'Babak sedang berjalan. Ambil batu sandi di kamp, pasang di altar.':'Ngarai Kuil. Baca sandi di prasasti, lalu semua berdiri di pad hijau untuk mulai.'),
+  atur(r){
+    const S=soal(r),cerita=S.jenis==='cerita';arena2.setBabak(r);arena2.setMedan(r);
+    /* cerita dibaca di HUD sebagai teks (lebih jelas di HP); grafik digambar kecil */
+    $('a2-cv').hidden=cerita;if(!cerita)gambarSandi($('a2-cv'),r,{judul:false});
+    $('a2-p').textContent=(cerita?S.tx+' ':'')+'a dan dx di Oasis, f di Menara, b di Reruntuhan.';
+  },
+  hud:(r,s)=>({isi:s.filter(v=>v>0).length+'/'+s.length+' slot',bawa:me.tiles.length?me.tiles.map(k=>teksBatu(r,k)).join('  ·  '):'-'}),
+  ulasan:(r,s,w,h)=>({gambar:cv=>gambarSandi(cv,r,{judul:false}),
+    baris:[['Sandi tim',notasi(r,s)],['Sandi benar',notasiBenar(r)],['Slot benar',h.benar+' / '+h.total],['Ketepatan',h.akurasi+' / 100'],['Bonus kecepatan',Math.round(w/10)+'%']],
+    catatan:h.catatan.length?h.catatan.map(c=>PESAN[c]).filter(Boolean).join(' '):'Sandi tepat. Notasi ∫ dari a sampai b f(x) dx menyatakan luas daerah di bawah f dari x = a sampai x = b.'}),
+  hasil:st=>({kolom:['Babak','Sandi tim','Sandi benar','Skor'],baris:st.sr.map((s,i)=>[i+1,notasi(i,s),notasiBenar(i),skorRonde2(i,s,st.w[i]).skor]),
+    judul:'Sandi luas: ∫ dari a sampai b, f(x) dx',teks:'Notasi integral tentu merangkum seluruh daerah: batas bawah dan atas memberi selang, f memberi tinggi, dx menandai variabel yang dijumlahkan.'}),
+  angka(n){const k=W.diKamp(me.x,me.z);if(k<0)return;const b=batuKamp(ALUR[2].r(),k)[n-1];if(b)ambilBatu(b.kode);},
+  /* interaksi tiap bingkai: panel kamp, tombol pasang; kembalikan slot yang disorot */
+  bingkai(A,o){
+    const r=o.r,dk=W.diKamp(me.x,me.z),sl=o.main&&o.now>=stunTil?slotDi(r,me.x,me.z):-1;
+    if(dk>=0){
+      const L=batuKamp(r,dk),penuh=me.tiles.length>=capNow();
+      panelUmum(true,!o.main?'Kamp '+W.KAMP[dk].nama+'. Batu bisa diambil setelah babak mulai.':(penuh?'Tangan penuh ('+capNow()+' batu). Pasang dulu di altar.':'Pilih batu sandi (bawa maks '+capNow()+')'),
+        L.map((b,i)=>({t:b.t,judul:P2.NAMA_JENIS[b.k]+' (tombol '+(i+1)+')',mati:!o.main||penuh,aksi:()=>ambilBatu(b.kode)})).concat(me.tiles.length?[taruhKembali()]:[]),
+        dk+'|'+r+'|'+o.main+'|'+penuh+'|'+me.tiles.join(','));
+    }else panelUmum(false);
+    const b=$('aksi');let label='';
+    if(sl>=0){
+      const S=soal(r),k=me.tiles.find(k=>S.batu[k-1].k===S.slot[sl].k);
+      if(k)label=(A.st.s[sl]?'Ganti dengan ':'Pasang ')+teksBatu(r,k);
+      else if(me.tiles.length)label='Butuh '+P2.NAMA_JENIS[S.slot[sl].k];
+    }
+    b.hidden=o.blk||!label;if(!b.hidden)b.textContent=label;
+    if(tahan&&sl>=0&&o.now-tAksi>350){tahan=false;tAksi=o.now;pasangBatu(sl);}
+    if(tahan&&sl<0)tahan=false;
+    return sl;
+  }
+};
+ALUR[2]=buatAlur(CFG2);
+
+/* ================= Pos 3: Mesin Putar Balik ================= */
+let kunciMini3='';
+const CFG3={id:3,setSeed:P3.setSeed3,NB:P3.NB3,WAKTU:P3.WAKTU3,M:M3,mode:'set',cap:P3.CAP3,get arena(){return arena3;},
+  stateBaru:P3.stateBaru3,stateBabak:r=>{const n=r<P3.NB3?P3.nSlot3(r):0;return {s:Array(n).fill(0),k:Array(n).fill(0)};},
+  maxKode:()=>P3.MAXK,sValid:P3.sValid3,valid:P3.valid3,skorRonde:P3.skorRonde3,skorTim:P3.skorTim3,
+  pesanBelum:'Semua suku dan C harus masuk mesin sebelum dikunci.',
+  sambut:A=>A.selesai()?'Pos 3 sudah selesai.':(A.st.f===1?'Babak sedang berjalan. Putar balik tiap suku lewat Tungku dan Pemotong.':'Danau Beku. Baca f(x) di layar mesin, lalu semua berdiri di pad hijau untuk mulai.'),
+  atur(r){
+    arena3.setBabak(r);arena3.setMedan(r);kunciMini3='';$('a2-cv').hidden=false;
+    $('a2-p').textContent='Ambil suku di corong MASUK. Tungku: pangkat naik. Pemotong: bagi koefisien. Gudang C: + C. Lalu ke corong KELUAR.';
+  },
+  hud(r,s){
+    const k=r+'|'+s.join(',');if(k!==kunciMini3){kunciMini3=k;P3.soal3(r);gambarMesin($('a2-cv'),r,s,{kecil:true});}
+    return {isi:s.filter(v=>v>0).length+'/'+s.length+' masuk',bawa:me.tiles.length?me.tiles.map(b=>P3.teksBalok(r,b)).join('  ·  '):'-'};
+  },
+  ulasan:(r,s,w,h)=>({gambar:cv=>gambarMesin(cv,r,s),
+    baris:[['F tim',P3.teksFTim(r,s)],['F benar',P3.teksFBenar(r)],['Cek: F′ tim',P3.teksTurunanTim(r,s)],['Bagian benar',h.benar+' / '+h.total],['Ketepatan',h.akurasi+' / 100'],['Bonus kecepatan',Math.round(w/10)+'%']],
+    catatan:h.catatan.length?h.catatan.map(c=>P3.PESAN3[c]).filter(Boolean).join(' '):'Tepat. Turunkan F hasil rakitan dan hasilnya kembali persis ke f. Itulah arti antiturunan.'}),
+  hasil:st=>({kolom:['Babak','f(x)','F tim','Skor'],baris:st.sr.map((s,i)=>[i+1,P3.teksF(P3.soal3(i).suku),P3.teksFTim(i,s),P3.skorRonde3(i,s,st.w[i]).skor]),
+    judul:'Putar balik turunan: pangkat naik satu, lalu bagi pangkat baru',teks:'Antiturunan membalik langkah turunan dengan urutan terbalik. Karena turunan konstanta selalu nol, setiap jawaban ditambah C, dan nilai awal menentukan C yang tepat.'}),
+  bingkai(A,o){
+    const r=o.r,S=P3.soal3(r),dk=W.diKamp(me.x,me.z),cm=diCorong('masuk',me.x,me.z),ck=diCorong('keluar',me.x,me.z),penuh=me.tiles.length>=capNow();
+    const blokSuku=me.tiles.filter(b=>b.c==null),tk=me.tiles.map(b=>JSON.stringify(b)).join(';');
+    if(cm){
+      panelUmum(true,!o.main?'Corong masuk. Suku bisa diambil setelah babak mulai.':(penuh?'Tangan penuh ('+capNow()+' balok).':'Ambil suku f(x) untuk diputar balik'),
+        S.suku.map(([a,n],i)=>({t:P3.teksSuku(a,1,n),mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()){me.tiles.push(P3.balokMentah(r,i));me.carry=me.tiles.length;kirimPosisi();}}})).concat(me.tiles.length?[taruhKembali()]:[]),
+        'm|'+r+'|'+o.main+'|'+tk);
+    }else if(dk===0||dk===2){
+      const tungku=dk===0,L=[];
+      blokSuku.forEach(b=>{for(const op of (tungku?P3.opsiTungku(b):P3.opsiPemotong(b)))L.push({t:P3.teksBalok(r,b)+': '+op.t,mati:!o.main,aksi:()=>{
+        if(tungku)b.e=op.e;else{b.d=op.d;b.m=op.m;}toast('Balok sekarang '+P3.teksBalok(r,b)+'.');}});});
+      panelUmum(true,tungku?'Tungku: ubah pangkat balok yang dibawa':'Pemotong: ubah koefisien balok yang dibawa',
+        L.length?L:[{t:'Tidak membawa balok suku',mati:true,aksi:()=>{}}],(tungku?'t|':'p|')+r+'|'+o.main+'|'+tk);
+    }else if(dk===1){
+      panelUmum(true,!o.main?'Gudang C. Balok C bisa diambil setelah babak mulai.':(r===2?'Pilih nilai C yang membuat F('+S.x0+') = '+S.y0:'Ambil balok konstanta'),
+        S.opsiC.map((t,i)=>({t,mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()){me.tiles.push({c:i});me.carry=me.tiles.length;kirimPosisi();}}})).concat(me.tiles.length?[taruhKembali()]:[]),
+        'c|'+r+'|'+o.main+'|'+penuh+'|'+tk);
+    }else panelUmum(false);
+    const b=$('aksi'),bisa=ck&&o.main&&me.tiles.length>0;
+    b.hidden=o.blk||!bisa;if(bisa)b.textContent='Masukkan ke mesin ('+me.tiles.length+')';
+    if(tahan&&bisa&&o.now-tAksi>350){
+      tahan=false;tAksi=o.now;
+      for(const x of me.tiles){if(x.c!=null)A.ubahSlot(S.suku.length,x.c+1);else A.ubahSlot(x.i,P3.kodeBalok(x));}
+      me.tiles=[];me.carry=0;kirimPosisi();toast('Masuk mesin. F(x) = '+P3.teksFTim(r,A.st.s));
+    }
+    if(tahan&&!bisa)tahan=false;
+    return -1;
+  }
+};
+ALUR[3]=buatAlur(CFG3);
 function ambilBatu(kode){
-  if(me.a!==2||st2.f!==1||me.tiles.length>=capNow()||blok())return;
-  const r=st2.r,k=W.diKamp(me.x,me.z);if(k<0||soal(r).batu[kode-1]==null||KAMP_JENIS[soal(r).batu[kode-1].k]!==k)return;
-  me.tiles.push(kode);me.carry=me.tiles.length;pilihKey='';kotor2=true;kirimPosisi();
-  toast('Membawa '+teksBatu(r,kode)+' ('+P2.NAMA_JENIS[soal(r).batu[kode-1].k]+').');
+  const A=ALUR[2];
+  if(me.a!==2||A.st.f!==1||me.tiles.length>=capNow()||blok())return;
+  const r=A.st.r,k=W.diKamp(me.x,me.z),b=soal(r).batu[kode-1];if(k<0||!b||KAMP_JENIS[b.k]!==k)return;
+  me.tiles.push(kode);me.carry=me.tiles.length;pilihKey='';kirimPosisi();
+  toast('Membawa '+teksBatu(r,kode)+' ('+P2.NAMA_JENIS[b.k]+').');
 }
 /* pasang batu yang cocok dengan jenis slot; batu lama di slot itu dibuang */
 function pasangBatu(i){
-  const r=st2.r,sl=soal(r).slot[i];if(!sl)return false;
+  const A=ALUR[2],r=A.st.r,sl=soal(r).slot[i];if(!sl)return false;
   const j=me.tiles.findIndex(k=>soal(r).batu[k-1].k===sl.k);
   if(j<0){toast('Slot ini butuh batu '+P2.NAMA_JENIS[sl.k]+'.');return false;}
-  const kode=me.tiles.splice(j,1)[0];me.carry=me.tiles.length;ubahSlot2(i,kode);kirimPosisi();
+  const kode=me.tiles.splice(j,1)[0];me.carry=me.tiles.length;A.ubahSlot(i,kode);kirimPosisi();
   return true;
-}
-function tampilRev2(r,s,w,h){
-  revBuka=true;revPos=2;key.w=key.a=key.s=key.d=0;joy.x=joy.y=0;tahan=false;
-  $('rev-h').textContent='Babak '+(r+1)+' terkunci: skor '+h.skor;
-  gambarSandi($('rev-cv'),r,{judul:false});
-  const L=[['Sandi tim',notasi(r,s)],['Sandi benar',notasiBenar(r)],['Slot benar',h.benar+' / '+h.total],['Ketepatan',h.akurasi+' / 100'],['Bonus kecepatan',Math.round(w/10)+'%']];
-  const box=$('rev-t');box.textContent='';
-  for(const [a,b] of L){const d=document.createElement('div');d.className='r';const s1=document.createElement('span'),s2=document.createElement('span');s1.textContent=a;s2.textContent=b;d.append(s1,s2);box.append(d);}
-  $('rev-p').textContent=h.catatan.length?h.catatan.map(c=>PESAN[c]).filter(Boolean).join(' '):'Sandi tepat. Notasi ∫ dari a sampai b f(x) dx menyatakan luas daerah di bawah f dari x = a sampai x = b.';
-  $('rev').hidden=false;
-  $('rev-ok').onclick=()=>{revBuka=false;$('rev').hidden=true;if(revPos===2?selesai2(st2):selesai(st))(revPos===2?bukaHasil2:bukaHasil)();};
-}
-function bukaHasil2(){
-  if(hasilBuka)return;
-  const t=$('w-tabel');t.textContent='';
-  const head=t.insertRow();for(const h of ['Babak','Sandi tim','Sandi benar','Skor']){const th=document.createElement('th');th.textContent=h;head.append(th);}
-  st2.sr.forEach((s,i)=>{const row=t.insertRow();[i+1,notasi(i,s),notasiBenar(i),skorRonde2(i,s,st2.w[i]).skor].forEach(v=>row.insertCell().textContent=v);});
-  $('w-pos').textContent='Pos 2 selesai';$('w-h').textContent='Sandi luas: ∫ dari a sampai b, f(x) dx';
-  $('w-p').textContent='Notasi integral tentu merangkum seluruh daerah: batas bawah dan atas memberi selang, f memberi tinggi, dx menandai variabel yang dijumlahkan.';
-  $('w-skor').textContent=String(skorTim2(st2));
-  $('hasil').hidden=false;hasilBuka=true;key.w=key.a=key.s=key.d=0;joy.x=joy.y=0;tahan=false;
 }
 /* tampilan dinding dan rintangan untuk babak aktif; kurva hanya dibuka setelah semua babak selesai */
 function aturArena(){
@@ -482,38 +615,40 @@ function ukuranTim(){return sim.on?5:1+anggota().length;}
 const jedaPos=()=>klem(ntot()*ukuranTim()/50*1000,300,4000);
 const jedaFlush=()=>klem(ntot()*ukuranTim()/60*1000,600,3000);
 
-/* ---------- papan skor ---------- */
+/* ---------- papan skor: satu kolom per pos ---------- */
+const NPOS=6;
+function skorSemua(){const L=[skorTim(st)];for(let i=2;i<=NPOS;i++)L.push(ALUR[i]?ALUR[i].P.skorTim(ALUR[i].st):null);return L;}
+const totalSk=sk=>(sk||[]).reduce((a,v)=>a+(v??0),0);
 function gambarPapan(){
-  const g=papan.c.getContext('2d'),W=640,H=400;
+  const g=papan.c.getContext('2d'),W=640,H=400,X0=318,DX=52;
   g.fillStyle='#fff6e4';g.fillRect(0,0,W,H);g.strokeStyle='#1c2230';g.lineWidth=10;g.strokeRect(5,5,W-10,H-10);
   g.fillStyle='#1c2230';g.font='800 32px "Bricolage Grotesque","Arial Black",sans-serif';g.textAlign='left';g.textBaseline='middle';
-  g.fillText('Papan skor',24,38);g.font='700 20px "Chakra Petch",sans-serif';g.textAlign='right';g.fillText('Pos 1',W-140,38);g.fillText('Pos 2',W-28,38);g.textAlign='left';
+  g.fillText('Papan skor',24,38);g.font='700 18px "Chakra Petch",sans-serif';g.textAlign='center';
+  for(let j=0;j<NPOS;j++)g.fillText('P'+(j+1),X0+j*DX,40);
   const now=performance.now(),baris=[];
   for(const t of TIM){
     let d=papanData[t.id];
-    if(saya&&t.id===saya.tim)d={n:1+anggota().length,s:skorTim(st),r:st.r,s2:skorTim2(st2),r2:st2.r};
+    if(saya&&t.id===saya.tim)d={n:1+anggota().length,sk:skorSemua()};
     else if(!d||now-d.t>70000)d=null;
     if(d&&d.n>0)baris.push({t,d});
   }
-  baris.sort((a,b)=>((b.d.s??-1)+(b.d.s2??-1))-((a.d.s??-1)+(a.d.s2??-1))||b.d.n-a.d.n);
-  g.font='700 24px "Chakra Petch","Trebuchet MS",sans-serif';
-  if(!baris.length){g.fillText('Menunggu tim...',24,120);}
+  baris.sort((a,b)=>totalSk(b.d.sk)-totalSk(a.d.sk)||b.d.n-a.d.n);
+  if(!baris.length){g.font='700 24px "Chakra Petch",sans-serif';g.textAlign='left';g.fillText('Menunggu tim...',24,120);}
   baris.slice(0,8).forEach(({t,d},i)=>{
     const y=84+i*40;
     g.fillStyle=t.warna;g.fillRect(24,y-14,28,28);g.strokeStyle='#1c2230';g.lineWidth=3;g.strokeRect(24,y-14,28,28);
-    g.fillStyle='#1c2230';g.textAlign='left';g.fillText('Tim '+t.nama,66,y);
-    g.fillText(d.n+' org',300,y);
-    g.textAlign='right';
-    const sk=(sv,rv)=>sv!=null?String(sv):(rv>0?'b'+(rv+1):'-');
-    g.fillText(sk(d.s,d.r),W-140,y);g.fillText(sk(d.s2,d.r2||0),W-28,y);
+    g.fillStyle='#1c2230';g.textAlign='left';g.font='700 24px "Chakra Petch","Trebuchet MS",sans-serif';g.fillText('Tim '+t.nama,62,y);
+    g.font='700 18px "Chakra Petch",sans-serif';g.fillText(d.n+' org',196,y);
+    g.font='700 22px "Chakra Petch",sans-serif';g.textAlign='center';
+    for(let j=0;j<NPOS;j++){const v=d.sk&&d.sk[j];g.fillText(v!=null?String(v):'-',X0+j*DX,y);}
   });
   papan.tx.needsUpdate=true;
 }
 function laporPapan(paksa){
   if(!rt||!otoritas())return;
-  const ang2=anggota(),n=1+ang2.length,s=skorTim(st),s2=skorTim2(st2),key=n+'/'+s+'/'+st.r+'/'+s2+'/'+st2.r+'/'+ang2.map(p=>p.id).sort().join(','),now=performance.now();
+  const ang2=anggota(),n=1+ang2.length,sk=skorSemua(),key=n+'/'+sk.join(',')+'/'+ang2.map(p=>p.id).sort().join(','),now=performance.now();
   if(!paksa&&key===lastLapor&&now-tLapor<15000)return;
-  lastLapor=key;tLapor=now;kirim('ro',{t:saya.tim,n,s,r:Math.min(st.r,3),s2,r2:Math.min(st2.r,3),m:[[saya.id,saya.nama,kodeAv(saya.av)],...ang2.slice(0,11).map(p=>[p.id,p.nama,kodeAv(p.av)])]});
+  lastLapor=key;tLapor=now;kirim('ro',{t:saya.tim,n,sk,m:[[saya.id,saya.nama,kodeAv(saya.av)],...ang2.slice(0,11).map(p=>[p.id,p.nama,kodeAv(p.av)])]});
 }
 
 /* Tim lain: roster nyata dari papan, tetapi gerakannya simulasi lokal karena posisi asli seluruh kelas melampaui batas pesan. */
@@ -550,31 +685,31 @@ function zoom(f){if(fp()){if(f>1){C.td=6;$('b-kam').textContent='Bebas';}return;
 /* ---------- boost dari koin: dipilih sebelum babak, berlaku satu babak, efeknya lokal ---------- */
 const BOOST={s:{n:'Sepatu roket',k:5,d:'Lari 1,5x'},t:{n:'Tangan raksasa',k:8,d:'Bawa lebih banyak'},p:{n:'Perisai',k:6,d:'Kebal 1 tabrakan'},g:{n:'Gudang cepat',k:6,d:'Isi balok 2x'}};
 let boostPilih=null,boostAktif=null,koinPakai=+(localStorage.getItem('ki-pakai')||0)||0,boostKey='';
-let koinBonus=+(localStorage.getItem('ki-bonus')||0)||0;const koinAS={1:new Set(),2:new Set()};
-const koinA={has:i=>koinAS[me&&me.a===2?2:1].has(i),add:i=>koinAS[me&&me.a===2?2:1].add(i)};
+let koinBonus=+(localStorage.getItem('ki-bonus')||0)||0;const koinAS={1:new Set(),2:new Set(),3:new Set(),4:new Set(),5:new Set(),6:new Set()};
+const koinA={has:i=>koinAS[me&&me.a>=1?me.a:1].has(i),add:i=>koinAS[me&&me.a>=1?me.a:1].add(i)};
 /* arena 3D yang aktif */
-const A3=()=>me&&me.a===2?arena2:arena;
+const A3=()=>me&&me.a>=2&&ALUR[me.a]?ALUR[me.a].P.arena:arena;
 const saldo=()=>Math.max(0,koinAmbil.size+koinBonus-koinPakai);
-const capNow=()=>me&&me.a===2?(boostAktif==='t'?CAP2+1:CAP2):(boostAktif==='t'?CAP+2:CAP);
+const capNow=()=>me&&me.a>=2?((ALUR[me.a]&&ALUR[me.a].P.cap||CAP2)+(boostAktif==='t'?1:0)):(boostAktif==='t'?CAP+2:CAP);
 /* babak dan status pos yang sedang dimasuki */
-const rAktif=()=>me&&me.a===2?Math.min(st2.r,NB2-1):Math.min(st.r,BABAK.length-1);
-const fAktif=()=>me&&me.a===2?st2.f:st.f;
-const selesaiAktif=()=>me&&me.a===2?selesai2(st2):selesai(st);
+const rAktif=()=>AL()?AL().r():Math.min(st.r,BABAK.length-1);
+const fAktif=()=>AL()?AL().st.f:st.f;
+const selesaiAktif=()=>AL()?AL().selesai():selesai(st);
 function pakaiBoost(){
   boostAktif=null;
   if(boostPilih&&saldo()>=BOOST[boostPilih].k){koinPakai+=BOOST[boostPilih].k;try{localStorage.setItem('ki-pakai',String(koinPakai));}catch(e){}boostAktif=boostPilih;}
   boostPilih=null;boostKey='';
 }
 function boostUI(){
-  const box=$('boost'),tampil=me.a>=1&&fAktif()===0&&!selesaiAktif()&&$('roda').hidden&&!(me.a===2&&W.diKamp(me.x,me.z)>=0);
+  const box=$('boost'),tampil=me.a>=1&&fAktif()===0&&!selesaiAktif()&&$('roda').hidden&&!(me.a>=2&&W.diKamp(me.x,me.z)>=0);
   box.hidden=!tampil;
   const kunci=tampil+'|'+boostPilih+'|'+saldo();
-  $(me.a===2?'a2-boost':'ar-boost').textContent=boostAktif?BOOST[boostAktif].n:(boostPilih?BOOST[boostPilih].n+' (siap)':'-');
+  $(me.a>=2?'a2-boost':'ar-boost').textContent=boostAktif?BOOST[boostAktif].n:(boostPilih?BOOST[boostPilih].n+' (siap)':'-');
   if(!tampil||kunci===boostKey)return;boostKey=kunci;
   box.textContent='';
   const j=document.createElement('div');j.className='bj';j.textContent='Boost satu babak (koin '+saldo()+')';box.append(j);
   for(const k in BOOST){
-    const o=BOOST[k],b=document.createElement('button');b.type='button';b.className='btn alt';b.disabled=saldo()<o.k||(me.a===2&&k==='g');
+    const o=BOOST[k],b=document.createElement('button');b.type='button';b.className='btn alt';b.disabled=saldo()<o.k||(me.a>=2&&k==='g');
     b.setAttribute('aria-pressed',String(boostPilih===k));b.textContent=o.n+' '+o.k+'k';b.title=o.d;
     b.addEventListener('click',()=>{boostPilih=boostPilih===k?null:k;boostKey='';boostUI();});box.append(b);
   }
@@ -605,7 +740,7 @@ function petaMini(t){
     miniX.fillStyle=gerbang[i].aktif?'#ff6f47':'#7d8792';miniX.fillRect(px-3,py-3,6,6);});
   miniX.fillStyle='#e6a800';for(let i=0;i<KOIN_N;i++){if(koinAmbil.has(i))continue;[px,py]=P(koinPos[i].x,koinPos[i].z);if(Math.hypot(px-cx,py-cy)<W/2)miniX.fillRect(px-1.5,py-1.5,3,3);}
   miniX.fillStyle='#2b6cff';for(const p of tim.values()){if(p.a!==0||p.id===saya.id)continue;[px,py]=P(p.x,p.z);miniX.beginPath();miniX.arc(px,py,3,0,7);miniX.fill();}
-  for(const gi of [1,0]){const g=gerbang[gi];[px,py]=P(g.x,g.z);const dd=Math.hypot(px-cx,py-cy),ed=W/2-9;
+  for(let gi=POS_AKTIF-1;gi>=0;gi--){const g=gerbang[gi];[px,py]=P(g.x,g.z);const dd=Math.hypot(px-cx,py-cy),ed=W/2-9;
    if(dd>ed){px=cx+(px-cx)/dd*ed;py=cy+(py-cy)/dd*ed;}
    miniX.fillStyle='#ff6f47';miniX.strokeStyle='#fff';miniX.lineWidth=2;miniX.beginPath();miniX.arc(px,py,7,0,7);miniX.fill();miniX.stroke();
    miniX.fillStyle='#fff';miniX.font='bold 9px sans-serif';miniX.textAlign='center';miniX.fillText(String(gi+1),px,py+3);}
@@ -624,7 +759,7 @@ function petaArena(t){
     X.fillStyle=w;X.strokeStyle='#fff';X.lineWidth=2;X.beginPath();X.arc(a,b,luar?6:r,0,7);X.fill();X.stroke();return [a,b,luar];};
   X.clearRect(0,0,WD,H);X.save();X.beginPath();X.arc(cx,cy,WD/2-2,0,7);X.clip();
   X.fillStyle='#5f9a55';X.fillRect(0,0,WD,H);
-  kotak(W.AIR,'#3f9bd8');kotak(W.JURANG,'#4a463f');
+  if(W.AIR)kotak(W.AIR,'#3f9bd8');if(W.JURANG)kotak(W.JURANG,'#4a463f');if(W.LINGKAR)for(const o of W.LINGKAR){const [a,b]=P(o.x,o.z);X.fillStyle='#e6cfa0';X.beginPath();X.arc(a,b,o.r*k,0,7);X.fill();}
   X.lineCap='round';X.strokeStyle='#e6cfa0';
   for(const s of W.JALUR){const [a,b]=P(s[0],s[1]),[c,d]=P(s[2],s[3]);X.lineWidth=2*s[4]*k;X.beginPath();X.moveTo(a,b);X.lineTo(c,d);X.stroke();}
   kotak(W.PLAZA,'#f2e3c2');kotak({x0:-10,x1:10,z0:-3,z1:0},'#1c2230');
@@ -639,13 +774,14 @@ function petaArena(t){
   X.strokeStyle='#1c2230';X.lineWidth=2;X.beginPath();X.arc(cx,cy,WD/2-2,0,7);X.stroke();
 }
 /* ---------- masukan ---------- */
+let rakitLalu=null;
 let stam=100,larian=false,btnLari=false,kb=null,tHabis=0,lontar=null,gerbangBuka=false;
 /* jejak langkah: titik-titik aman di belakang pemain, dipakai sebagai tujuan saat terpental */
 const jejak=[];
 function resetJejak(){jejak.length=0;if(me)jejak.push({x:me.x,z:me.z});}
-function catatJejak(){const L=jejak[jejak.length-1];if(!L||Math.hypot(me.x-L.x,me.z-L.z)>=.6){jejak.push({x:me.x,z:me.z});if(jejak.length>24)jejak.shift();}}
+function catatJejak(){if(me.a>=1&&W.lajur(rAktif(),me.x,me.z))return;const L=jejak[jejak.length-1];if(!L||Math.hypot(me.x-L.x,me.z-L.z)>=.6){jejak.push({x:me.x,z:me.z});if(jejak.length>24)jejak.shift();}}
 function titikMundur(d){
-  for(let i=Math.max(0,jejak.length-1-Math.ceil(d/.6));i>=0;i--)if(W.boleh(jejak[i].x,jejak[i].z,true))return {x:jejak[i].x,z:jejak[i].z};
+  for(let i=Math.max(0,jejak.length-1-Math.ceil(d/.6));i>=0;i--)if(W.boleh(jejak[i].x,jejak[i].z,true)&&!W.lajur(rAktif(),jejak[i].x,jejak[i].z))return {x:jejak[i].x,z:jejak[i].z};
   return W.boleh(me.x,me.z,true)?{x:me.x,z:me.z}:{x:0,z:5.4};
 }
 /* satu langkah di lembah: hanya di jalur; menabrak tepi berarti bergeser menyusuri tepi */
@@ -669,7 +805,7 @@ addEventListener('keydown',e=>{
   else if(e.code==='Space'){emote(1);e.preventDefault();}
   else if(e.code==='KeyZ')emote(2);
   else if(e.code==='KeyC')setPre(preI+1);
-  else if(me&&me.a===2&&/^Digit[1-9]$/.test(e.code)){const k=W.diKamp(me.x,me.z);if(k>=0){const L=batuKamp(Math.min(st2.r,NB2-1),k),b=L[+e.code.slice(5)-1];if(b)ambilBatu(b.kode);}}
+  else if(AL()&&/^Digit[1-9]$/.test(e.code)){const n=+e.code.slice(5);if(AL().P.angka)AL().P.angka(n);else{const b=$('pilih').querySelectorAll('button')[n-1];if(b&&!b.disabled&&!$('pilih').hidden)b.click();}}
 });
 addEventListener('keyup',e=>{const k=peta[e.code];if(k)key[k]=0;if(e.code==='KeyF'||e.code==='Enter')aksiAkhir();});
 addEventListener('blur',()=>{for(const k in key)key[k]=0;tahan=false;});
@@ -709,20 +845,22 @@ function emote(k){
   me.emo={k,t:now};kirim('emo',{id:saya.id,k});
 }
 $('b-lompat').addEventListener('click',()=>emote(1));
-for(const i of [0,1])$('b-pos'+(i+1)).addEventListener('click',()=>{if(me.a!==0||blok())return;const g=gerbang[i];me.x=g.ax;me.z=g.az;me.vx=me.vz=0;kirimPosisi();toast('Sampai di gerbang Pos '+(i+1)+'. Tekan Masuk Pos '+(i+1)+'.');});
+function keGerbang(i){if(!me||me.a!==0||blok())return;const g=gerbang[i];me.x=g.ax;me.z=g.az;me.vx=me.vz=0;kirimPosisi();$('m-pos').hidden=true;toast('Sampai di gerbang Pos '+(i+1)+'. Tekan Masuk Pos '+(i+1)+'.');}
+$('b-pos').addEventListener('click',()=>{const m=$('m-pos');m.hidden=!m.hidden;});
+for(let i=0;i<6;i++){const b=$('m-pos').children[i];if(b){b.disabled=i>=POS_AKTIF;b.addEventListener('click',()=>keGerbang(i));}}
 {const b=$('b-lari'),on=e=>{btnLari=true;e.preventDefault();},off=()=>{btnLari=false;};
  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off);}
 
 /* ---------- arena dan aksi ---------- */
 function setArea(a){
-  if(me.a===2&&a!==2){flush2();}
-  me.a=a;W=a===2?M2:M1;
-  arena.grup.visible=a===1;arena2.grup.visible=a===2;lobiGrup.visible=a===0;rumput.position.y=a>=1?-9:0;
-  $('arhud').hidden=a!==1;$('ar2').hidden=a!==2;$('pilih').hidden=true;
+  if(AL()&&a!==me.a)AL().flush();
+  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;
+  arena.grup.visible=a===1;for(const k in ALUR)ALUR[k].P.arena.grup.visible=a===+k;lobiGrup.visible=a===0;rumput.position.y=a>=1?-9:0;
+  $('arhud').hidden=a!==1;$('ar2').hidden=a<2;$('pilih').hidden=true;
   $('peta').hidden=false;$('peta').classList.toggle('ar',a>=1);$('stam').classList.toggle('ar',a>=1);$('c-koin').hidden=false;
-  $('b-pos1').hidden=a!==0;$('b-pos2').hidden=a!==0;$('stam').hidden=false;$('b-lari').hidden=false;$('b-keluar').hidden=a===0;$('b-lompat').hidden=false;
+  $('b-pos').hidden=a!==0;$('stam').hidden=false;$('b-lari').hidden=false;$('b-keluar').hidden=a===0;$('b-lompat').hidden=false;
   me.siap=0;kirim('siap',{id:saya.id,v:0});
-  kb=null;lontar=null;gerbangBuka=false;arena.setGerbang(false);arena2.setGerbang(false);
+  kb=null;lontar=null;gerbangBuka=false;arena.setGerbang(false);for(const k in ALUR)ALUR[k].P.arena.setGerbang(false);
   me.carry=0;me.tiles=[];
   if(a>=1){
     me.x=-6+Math.random()*12;me.z=W.PLAZA.z1-2.4+Math.random()*1;me.vx=me.vz=0;C.yaw=0;resetJejak();
@@ -732,10 +870,9 @@ function setArea(a){
     aturArena();arena.setWarna(timById(saya.tim).warna);
     kotor=true;toast(selesai(st)?'Pos 1 sudah selesai.':(st.f===1?'Babak sedang berjalan. Ambil balok di kamp, tambal bendungan.':'Lembah Waduk. Semua berdiri di pad hijau untuk mulai.'));
     if(selesai(st))bukaHasil();
-  }else if(a===2){
-    aturArena2();kotor2=true;
-    toast(selesai2(st2)?'Pos 2 sudah selesai.':(st2.f===1?'Babak sedang berjalan. Ambil batu sandi di kamp, pasang di altar.':'Ngarai Kuil. Baca sandi di prasasti, lalu semua berdiri di pad hijau untuk mulai.'));
-    if(selesai2(st2))bukaHasil2();
+  }else if(ALUR[a]){
+    const A=ALUR[a];A.atur();toast(A.P.sambut(A));
+    if(A.selesai())A.bukaHasil();
   }else{
     boostAktif=null;boostPilih=null;boostKey='';const g=gerbang[keluarDari-1]||gerbang[0];me.x=g.ax;me.z=g.az;me.vx=me.vz=0;$('hitung').hidden=true;
   }
@@ -743,7 +880,7 @@ function setArea(a){
   kirimPosisi(true);
 }
 let keluarDari=1;
-$('b-keluar').addEventListener('click',()=>{if(me.a>=1){flush();flush2();setArea(0);}});
+$('b-keluar').addEventListener('click',()=>{if(me.a>=1){flush();for(const k in ALUR)ALUR[k].flush();setArea(0);}});
 $('w-tutup').addEventListener('click',()=>{$('hasil').hidden=true;hasilBuka=false;if(me.a>=1)setArea(0);});
 function bukaHasil(){
   if(hasilBuka)return;
@@ -903,7 +1040,7 @@ function bisaPasca(){try{const gl=renderer.getContext();return !!(renderer.capab
 function terapKual(){
   const k=KUAL[kual],sin=gaya==='s';
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,k.pr));
-  pohon.visible=kual>0;arena.setDetail(k.flora,!!k.hias);arena2.setDetail(k.flora,!!k.hias);
+  pohon.visible=kual>0;arena.setDetail(k.flora,!!k.hias);for(const id in ALUR)ALUR[id].P.arena.setDetail(k.flora,!!k.hias);
   scene.background.set(sin?0xf6c090:0x9fd4ee);
   scene.fog=new THREE.Fog(sin?0xf3bd92:0xa9d8ee,k.kabut[0]*(sin?.55:1),k.kabut[1]*(sin?.8:1));
   hemi.color.set(sin?0xffe2c4:0xffffff);hemi.groundColor.set(sin?0x8272a6:0x7aa860);hemi.intensity=sin?1.9:1.5;
@@ -997,7 +1134,7 @@ function laporan(){
     'Jeda posisi/kirim aksi: '+Math.round(jedaPos())+' / '+Math.round(jedaFlush())+' ms',
     'Perkiraan beban proyek: '+beban().toFixed(0)+' dari 100 pesan per detik',
     'Pos 1: babak '+Math.min(st.r+1,3)+', skor tim '+(skorTim(st)!=null?skorTim(st):'belum'),
-    'Pos 2: babak '+Math.min(st2.r+1,3)+', skor tim '+(skorTim2(st2)!=null?skorTim2(st2):'belum')].join('\n');
+    'Skor tiap pos: '+skorSemua().map((v,i)=>'P'+(i+1)+' '+(v??'-')).join(', ')].join('\n');
 }
 $('b-audit').addEventListener('click',()=>{$('audit').hidden=!$('audit').hidden;$('grafis').hidden=true;isiAudit();});
 $('a-sim').addEventListener('change',e=>{sim.on=e.target.checked;isiAudit();});
@@ -1048,7 +1185,7 @@ $('b-masuk').addEventListener('click',()=>{
   if(prev.r){prev.on=false;prev.r.dispose();prev.r.forceContextLoss&&prev.r.forceContextLoss();}
   $('c-ruang').textContent='Ruang '+kode;
   const ct=$('c-tim');ct.textContent='';const sw=document.createElement('span');sw.className='sw';sw.style.background=t.warna;ct.append(sw,'Tim '+t.nama);
-  setSeed(kode+'|'+saya.tim);st.g=stokBabak(st.r);setSeed2(kode+'|'+saya.tim);st2=stateBaru2();aturArena2();arena.setWarna(t.warna);aturArena();
+  setSeed(kode+'|'+saya.tim);st.g=stokBabak(st.r);for(const k in ALUR){const P=ALUR[k].P;if(P.setSeed)P.setSeed(kode+'|'+saya.tim);ALUR[k].st=P.stateBaru();ALUR[k].atur();}arena.setWarna(t.warna);aturArena();
   tGabung=performance.now();
   rt=sambung(kode,{id:saya.id,nama:saya.nama,tim:saya.tim,av:kodeAv(saya.av)},{
     status:s=>{
@@ -1060,7 +1197,7 @@ $('b-masuk').addEventListener('click',()=>{
     },hadir:onHadir,pesan:onPesan},Q.has('lokal'));
   setInterval(async()=>{if(!rt||rt.mode!=='daring'||document.hidden)return;const p=await rt.ping();if(p!=null){aud.ping=p;aud.pings.push(p);if(aud.pings.length>60)aud.pings.shift();}},8000);
   setInterval(()=>{laporPapan(false);gambarPapan();selaraskanLuar();const ct=$('c-tim');if(ct.lastChild)ct.lastChild.textContent='Tim '+timById(saya.tim).nama+' · '+(1+anggota().length);},1500);
-  mulai=true;gambarPapan();setPre(0);$('b-lompat').hidden=false;$('peta').hidden=false;$('c-koin').hidden=false;$('b-pos1').hidden=false;toast('Pos 1 ada di titik oranye pada peta mini. Atau tekan Ke Pos 1.');$('stam').hidden=false;$('b-lari').hidden=false;
+  mulai=true;gambarPapan();setPre(0);$('b-lompat').hidden=false;$('peta').hidden=false;$('c-koin').hidden=false;$('b-pos').hidden=false;toast('Pos 1 ada di titik oranye pada peta mini. Atau tekan Ke Pos 1.');$('stam').hidden=false;$('b-lari').hidden=false;
   toast('Geser layar kiri untuk berjalan, geser kanan untuk memutar kamera. Dekati gerbang Pos 1.');
 });
 function pemainBaru0(){
@@ -1143,7 +1280,11 @@ function frame(now){
       }else{
         langkah(me.x+me.vx*dt,me.z+me.vz*dt);
         const md=W.medanBabak(rAktif());
-        if(fAktif()===1&&W.diBan(md,me.x,me.z)&&!(me.emo&&me.emo.k===1&&now-me.emo.t<700))langkah(me.x,me.z+W.kecBan(md,Date.now()/1000)*dt);
+        if(fAktif()===1&&W.diBan(md,me.x,me.z)&&!(me.emo&&me.emo.k===1&&now-me.emo.t<700)){const v=W.kecBan(md,Date.now()/1000)*dt;if(md.ban.ax==='x')langkah(me.x+v,me.z);else langkah(me.x,me.z+v);}
+        /* ikut terbawa rakit yang sedang dinaiki */
+        /* geser sejauh perpindahan rakit menurut jam dinding, jadi tetap menempel walau bingkai lambat */
+        if(fAktif()===1){const T=Date.now()/1000,i=W.rakitDi(md,me.x,me.z,T);
+          if(i>=0){const R=md.rakit[i],sN=W.posRakit(R,T);if(rakitLalu&&rakitLalu.i===i){const d=sN-rakitLalu.s;if(R.ax==='x')me.x+=d;else me.z+=d;}rakitLalu={i,s:sN};}else rakitLalu=null;}
         if(now>=tabrakTil&&!kb)catatJejak();
       }
     }
@@ -1187,7 +1328,7 @@ function frame(now){
       const b=$('aksi');gerbangDekat=dalam&&dekat.aktif?dekat:null;b.hidden=!(gerbangDekat&&!blok());if(gerbangDekat)b.textContent='Masuk Pos '+(dekat.i+1);
       if(dalam&&!dekat.aktif&&now-toastGerbang>4000){toastGerbang=now;toast('Pos '+(dekat.i+1)+' ('+dekat.nama+') masih terkunci di prototipe ini.');}
     }else{
-      const P2a=me.a===2,blk=blok(),tSec=Date.now()/1000,r=rAktif(),main=fAktif()===1&&!selesaiAktif();
+      const P2a=me.a>=2,blk=blok(),tSec=Date.now()/1000,r=rAktif(),main=fAktif()===1&&!selesaiAktif();
       A3().animMedan(tSec,dt);
       /* gerbang jalan pintas terbuka selama ada anggota tim di pelat tuas pos yang sama */
       {
@@ -1221,7 +1362,7 @@ function frame(now){
       boostUI();
       /* pad: sebelum babak berarti siap mulai, selama babak berarti kunci */
       const di=W.diPad(me.x,me.z)&&!blk?1:0;
-      if(di!==me.siap){me.siap=di;if(di){flush();flush2();}kirim('siap',{id:saya.id,v:di});}
+      if(di!==me.siap){me.siap=di;if(di){flush();for(const k in ALUR)ALUR[k].flush();}kirim('siap',{id:saya.id,v:di});}
       A3().padAnim(t,me.siap);
       if(!P2a){
         const n=BABAK[r];
@@ -1267,50 +1408,21 @@ function frame(now){
       if(now-tKiriman>400){tKiriman=now;isiArena();isiSiap();}
       isiWaktu(now);
       }else{
-        /* ---------- Pos 2: ambil batu di kamp, pasang di slot altar ---------- */
-        const dk=W.diKamp(me.x,me.z),sl=main&&now>=stunTil?slotDi(r,me.x,me.z):-1;
-        panelPilih(dk,main);
-        const b=$('aksi');
-        let label='';
-        if(sl>=0){
-          const S=soal(r),cocok=me.tiles.some(k=>S.batu[k-1].k===S.slot[sl].k);
-          if(cocok){const k=me.tiles.find(k=>S.batu[k-1].k===S.slot[sl].k);label=(st2.s[sl]?'Ganti dengan ':'Pasang ')+teksBatu(r,k);}
-          else if(me.tiles.length)label='Butuh '+P2.NAMA_JENIS[S.slot[sl].k];
-        }
-        b.hidden=blk||!label;if(!b.hidden)b.textContent=label;
-        if(tahan&&sl>=0&&now-tAksi>350){tahan=false;tAksi=now;pasangBatu(sl);}
-        if(tahan&&sl<0)tahan=false;
-        if(!selesai2(st2)){
-          const L=[me,...anggota().filter(p=>p.a===2)],semua=L.every(p=>p.siap),pem=pemimpinKunci();
-          if(st2.f===0){
-            if(hitung2){
-              if(now>=hitung2){hitung2=0;st2.f=1;endAt2=now+WAKTU2[st2.r]*1000;pakaiBoost();toast('MULAI!'+(boostAktif?' Boost: '+BOOST[boostAktif].n+'.':''));kotor2=true;}
-            }else if(pem&&semua&&!blk){
-              if(!tSiap)tSiap=now;
-              if(now-tSiap>1200){tSiap=0;kirim('mulai2',{r:st2.r});mulaiHitung2();}
-            }else tSiap=0;
-          }else{
-            /* tanpa batas waktu: kunci saat semua di pad dan semua slot terisi */
-            const penuh=st2.s.every(v=>v>0);
-            if(pem&&semua&&!blk&&!penuh&&now-tHabis>4000){tHabis=now;toast('Semua slot harus terisi sebelum sandi dikunci.');}
-            if(pem&&semua&&penuh&&!blk){
-              if(!tSiap)tSiap=now;
-              if(now-tSiap>1200){tSiap=0;flush2();const s2=st2.s.slice(),w=Math.round(1000*Math.max(0,endAt2-now)/(WAKTU2[st2.r]*1000));kirim('kunci2',{r:st2.r,s:s2,w});kunciBabak2(s2,w);}
-            }else tSiap=0;
-          }
-        }else tSiap=0;
+        /* ---------- pos berbasis slot (2 sampai 6): interaksi khusus pos, lalu alur mulai dan kunci ---------- */
+        const A=AL(),P=A.P;
+        const sl=P.bingkai(A,{now,r,main,blk,dt,t,tSec});
+        A.alur(now,blk);
         bawaItems.length=0;
-        for(const p of [me,...anggota()])if(p.a===2&&p.carry>0)bawaItems.push({x:p.x,z:p.z,y:p.grp.userData.h+.3+(p.grp.position.y),n:p.carry});
-        arena2.setBawa(bawaItems);
-        if(kotor2){arena2.setSlot(selesai2(st2)?st2.sr[NB2-1]:st2.s,-1);kotor2=false;}
-        if(now-tKiriman>400){tKiriman=now;arena2.setSlot(selesai2(st2)?st2.sr[NB2-1]:st2.s,sl);}
-        isiAr2(now);
-        if(pend2.size&&now-tFlush2>jedaFlush())flush2();
+        for(const p of [me,...anggota()])if(p.a===me.a&&p.carry>0)bawaItems.push({x:p.x,z:p.z,y:p.grp.userData.h+.3+(p.grp.position.y),n:p.carry});
+        P.arena.setBawa(bawaItems);
+        if(A.kotor){P.arena.setSlot(A.tampilS(),-1,A);A.kotor=false;}
+        if(now-tKiriman>400){tKiriman=now;P.arena.setSlot(A.tampilS(),sl,A);}
+        A.hud(now);
       }
     }
     /* rekonsiliasi: otoritas menyiarkan keadaan setelah tenang */
     if(ubahSt&&otoritas()&&now-tDelta>3000&&now-tStKirim>8000&&!pend.size){stKirim();ubahSt=false;}
-    if(ubahSt2&&otoritas()&&now-tDelta2>3000&&now-tSt2>8000&&!pend2.size){stKirim2();ubahSt2=false;}
+    for(const k in ALUR)ALUR[k].rekon(now);
     tx=me.x;tz=me.z;kamY+=((me.a>=1?W.tinggi(me.x,me.z):0)-kamY)*Math.min(1,dt*6);
   }
   /* kamera */
@@ -1339,4 +1451,4 @@ document.fonts&&document.fonts.ready.then(gambarPapan);
 
 /* kait uji */
 window.__L={P1,AR,arena,get endAt(){return endAt;},get stunTil(){return stunTil;},get me(){return me;},tim,luar,papanData,get st(){return st;},aud,get rt(){return rt;},gerbang,C,hit,
-  MED,M2,P2,arena2,get st2(){return st2;},ambilBatu,pasangBatu,flush2,ubahSlot2,get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca};},setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};
+  MED,M2,M3,P2,P3,arena2,arena3,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca};},setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};

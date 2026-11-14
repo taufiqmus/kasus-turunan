@@ -1,9 +1,9 @@
 /* Arena Pos 2 "Ngarai Kuil": dunia umum dari dunia3d.js (tema gurun) ditambah fasad kuil dengan prasasti sandi,
    altar notasi integral di plaza (slot batu), rak batu sandi di tiap kamp, dan batu yang dibawa pemain. */
 import * as THREE from './vendor/three.min.js';
-import {M2} from './medan.js?v=26';
-import {buatDunia,TEMA_GURUN,mat,tulisanLantai} from './dunia3d.js?v=26';
-import {soal,tata,batuKamp,teksBatu} from './pos2.js?v=26';
+import {M2} from './medan.js?v=27';
+import {buatDunia,TEMA_GURUN,mat,tulisanLantai} from './dunia3d.js?v=27';
+import {soal,tata,batuKamp,teksBatu} from './pos2.js?v=27';
 
 /* gambar prasasti: grafik daerah berarsir atau cerita. Dipakai juga untuk kartu kecil di HUD dan ulasan. */
 export function gambarSandi(cv,r,opsi={}){

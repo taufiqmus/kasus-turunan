@@ -120,7 +120,7 @@ with sync_playwright() as p:
     # papan skor tim lain
     C.bring_to_front();C.wait_for_timeout(2500)
     d=C.evaluate('__L.papanData.merah') or {}
-    cek('papan di C menerima skor Pos 2 tim merah',(d.get('s2') or 0)>=80,d)
+    cek('papan di C menerima skor Pos 2 tim merah',((d.get('sk') or [0,0])[1] or 0)>=80,d)
     # pendatang baru setim
     D=masuk(ctx,'Dedi','merah',errs);D.wait_for_timeout(6500)
     cek('pendatang baru menerima keadaan Pos 2',D.evaluate('__L.st2.r')==3,D.evaluate('__L.st2.r'))

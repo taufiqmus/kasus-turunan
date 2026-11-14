@@ -23,6 +23,7 @@ export function buatMedan(D){
     let d=1e9;
     for(const s of D.JALUR)d=Math.min(d,jarakRuas(x,z,s)-s[4]);
     for(const k of D.KAMP)d=Math.min(d,Math.hypot(x-k.x,z-k.z)-k.r);
+    if(D.LINGKAR)for(const k of D.LINGKAR)d=Math.min(d,Math.hypot(x-k.x,z-k.z)-k.r);
     const P=D.PLAZA,px=Math.max(P.x0-x,x-P.x1),pz=Math.max(P.z0-z,z-P.z1);
     return Math.min(d,Math.max(px,pz));
   };
@@ -44,7 +45,9 @@ export function buatMedan(D){
   M.diPad=(x,z)=>Math.hypot(x-D.PAD.x,z-D.PAD.z)<D.PAD.r;
   M.diTuas=(x,z)=>Math.hypot(x-D.TUAS.x,z-D.TUAS.z)<D.TUAS.r;
   const CACHE=[];
-  M.medanBabak=r=>{const k=Math.max(0,Math.min(r,2));return CACHE[k]||(CACHE[k]=D.rintangan(k));};
+  M.medanBabak=r=>{const k=Math.max(0,Math.min(r,2));if(CACHE[k])return CACHE[k];
+    const m=D.rintangan(k);for(const j of ['kayu','palu','pintu','duri','ubin','bola','penekan','lengan','rakit','jatuh'])m[j]=m[j]||[];
+    m.ban=m.ban||{x0:0,x1:0,z0:0,z1:0,v:0,T:12};return CACHE[k]=m;};
   M.xKayu=(s,t)=>s.m+s.A*Math.sin(TAU*(t/s.T+s.f));
   M.posKayu=(s,t)=>{const v=M.xKayu(s,t);return s.ax==='x'?[v,s.c]:[s.c,v];};
   M.xPalu=(p,t)=>PAL_A*Math.sin(TAU*(t/p.T+p.f));
@@ -58,22 +61,46 @@ export function buatMedan(D){
   M.keadaanBola=(b,t)=>{const u=fr(t/b.T+b.f);if(u<.2)return {fase:'peringatan',z:b.z0,u};if(u<.58)return {fase:'gulir',z:b.z0+(u-.2)/.38*(b.z1-b.z0),u};return {fase:null,z:b.z0,u};};
   /* kecepatan ban berjalan sepanjang sumbu z (positif = menjauhi plaza) */
   M.kecBan=(m,t)=>m.ban.balik?m.ban.v*Math.sin(TAU*t/m.ban.T):m.ban.v;
-  M.diBan=(m,x,z)=>x>m.ban.x0-.2&&x<m.ban.x1+.2&&z>m.ban.z0&&z<m.ban.z1;
+  M.diBan=(m,x,z)=>m.ban.ax==='x'?(x>m.ban.x0&&x<m.ban.x1&&z>m.ban.z0-.2&&z<m.ban.z1+.2):(x>m.ban.x0-.2&&x<m.ban.x1+.2&&z>m.ban.z0&&z<m.ban.z1);
   M.diTramp=(m,x,z)=>!!m.tramp&&Math.hypot(x-m.tramp.x,z-m.tramp.z)<m.tramp.r;
+  /* penekan pabrik: naik (aman), bergetar (peringatan), menekan (bahaya), naik lagi. h = tinggi kepala 0..1 */
+  M.penekan=(p,t)=>{const u=fr(t/p.T+p.f);if(u<.5)return {fase:0,h:1};if(u<.62)return {fase:1,h:1};if(u<.8)return {fase:2,h:Math.max(0,1-(u-.62)/.04)};return {fase:3,h:(u-.8)/.2};};
+  /* lengan putar rendah di pusat (x,z): n lengan sepanjang L, bisa dilompati */
+  M.sudutLengan=(L,t)=>L.w*t+TAU*L.f;
+  M.kenaLengan=(L,x,z,t)=>{const dx=x-L.x,dz=z-L.z,r=Math.hypot(dx,dz);if(r>L.L+.35)return false;if(r<.7)return true;
+    const a=Math.atan2(dz,dx),s=M.sudutLengan(L,t);for(let i=0;i<L.n;i++){let d=a-(s+TAU*i/L.n);d=Math.atan2(Math.sin(d),Math.cos(d));if(Math.abs(d)*r<.6)return true;}return false;};
+  /* rakit di lajur air: diam di ujung awal, menyeberang, diam di ujung akhir, kembali. Hasil: pusat rakit di sepanjang sumbu */
+  M.posRakit=(R,t)=>{const u=fr(t/R.T+R.f),p0=R.a0+R.len/2,p1=R.a1-R.len/2;
+    const k=u<.2?0:u<.5?ss(0,1,(u-.2)/.3):u<.7?1:1-ss(0,1,(u-.7)/.3);return p0+(p1-p0)*k;};
+  const diLajur=(R,x,z)=>{const a=R.ax==='x'?x:z,c=R.ax==='x'?z:x;return Math.abs(c-R.c)<R.lebar+.25&&a>R.a0&&a<R.a1;};
+  const diAtasRakit=(R,x,z,t)=>{const a=R.ax==='x'?x:z;return Math.abs(a-M.posRakit(R,t))<R.len/2+.1;};
+  M.lajur=(r,x,z)=>M.medanBabak(r).rakit.some(R=>diLajur(R,x,z));
+  /* indeks rakit yang sedang dinaiki, atau -1 */
+  M.rakitDi=(m,x,z,t)=>m.rakit.findIndex(R=>diLajur(R,x,z)&&diAtasRakit(R,x,z,t));
+  /* kecepatan rakit yang sedang dinaiki (untuk ikut terbawa), atau null */
+  M.kecRakit=(m,x,z,t)=>{for(const R of m.rakit)if(diLajur(R,x,z)&&diAtasRakit(R,x,z,t)){const v=(M.posRakit(R,t+.05)-M.posRakit(R,t-.05))/.1;return R.ax==='x'?[v,0]:[0,v];}return null;};
+  /* es atau batu jatuh: tiap siklus, n titik acak tetap (sama di semua perangkat) diberi bayangan lalu tertimpa */
+  const acak=(c,i,k)=>fr(Math.sin(c*12.9898+i*78.233+k*37.719)*43758.5453);
+  M.titikJatuh=(J,t)=>{const v=t/J.T+J.f,c=Math.floor(v),u=v-c,L=[];
+    for(let i=0;i<J.n;i++){const ui=fr(u+i*.13);L.push({x:J.x0+(J.x1-J.x0)*acak(c,i,1),z:J.z0+(J.z1-J.z0)*acak(c,i,2),u:ui});}return L;};
   /* Apakah titik (x,z) terkena bahaya pada waktu t? udara = pemain sedang di puncak lompatan.
      Palu dan pintu tidak bisa dilompati. Hasil: {j, mundur (jarak terpental ke belakang), msg}. */
   M.bahaya=(r,x,z,t,udara)=>{
     const m=M.medanBabak(r);
+    for(const p of m.penekan)if(x>p.x0&&x<p.x1&&z>p.z0&&z<p.z1&&M.penekan(p,t).fase===2)return {j:'penekan',mundur:3,msg:D.teks.penekan};
+    for(const R of m.rakit)if(diLajur(R,x,z)&&!diAtasRakit(R,x,z,t))return {j:'air',mundur:4,msg:D.teks.air};
+    for(const J of m.jatuh)for(const q of M.titikJatuh(J,t))if(q.u>.55&&q.u<.68&&Math.hypot(x-q.x,z-q.z)<J.r)return {j:'jatuh',mundur:2.5,msg:D.teks.jatuh};
     for(const p of m.palu)if(Math.abs(z-p.z)<.65&&Math.abs(x-p.x-M.xPalu(p,t))<.85)return {j:'palu',mundur:3,msg:D.teks.palu};
     for(const p of m.pintu){
       if(x<PI.x0-.3||x>PI.x1+.3||Math.abs(z-p.z)>=.5)continue;
       const ce=M.celahPintu(p,t);if(ce<.9||Math.abs(x-PI.cx)>ce/2)return {j:'pintu',mundur:3,msg:D.teks.pintu};
     }
     if(udara)return null;
+    for(const L of m.lengan)if(M.kenaLengan(L,x,z,t))return {j:'lengan',mundur:3,msg:D.teks.lengan};
     for(const s of m.kayu){const [kx,kz]=M.posKayu(s,t);if(s.ax==='x'?(Math.abs(z-kz)<.95&&Math.abs(x-kx)<RINT_R):(Math.abs(x-kx)<.95&&Math.abs(z-kz)<RINT_R))return {j:'kayu',mundur:2.4,msg:D.teks.kayu};}
     for(const p of m.duri)for(let i=0;i<p.pts.length;i++)
       if(M.duriNaik(p,i,t)&&Math.hypot(x-p.pts[i][0],z-p.pts[i][1])<DURI_HIT)return {j:'duri',mundur:3,msg:D.teks.duri};
-    for(const u of m.ubin)if(Math.abs(x-u.x)<=D.UBIN.W/2+.3&&Math.abs(z-u.z)<D.UBIN.D/2&&M.statusUbin(u,t)===2)return {j:'ubin',mundur:7,msg:D.teks.ubin};
+    for(const u of m.ubin)if(Math.abs(x-u.x)<=(u.w||D.UBIN.W)/2+.3&&Math.abs(z-u.z)<(u.d||D.UBIN.D)/2&&M.statusUbin(u,t)===2)return {j:'ubin',mundur:7,msg:D.teks.ubin};
     for(const b of m.bola){const s=M.keadaanBola(b,t);if(s.fase==='gulir'&&Math.abs(x-b.x)<BOLA_R&&Math.abs(z-s.z)<BOLA_R)return {j:'bola',mundur:4,msg:D.teks.bola};}
     return null;
   };
@@ -188,6 +215,54 @@ export const M2=buatMedan({
       ban:{...BAN,balik:k===2,v:[2.0,2.8,3.4][k],T:12},
       tramp:k===2?{x:-20.5,z:24,r:1.2,x1:XO,z1:13.5,dur:1100}:null,
       bola:[[{x:-1.2,T:13,f:0}],[{x:-1.2,T:11,f:0}],[{x:-1.2,T:10,f:0},{x:1.2,T:10,f:.5}]][k].map(b=>({...b,z0:60,z1:41.5}))
+    };
+  }
+});
+
+/* ================= Pos 3: Danau Beku ================= */
+/* Jalan lingkar persegi mengelilingi danau. Stasiun: Tungku (timur), Gudang C (utara), Pemotong (barat).
+   Pulau di tengah danau dengan lengan putar menjadi simpul empat lajur: rakit (selatan, utara), es tipis (timur), arus (barat).
+   Jalan pintas bertuas di luar sisi timur menuju Tungku. */
+export const M3=buatMedan({
+  nama:'Danau Beku',
+  DUNIA:{x0:-42,x1:42,z0:-6,z1:60},
+  PLAZA:{x0:-15,x1:15,z0:.4,z1:8.6},
+  KAMP:[{x:21,z:30,r:4.2,nama:'Tungku'},{x:0,z:50,r:4.2,nama:'Gudang C'},{x:-21,z:30,r:4.2,nama:'Pemotong'}],
+  PAD:{x:12.5,z:6.6,r:2},TUAS:{x:-12.5,z:6.6,r:1.8},
+  LINGKAR:[{x:0,z:30,r:4.4}],
+  JALUR:[
+    [13,3,28,5,2],[28,5,28,26,2],[28,26,25,29,2],[28,26,32,30,1.8],
+    /* jalan lingkar */
+    [-17,10,17,10,HW],[17,10,21,14,HW],[21,14,21,46,HW],[21,46,17,50,HW],[17,50,-17,50,HW],[-17,50,-21,46,HW],[-21,46,-21,14,HW],[-21,14,-17,10,HW],
+    /* taji buntu berkoin */
+    [21,46,26,51,1.8],[-21,46,-26,51,1.8],[-21,14,-27,9,1.8],
+    /* penyeberangan danau lewat pulau */
+    [0,10,0,17,2],[0,17,0,25.7,1.5],[0,34.3,0,43,1.5],[0,43,0,50,2],
+    [4.3,30,13,30,1.5],[13,30,21,30,2],[-13,30,-4.3,30,1.5],[-21,30,-13,30,2]
+  ],
+  GERBANG:{ruas:1,z0:11,z1:12.3,x0:26,x1:30},
+  AIR:{x0:-13,x1:13,z0:17,z1:43},AIR_JATUH:'tidak',
+  tinggi:(x,z)=>2.5*Math.exp(-((x-21)**2+(z-30)**2)/30)+2*ss(46,51,z)*(1-ss(18,26,Math.abs(x))),
+  tebing:(x,z)=>Math.max(ss(35,42,Math.abs(x)),ss(54,60,z)),
+  KOIN_A:[[26,51],[24.6,49.6],[-26,51],[-24.6,49.6],[-27,9],[-25.6,10.4],[32,30],[30.6,28.6],[10,10],[-10,10],[9,50],[-9,50],[21,22],[-21,38]],
+  PINTU:{cx:0,x0:-2,x1:2,min:.3,max:3.4},
+  UBIN:{W:2.1,D:3.8},
+  BAN:{ax:'x',x0:-13,x1:-4.3,z0:28.5,z1:31.5},
+  teks:{palu:'Terkena palu!',pintu:'Terjepit gerbang es!',kayu:'Tergilas bola salju!',duri:'Kena paku es!',ubin:'Es tipis pecah! Tercebur.',bola:'Tertabrak bola salju!',
+    penekan:'Tertekan mesin penekan!',air:'Tercebur ke danau! Naik rakit saat merapat.',jatuh:'Tertimpa es jatuh!',lengan:'Tersapu lengan putar! Lompat saat lengan lewat.'},
+  rintangan(k){
+    const T=[6.5,5.6,4.8][k],Tp=[5,4.4,3.8][k];
+    return {
+      kayu:[{ax:'z',c:9,m:50,A:3.0,f:0},{ax:'z',c:-9,m:50,A:3.0,f:.5}].map(o=>({...o,T})),
+      pintu:[{z:44,T:[6.2,5.2,4.4][k],f:0}],
+      penekan:[{x0:18.6,x1:23.4,z0:19.2,z1:20.8,f:0},{x0:-23.4,x1:-18.6,z0:39.2,z1:40.8,f:.5},{x0:25.6,x1:30.4,z0:17.2,z1:18.8,f:.25}].map(o=>({...o,T:Tp})),
+      duri:[{pts:baris(21,38,1.5),f:0},{pts:baris(-21,20,1.5),f:.5},{pts:baris(0,14,1.3),f:.25},
+        {pts:lintang(23.5,48.5,5,5),f:.7},{pts:lintang(-23.5,48.5,-5,5),f:.2},{pts:lintang(-24,11.5,-6,-5),f:.6}].map(o=>({...o,T:[4.2,3.6,3.2][k]})),
+      ubin:[5.4,7.6,9.8,12.0].map((x,n)=>({x,z:30,w:2.1,d:3.8,f:fr(n*.29),T:[7,6,5][k]})),
+      ban:{...this.BAN,balik:k===2,v:-[2.0,2.8,3.4][k],T:12},
+      lengan:[{x:0,z:30,L:4.6,w:[1.3,1.7,2.1][k],n:[2,2,3][k],f:0}],
+      rakit:[{ax:'z',c:0,a0:17,a1:25.7,len:3,lebar:1.5,T:[8,7,6][k],f:0},{ax:'z',c:0,a0:34.3,a1:43,len:3,lebar:1.5,T:[8,7,6][k],f:.5}],
+      jatuh:[{x0:-23.5,x1:-15,z0:44,z1:52.5,n:[3,4,5][k],T:4.5,f:0,r:1.2}].concat(k===2?[{x0:15,x1:23.5,z0:8,z1:16,n:4,T:4,f:.5,r:1.2}]:[])
     };
   }
 });

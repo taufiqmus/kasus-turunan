@@ -155,7 +155,7 @@ with sync_playwright() as p:
     A.screenshot(path='/tmp/v3-hasil.png')
     # laporan papan ke tim lain
     C.bring_to_front();C.wait_for_timeout(2500)
-    cek('papan di C menerima skor tim merah',(C.evaluate('__L.papanData.merah') or {}).get('s',0)>=80,C.evaluate('__L.papanData'))
+    cek('papan di C menerima skor tim merah',((C.evaluate('__L.papanData.merah') or {}).get('sk') or [0])[0]>=80,C.evaluate('__L.papanData'))
     # pendatang baru setim menerima state
     D=masuk(ctx,'Dedi','merah',errs);D.wait_for_timeout(6500)
     cek('pendatang baru menerima state',D.evaluate('__L.st.r')==3,D.evaluate('__L.st.r'))

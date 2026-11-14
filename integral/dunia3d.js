@@ -2,7 +2,7 @@
    gerbang, koin, dan semua rintangan. Isi khusus tiap pos (bendungan, kuil, kolom, altar) ditambah oleh modul pos.
    W = dunia dari medan.js, T = tema warna dan tumbuhan. */
 import * as THREE from './vendor/three.min.js';
-import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=26';
+import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=27';
 
 export const mat=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
 /* tumbuhan dan batu yang menutupi pemain dari kamera dibuat tembus pandang berbintik, supaya karakter selalu terlihat.
@@ -21,7 +21,9 @@ function tembus(m){
 }
 export function tulisanLantai(teks,w,warnaGaris,opsi={}){
   const c=document.createElement('canvas');c.width=256;c.height=128;const g=c.getContext('2d');
-  g.textAlign='center';g.textBaseline='middle';g.font='800 '+(opsi.size||84)+'px "Bricolage Grotesque",sans-serif';g.lineWidth=12;g.lineJoin='round';
+  g.textAlign='center';g.textBaseline='middle';let fs=opsi.size||84;g.font='800 '+fs+'px "Bricolage Grotesque",sans-serif';
+  while(g.measureText(teks).width>228&&fs>16){fs-=4;g.font='800 '+fs+'px "Bricolage Grotesque",sans-serif';}
+  g.lineWidth=12;g.lineJoin='round';
   g.strokeStyle=warnaGaris;g.strokeText(teks,128,68);g.fillStyle=opsi.fg||'#1c2230';g.fillText(teks,128,68);
   const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;
   const lp=new THREE.Mesh(new THREE.PlaneGeometry(w,w/2),new THREE.MeshBasicMaterial({map:tx,transparent:true,depthWrite:false,toneMapped:false}));
@@ -62,6 +64,21 @@ export const TEMA_GURUN={
   batu:[0xb07a52,0xc48d62,0x9c6a48],batuJalan:0xc9a576
 };
 
+export const TEMA_SALJU={
+  tanah(W,x,z,d,n,C){
+    if(z<-.6)C.set(0xb9c6cf);
+    else if(dalam(W.AIR,x,z)>0)C.set(0x5d7f96);
+    else if(dalam(W.PLAZA,x,z)>-.2)C.set(0xdfe8ee);
+    else if(d<-.25)C.set(0xc9d6df);
+    else if(W.tebing(x,z)>.3)C.set(n>.2?0x8e9aa6:0x7d8894);
+    else if(dalam(W.AIR,x,z)>-2.2)C.set(0xd8e6ef);
+    else C.set(n>.25?0xf4f8fb:0xe9f1f6);
+  },
+  flora:'hutan',kamp:[0xd2603a,0x2f7fc1,0x7a4bc4],latar:[0xc9d6e2,0xb3c3d1,0xdfe7ee],
+  batu:[0x8e9aa6,0x9fabb6,0x7c8894],batuJalan:0xe6f2f8,
+  warnaA:[0x2f5d4a,0x2a5444,0x36695a,0x2c584a],warnaB:[0xf4f8fb,0xeaf2f7,0xf4f8fb,0xe2ecf3],warnaMahkota:[0xeef4f8,0xe2ecf3,0xf6fafc,0xdde8f0],semak:0xd5e2ea,
+  air:0x4f88b0
+};
 export function buatDunia(W,T){
   const grup=new THREE.Group();grup.visible=false;
   const Y=(x,z)=>W.tinggi(x,z);
@@ -116,15 +133,15 @@ export function buatDunia(W,T){
   /* ---------- air, air terjun, dasar jurang ---------- */
   const riaks=[],A=W.AIR,timur=W.AIR_JATUH!=='barat';
   if(A){
-    const matAir=new THREE.MeshPhongMaterial({color:T.flora==='gurun'?0x36a9b8:0x3f9bd8,transparent:true,opacity:.86,shininess:90,specular:0xbfe6ff});
+    const matAir=new THREE.MeshPhongMaterial({color:T.air||(T.flora==='gurun'?0x36a9b8:0x3f9bd8),transparent:true,opacity:.86,shininess:90,specular:0xbfe6ff});
     const w=A.x1-A.x0+2,d=A.z1-A.z0,cx=(A.x0+A.x1)/2+(timur?1:-1),cz=(A.z0+A.z1)/2;
     const air=new THREE.Mesh(new THREE.PlaneGeometry(w,d),matAir);air.rotation.x=-Math.PI/2;air.position.set(cx,-.38,cz);air.userData.tanah=true;grup.add(air);
     for(let i=0;i<5;i++){
       const r=new THREE.Mesh(new THREE.PlaneGeometry(3.2,.16),new THREE.MeshBasicMaterial({color:0xdff3ff,transparent:true,opacity:.7,depthWrite:false}));
       r.rotation.x=-Math.PI/2;r.position.set(0,-.34,A.z0+.6+i*(d-1.2)/4);r.userData.tanah=true;grup.add(r);riaks.push(r);
     }
-    const jatuh=new THREE.Mesh(new THREE.PlaneGeometry(d,12),new THREE.MeshBasicMaterial({color:0xcfeaff,transparent:true,opacity:.8,side:THREE.DoubleSide}));
-    jatuh.rotation.y=-Math.PI/2;jatuh.position.set(timur?D.x1-.3:D.x0+.3,5.6,cz);jatuh.userData.tanah=true;grup.add(jatuh);
+    if(W.AIR_JATUH!=='tidak'){const jatuh=new THREE.Mesh(new THREE.PlaneGeometry(d,12),new THREE.MeshBasicMaterial({color:0xcfeaff,transparent:true,opacity:.8,side:THREE.DoubleSide}));
+    jatuh.rotation.y=-Math.PI/2;jatuh.position.set(timur?D.x1-.3:D.x0+.3,5.6,cz);jatuh.userData.tanah=true;grup.add(jatuh);}
   }
   const GT=W.GANTUNG,gantY=GT?Y(GT.x,(GT.z0+GT.z1)/2):0;
   if(W.JURANG){
@@ -166,7 +183,7 @@ export function buatDunia(W,T){
     const gBatL=gurun?new THREE.CylinderGeometry(.2,.3,4.4,6):gBat;
     const a=mk(gA,NP),b=mk(gB,NP),c=mk(gBat,NP),mah=mk(gMah,NL),bl=mk(gBatL,NL),batu=mk(new THREE.IcosahedronGeometry(1,0),NB),semak=mk(new THREE.ConeGeometry(.6,.9,5),NS);
     const m=new THREE.Matrix4(),q=new THREE.Quaternion(),p=new THREE.Vector3(),sc=new THREE.Vector3(),C=new THREE.Color(),e=new THREE.Euler();
-    const HP=gurun?[0x4f8f4a,0x5c9c52,0x467f43,0x6aa85a]:[0x1f6b3a,0x2a7d44,0x2f8a4c,0x246b3f],HL=gurun?[0x3f9a52,0x4fae5a,0x5bb565,0x358a46]:[0x4fae5a,0x6cc06a,0x3f9a52,0x8cc96a];
+    const HP=T.warnaA||(gurun?[0x4f8f4a,0x5c9c52,0x467f43,0x6aa85a]:[0x1f6b3a,0x2a7d44,0x2f8a4c,0x246b3f]),HP2=T.warnaB||HP,HL=T.warnaMahkota||(gurun?[0x3f9a52,0x4fae5a,0x5bb565,0x358a46]:[0x4fae5a,0x6cc06a,0x3f9a52,0x8cc96a]);
     let np=0,nl=0,nb=0,ns=0;
     const sah=(x,z,marg)=>z>1&&W.jarakJalan(x,z)>marg&&dalam(A,x,z)<-.6&&dalam(W.JURANG,x,z)<-.4;
     for(let i=0;i<9000;i++){
@@ -185,7 +202,7 @@ export function buatDunia(W,T){
         }else{
           p.set(x,y+.7*s,z);m.compose(p,q,sc);c.setMatrixAt(np,m);c.setColorAt(np,C.set(0x7a4f2a));
           p.set(x,y+2.9*s,z);m.compose(p,q,sc);a.setMatrixAt(np,m);a.setColorAt(np,C.set(HP[i%4]));
-          p.set(x,y+4.6*s,z);m.compose(p,q,sc);b.setMatrixAt(np,m);b.setColorAt(np,C.set(HP[(i+1)%4]));
+          p.set(x,y+4.6*s,z);m.compose(p,q,sc);b.setMatrixAt(np,m);b.setColorAt(np,C.set(HP2[(i+1)%4]));
         }
         np++;
       }else if(u<pL&&!tebing){
@@ -206,7 +223,7 @@ export function buatDunia(W,T){
       }else{
         if(ns>=NS||!sah(x,z,.5))continue;
         q.setFromEuler(e.set(0,ry,0));sc.set(s,s,s);p.set(x,y+.4*s,z);m.compose(p,q,sc);semak.setMatrixAt(ns,m);
-        semak.setColorAt(ns,C.set(gurun?(dekatAir?0x7fae5c:0xa89a5c):(kiri?0x3a8a48:kanan?0x9bd070:0x7fae5c)));ns++;
+        semak.setColorAt(ns,C.set(T.semak||(gurun?(dekatAir?0x7fae5c:0xa89a5c):(kiri?0x3a8a48:kanan?0x9bd070:0x7fae5c))));ns++;
       }
     }
     const jml=[np,np,np,nl,nl,nb,ns];
@@ -260,17 +277,18 @@ export function buatDunia(W,T){
     for(const [ox,oz] of [[-.3,-.2],[.3,-.2],[0,.28]]){const c=new THREE.Mesh(new THREE.ConeGeometry(.24,1.0,6),merah);c.position.set(ox,.5,oz);kn.add(c);}
     g.add(kn);g.visible=false;grup.add(g);MD.duri.push({g,kn,j,i});
   }
-  for(let n=0;n<3;n++){const u=new THREE.Mesh(new THREE.BoxGeometry(W.UBIN.W*.97,.6,W.UBIN.D*.94),matBatu.clone());u.visible=false;grup.add(u);MD.ubin.push(u);}
+  for(let n=0;n<6;n++){const u=new THREE.Mesh(new THREE.BoxGeometry(1,.6,1),matBatu.clone());u.visible=false;grup.add(u);MD.ubin.push(u);}
   for(let n=0;n<2;n++){
     const b=new THREE.Mesh(new THREE.IcosahedronGeometry(BOLA_R,1),mat(T.flora==='gurun'?0xb07a52:0x8a8f98));b.visible=false;grup.add(b);
     const w=new THREE.Mesh(new THREE.PlaneGeometry(BOLA_R*2,1),new THREE.MeshBasicMaterial({color:0xe5392b,transparent:true,opacity:.0,depthWrite:false}));
     w.rotation.x=-Math.PI/2;w.visible=false;w.userData.tanah=true;grup.add(w);MD.bola.push({b,w});
   }
   /* ban berjalan (di gurun: aliran pasir): alas dan panah yang bergulir */
-  const BAN=W.BAN,banL=BAN.z1-BAN.z0,banCx=(BAN.x0+BAN.x1)/2,banCz=(BAN.z0+BAN.z1)/2;
-  const banAlas=new THREE.Mesh(new THREE.PlaneGeometry(BAN.x1-BAN.x0,banL),new THREE.MeshBasicMaterial({color:T.flora==='gurun'?0xb98b52:0x4a4f5a}));
-  banAlas.rotation.x=-Math.PI/2;banAlas.position.set(banCx,Y(banCx,banCz)+.05,banCz);banAlas.userData.tanah=true;grup.add(banAlas);
-  const chevG=new THREE.Group();grup.add(chevG);
+  const BAN=W.BAN,banX=BAN.ax==='x',banL=banX?BAN.x1-BAN.x0:BAN.z1-BAN.z0,banCx=(BAN.x0+BAN.x1)/2,banCz=(BAN.z0+BAN.z1)/2;
+  const adaBan=BAN.x1>BAN.x0;
+  const banAlas=new THREE.Mesh(new THREE.PlaneGeometry(BAN.x1-BAN.x0,BAN.z1-BAN.z0),new THREE.MeshBasicMaterial({color:T.flora==='gurun'?0xb98b52:0x4a4f5a}));
+  banAlas.rotation.x=-Math.PI/2;banAlas.position.set(banCx,(W.AIR&&dalam(W.AIR,banCx,banCz)>0?-.25:Y(banCx,banCz))+.05,banCz);banAlas.userData.tanah=true;grup.add(banAlas);
+  const chevG=new THREE.Group();grup.add(chevG);banAlas.visible=chevG.visible=adaBan;
   {
     const ga=new THREE.BoxGeometry(.8,.03,.16),mc=mat(T.flora==='gurun'?0xfff1d0:0xffd96b);
     for(let k=0;k<18;k++){
@@ -293,15 +311,51 @@ export function buatDunia(W,T){
       m.visible=false;grup.add(m);MD.kayu.push({g:m,b});
     }
   }
+  /* penekan pabrik: alas bergaris dan kepala penekan di antara dua tiang */
+  const garis=(()=>{const c=document.createElement('canvas');c.width=64;c.height=64;const g=c.getContext('2d');g.fillStyle='#1c2230';g.fillRect(0,0,64,64);g.fillStyle='#ffc83d';
+    for(let i=-64;i<128;i+=24){g.beginPath();g.moveTo(i,0);g.lineTo(i+12,0);g.lineTo(i+76,64);g.lineTo(i+64,64);g.fill();}const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(3,1);return t;})();
+  for(let i=0;i<4;i++){
+    const g=new THREE.Group();g.visible=false;grup.add(g);
+    const alas=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:garis}));alas.rotation.x=-Math.PI/2;alas.position.y=.06;alas.userData.tanah=true;g.add(alas);
+    const kepala=new THREE.Mesh(new THREE.BoxGeometry(1,.7,1),mat(0x6b7480));g.add(kepala);
+    const t1=new THREE.Mesh(new THREE.BoxGeometry(.35,4.6,.35),logam),t2=t1.clone(),atap=new THREE.Mesh(new THREE.BoxGeometry(1,.4,.6),logam);g.add(t1,t2,atap);
+    MD.penekan=MD.penekan||[];MD.penekan.push({g,alas,kepala,t1,t2,atap});
+  }
+  /* lengan putar rendah: tiang pusat dan lengan berwarna peringatan */
+  for(let i=0;i<2;i++){
+    const g=new THREE.Group();g.visible=false;grup.add(g);
+    const hub=new THREE.Mesh(new THREE.CylinderGeometry(.55,.7,1.4,12),mat(0x1c2230));hub.position.y=.7;g.add(hub);
+    const putar=new THREE.Group();putar.position.y=.55;g.add(putar);
+    MD.lengan=MD.lengan||[];MD.lengan.push({g,putar,n:0});
+  }
+  /* rakit es di lajur air */
+  for(let i=0;i<4;i++){const m=new THREE.Mesh(new THREE.BoxGeometry(1,.45,1),mat(0xe6f2f8));m.visible=false;grup.add(m);MD.rakit=MD.rakit||[];MD.rakit.push(m);}
+  /* es jatuh: kerucut terbalik dan bayangan peringatan */
+  const gEs=new THREE.ConeGeometry(.45,1.6,6);gEs.rotateX(Math.PI);
+  for(let i=0;i<12;i++){
+    const es=new THREE.Mesh(gEs,mat(0xcfe6f5));es.visible=false;grup.add(es);
+    const bay=new THREE.Mesh(new THREE.CircleGeometry(1,20),new THREE.MeshBasicMaterial({color:0xe5392b,transparent:true,opacity:0,depthWrite:false}));bay.rotation.x=-Math.PI/2;bay.visible=false;bay.userData.tanah=true;grup.add(bay);
+    MD.jatuh=MD.jatuh||[];MD.jatuh.push({es,bay});
+  }
   function setMedan(r){
     mSpec=W.medanBabak(r);
     MD.kayu.forEach((o,i)=>{o.g.visible=!!mSpec.kayu[i];});
     MD.palu.forEach((o,i)=>{const p=mSpec.palu[i];o.g.visible=!!p;if(p)o.g.position.set(p.x,Y(p.x,p.z),p.z);});
     MD.pintu.forEach(m=>{m.visible=true;m.position.z=mSpec.pintu[0].z;});
     MD.duri.forEach(o=>{const p=mSpec.duri[o.j];o.g.visible=!!p;if(p){const [dx,dz]=p.pts[o.i];o.g.position.set(dx,Y(dx,dz),dz);}});
-    MD.ubin.forEach((u,n)=>{const s=mSpec.ubin[n];u.visible=!!s;if(s)u.position.set(s.x,-.2,s.z);});
+    MD.ubin.forEach((u,n)=>{const s=mSpec.ubin[n];u.visible=!!s;if(s){u.position.set(s.x,-.2,s.z);u.scale.set((s.w||W.UBIN.W)*.97,1,(s.d||W.UBIN.D)*.94);}});
     MD.bola.forEach((o,n)=>{const s=mSpec.bola[n];o.b.visible=false;o.w.visible=!!s;
       if(s){const L=Math.abs(s.z1-s.z0);o.w.scale.set(1,L,1);o.w.position.set(s.x,Y(s.x,(s.z0+s.z1)/2)+.07,(s.z0+s.z1)/2);o.w.material.opacity=0;}});
+    MD.penekan.forEach((o,i)=>{const p=mSpec.penekan[i];o.g.visible=!!p;if(!p)return;
+      const w=p.x1-p.x0,d=p.z1-p.z0,cx=(p.x0+p.x1)/2,cz=(p.z0+p.z1)/2,y=Y(cx,cz),lebarX=w>=d;
+      o.g.position.set(cx,y,cz);o.alas.scale.set(w,d,1);o.kepala.scale.set(w*.96,1,d*.96);
+      const L=(lebarX?w:d)/2+.2;if(lebarX){o.t1.position.set(-L,2.3,0);o.t2.position.set(L,2.3,0);o.atap.scale.set(2*L+.4,1,1);}else{o.t1.position.set(0,2.3,-L);o.t2.position.set(0,2.3,L);o.atap.scale.set(1,1,1);o.atap.rotation.y=Math.PI/2;o.atap.scale.x=2*L+.4;}
+      o.atap.position.y=4.5;});
+    MD.lengan.forEach((o,i)=>{const L=mSpec.lengan[i];o.g.visible=!!L;if(!L)return;o.g.position.set(L.x,Y(L.x,L.z),L.z);
+      while(o.putar.children.length)o.putar.remove(o.putar.children[0]);
+      for(let j=0;j<L.n;j++){const a=new THREE.Mesh(new THREE.BoxGeometry(L.L,.32,.36),mat(j%2?0xffc83d:0xe5392b));const pv=new THREE.Group();a.position.x=L.L/2;pv.add(a);pv.rotation.y=-j*Math.PI*2/L.n;o.putar.add(pv);}});
+    MD.rakit.forEach((m,i)=>{const R=mSpec.rakit[i];m.visible=!!R;if(R)m.scale.set(R.ax==='x'?R.len:2*R.lebar,1,R.ax==='x'?2*R.lebar:R.len);});
+    MD.jatuh.forEach(o=>{o.es.visible=o.bay.visible=false;});
     if(mSpec.tramp){tramp.visible=true;tramp.position.set(mSpec.tramp.x,Y(mSpec.tramp.x,mSpec.tramp.z),mSpec.tramp.z);}else tramp.visible=false;
   }
   function animMedan(t,dt){
@@ -323,8 +377,15 @@ export function buatDunia(W,T){
       o.w.material.opacity=s.fase==='peringatan'?(.18+.18*Math.abs(Math.sin(t*8))):(s.fase==='gulir'?.1:0);
     });
     const v=W.kecBan(mSpec,t);chevOff=(chevOff+Math.abs(v)*dt)%banL;const N=6,sp=banL/N;
-    chevG.rotation.y=v<0?Math.PI:0;chevG.position.set(banCx,Y(banCx,banCz),banCz);
+    chevG.rotation.y=(banX?Math.PI/2:0)+(v<0?Math.PI:0);chevG.position.set(banCx,banAlas.position.y-.05,banCz);
     MD.chev.forEach((g,k)=>{const col=k%3,row=Math.floor(k/3),zl=((row*sp+chevOff)%banL)-banL/2;g.position.set((col-1)*1.4,.08,zl);});
+    mSpec.penekan.forEach((p,i)=>{const o=MD.penekan[i],s=W.penekan(p,t);o.kepala.position.set(s.fase===1?Math.sin(t*50)*.05:0,.36+3.4*s.h,0);o.kepala.material.color.setHex(s.fase===1?0xe5392b:0x6b7480);});
+    mSpec.lengan.forEach((L,i)=>{MD.lengan[i].putar.rotation.y=-W.sudutLengan(L,t);});
+    mSpec.rakit.forEach((R,i)=>{const m=MD.rakit[i],s=W.posRakit(R,t);if(R.ax==='x')m.position.set(s,-.25,R.c);else m.position.set(R.c,-.25,s);});
+    {let k=0;for(const J of mSpec.jatuh)for(const q of W.titikJatuh(J,t)){const o=MD.jatuh[k++];if(!o)break;const y=Y(q.x,q.z);
+      o.bay.visible=q.u<.7;o.bay.position.set(q.x,y+.08,q.z);const sk=J.r*(q.u<.55?.4+.6*q.u/.55:1);o.bay.scale.set(sk,sk,1);o.bay.material.opacity=q.u<.55?.15+.35*q.u/.55:.5;
+      o.es.visible=q.u>.4&&q.u<.75;o.es.position.set(q.x,y+.8+Math.max(0,(.55-q.u)/.15)*9,q.z);}
+     for(;k<MD.jatuh.length;k++){MD.jatuh[k].es.visible=MD.jatuh[k].bay.visible=false;}}
     const tg=gerbBuka?-1.35:0;palang.rotation.z+=(tg-palang.rotation.z)*Math.min(1,dt*6);
     if(A)riaks.forEach((r,i)=>{const L=A.x1-A.x0,o=(t*(2.2+i*.3)+i*7)%L;r.position.x=timur?A.x0+o:A.x1-o;});
     gudangs.forEach((o,i)=>{o.bend.rotation.y=Math.sin(t*2+i)*.25;});

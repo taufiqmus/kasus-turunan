@@ -41,7 +41,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #hitung{position:fixed;z-index:4;left:50%;top:38%;transform:translate(-50%,-50%);font-family:var(--display);font-size:120px;color:#fff6e4;-webkit-text-stroke:6px var(--ink);paint-order:stroke fill;pointer-events:none}
 @media (max-width:560px){
 #c-ruang{display:none}
-.lchip,#b-kam,#b-keluar,#b-audit,#b-grafis,#b-pos1,#b-pos2{font-size:11px;padding:4px 7px;white-space:nowrap}
+.lchip,#b-kam,#b-keluar,#b-audit,#b-grafis,#b-pos{font-size:11px;padding:4px 7px;white-space:nowrap}
 #lhud{gap:5px;flex-wrap:wrap;row-gap:5px}#lhud .sp{display:none}
 #arhud,#ar2{width:min(165px,40vw);font-size:12px;padding:6px;gap:3px}
 #arhud .r,#ar2 .r{flex-wrap:wrap;gap:0 6px}
@@ -71,8 +71,11 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #grafis .gj{margin:10px 0 5px;font-weight:700}#grafis .gk{margin:10px 0 0;font-size:12px;opacity:.8}
 #stam i{display:block;height:100%;width:100%;background:#ff6f47}
 #b-lari{position:fixed;z-index:3;right:calc(env(safe-area-inset-right,0px) + 28px);bottom:calc(env(safe-area-inset-bottom,0px) + 112px);width:60px;height:60px;border-radius:50%;padding:0;font-size:12px;touch-action:none;user-select:none}
-#b-pos1,#b-pos2{pointer-events:auto;font-size:13px;padding:6px 12px}
+#b-pos{pointer-events:auto;font-size:13px;padding:6px 12px}
 #boost{position:fixed;z-index:3;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 96px);display:grid;grid-template-columns:1fr 1fr;gap:6px;width:min(92vw,360px);pointer-events:auto}
+#m-pos{position:fixed;z-index:5;top:calc(env(safe-area-inset-top,0px) + 54px);left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;pointer-events:auto}
+#m-pos .btn{font-size:13px;padding:7px 10px}
+#m-pos[hidden]{display:none}
 #pilih{position:fixed;z-index:3;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 96px);display:flex;flex-wrap:wrap;justify-content:center;gap:6px;width:min(92vw,420px);pointer-events:auto}
 #pilih .bj{flex-basis:100%;text-align:center;font-size:12px;font-weight:700;color:#1c2230;text-shadow:0 1px 0 #fff}
 #pilih .btn{font-size:16px;padding:8px 12px;min-width:56px;font-family:"Bricolage Grotesque",sans-serif}
@@ -100,7 +103,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #arhud,#ar2{top:calc(env(safe-area-inset-top,0px) + 76px)}
 #peta{top:calc(env(safe-area-inset-top,0px) + 76px)}#stam{top:calc(env(safe-area-inset-top,0px) + 192px)}
 #grafis,#audit{top:calc(env(safe-area-inset-top,0px) + 76px)}
-.lchip,#b-kam,#b-keluar,#b-audit,#b-grafis,#b-pos1,#b-pos2{font-size:11px;padding:4px 7px;white-space:nowrap}
+.lchip,#b-kam,#b-keluar,#b-audit,#b-grafis,#b-pos{font-size:11px;padding:4px 7px;white-space:nowrap}
 #boost,#pilih{bottom:calc(env(safe-area-inset-bottom,0px) + 190px)}
 }
 </style>
@@ -137,8 +140,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <span class="lchip" id="c-koin" hidden>Koin 0/60</span>
   <span class="sp"></span>
   <button class="btn alt" id="b-keluar" type="button" hidden>Keluar pos</button>
-  <button class="btn alt" id="b-pos1" type="button" hidden>Ke Pos 1</button>
-  <button class="btn alt" id="b-pos2" type="button" hidden>Ke Pos 2</button>
+  <button class="btn alt" id="b-pos" type="button" hidden>Ke Pos</button>
   <button class="btn alt" id="b-kam" type="button">Ikuti</button>
   <button class="btn alt" id="b-grafis" type="button">Grafis</button>
   <button class="btn alt" id="b-audit" type="button">Audit</button>
@@ -165,6 +167,7 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <p id="a2-p">a dan dx di Oasis, f di Menara, b di Reruntuhan.</p>
 </div>
 <div id="pilih" hidden></div>
+<div class="card" id="m-pos" hidden><button class="btn alt" type="button">Pos 1</button><button class="btn alt" type="button">Pos 2</button><button class="btn alt" type="button">Pos 3</button><button class="btn alt" type="button">Pos 4</button><button class="btn alt" type="button">Pos 5</button><button class="btn alt" type="button">Pos 6</button></div>
 <div id="boost" hidden></div>
 <button class="btn big" id="aksi" type="button" hidden>Masuk Pos 1</button>
 <button class="btn alt" id="b-lompat" type="button" hidden>Lompat</button>
@@ -233,6 +236,6 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 </div>
 
 <script src="./vendor/supabase.js"></script>
-<script type="module" src="lobi.js?v=26"></script>
+<script type="module" src="lobi.js?v=27"></script>
 </body>
 </html>
