@@ -1,14 +1,14 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=22';
-import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=22';
-import * as P1 from './pos1.js?v=22';
-import * as AR from './arena.js?v=22';
-import {buatArena,kolomDari,tinggiTanah,uTembus} from './arena.js?v=22';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=22';
-import {labelSprite,buangSprite,klem} from './util.js?v=22';
-import {medanBabak,bahaya,kecBan,diBan,diTramp,boleh,jarakJalan,tinggi,KAMP,PAD,TUAS,PLAZA,SUNGAI,JURANG,JALUR,KOIN_A,diKamp,diPad,diTuas} from './medan.js?v=22';
-import * as MED from './medan.js?v=22';
+import {sambung} from './rt.js?v=23';
+import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=23';
+import * as P1 from './pos1.js?v=23';
+import * as AR from './arena.js?v=23';
+import {buatArena,kolomDari,tinggiTanah,uTembus} from './arena.js?v=23';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=23';
+import {labelSprite,buangSprite,klem} from './util.js?v=23';
+import {medanBabak,bahaya,kecBan,diBan,diTramp,boleh,jarakJalan,tinggi,KAMP,PAD,TUAS,PLAZA,SUNGAI,JURANG,JALUR,KOIN_A,diKamp,diPad,diTuas} from './medan.js?v=23';
+import * as MED from './medan.js?v=23';
 import {bacaSesi} from '../core/net.js';
 
 const $=id=>document.getElementById(id);
@@ -276,7 +276,7 @@ function onPesan(ev,p){
   if(ev==='p'){
     const q=tim.get(p.id);if(!q||q.bot)return;
     if(![p.x,p.z,p.vx,p.vz].every(Number.isFinite)||Math.abs(p.x)>120||Math.abs(p.z)>120)return;
-    q.tx=p.x;q.tz=p.z;q.vx=klem(p.vx,-14,14);q.vz=klem(p.vz,-14,14);q.c=ang(p.c,0,3)?p.c:0;
+    q.tx=p.x;q.tz=p.z;q.vx=klem(p.vx,-14,14);q.vz=klem(p.vz,-14,14);q.c=ang(p.c,0,8)?p.c:0;q.carry=q.c;
     const a=p.a===1?1:0;if(a!==q.a){q.a=a;q.siap=0;}
     if(!q.tMsg||Math.hypot(q.tx-q.x,q.tz-q.z)>8){q.x=p.x;q.z=p.z;}
     q.tMsg=performance.now();

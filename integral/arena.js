@@ -1,9 +1,9 @@
 /* Arena Pos 1 "Lembah Waduk": bendungan berkurva di utara, lembah dengan tiga wilayah (hutan, bukit, sungai),
    kamp balok, jalur bercabang, dan rintangan. Logika murni ada di medan.js; berkas ini hanya tampilan 3D. */
 import * as THREE from './vendor/three.min.js';
-import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=22';
+import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=23';
 import {DUNIA,PLAZA,KAMP,PAD,TUAS,JALUR,GERBANG,JURANG,SUNGAI,JEMB_KAYU,KOIN_A,jarakJalan,tinggi,medanBabak,xKayu,xPalu,celahPintu,tinggiDuri,statusUbin,keadaanBola,kecBan,
-  PAL_L,PAL_Y,PAL_A,PINTU,DURI_X,UBIN_W,UBIN_D,BOLA_R,RINT_MAKS,BAN,TRAMP} from './medan.js?v=22';
+  PAL_L,PAL_Y,PAL_A,PINTU,DURI_X,UBIN_W,UBIN_D,BOLA_R,RINT_MAKS,BAN,TRAMP} from './medan.js?v=23';
 
 export const SY=.9,UB=UBAG*SY,WX=9;
 export const ZONA={z0:.2,z1:4.6};
