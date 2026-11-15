@@ -1,0 +1,29 @@
+{
+ "muat_hingga_lobi_dtk": 1.26,
+ "unduhan_awal_kb": 1273.6,
+ "berkas_awal": 27,
+ "area": 1,
+ "3r": {
+  "draw_call_per_frame": 259.3,
+  "segitiga_per_frame": 206435,
+  "fps_swiftshader": 6.6
+ },
+ "3s": {
+  "draw_call_per_frame": 247.2,
+  "segitiga_per_frame": 206146,
+  "fps_swiftshader": 6.0
+ },
+ "4r": {
+  "draw_call_per_frame": 261.0,
+  "segitiga_per_frame": 206446,
+  "fps_swiftshader": 5.2
+ },
+ "4s": {
+  "draw_call_per_frame": 247.0,
+  "segitiga_per_frame": 206118,
+  "fps_swiftshader": 6.0
+ },
+ "unduhan_total_kb": 1674.5,
+ "unduhan_aset_kb": 400.9,
+ "error_halaman": []
+}

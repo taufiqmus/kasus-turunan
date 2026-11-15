@@ -153,3 +153,13 @@ Dosen memantau lobi dan pos tiap tim tanpa ikut bermain: dari dashboard tekan "P
 - `integral/manifest.webmanifest` dan ikon: Lobi Integral bisa dipasang ke Layar Utama dan dibuka tanpa bar peramban (juga di iPhone, yang tidak mendukung Fullscreen API).
 - Kartu masuk menampilkan petunjuk pasang ke Layar Utama hanya di HP yang belum membuka dari ikon. Peramban dalam aplikasi (WhatsApp, Instagram) umumnya tidak bisa layar penuh; buka lewat Chrome atau Safari.
 - Peringkat tim dan form buat sesi ada di `integral/dosen.html`. Uji: `tests/layar.py`.
+
+## Grafis Ultra khusus Pos 1 (prototipe, v=33)
+
+Tingkat kelima di tombol Grafis. Berlaku hanya di Pos 1 (di lobi dan pos lain sama dengan sangat tinggi), dipilih manual, tidak pernah dipilih otomatis (default HP tidak berubah), dan turun sendiri ke sangat tinggi bila fps rendah.
+
+- Cahaya: langit foto (Poly Haven, LDR 1k) sebagai latar dan peta lingkungan, tone mapping ACES, matahari condong keemasan, cahaya sekitar hangat, bayangan lembut.
+- Bahan: tekstur PBR 512 px WebP (beton, tanah, kayu, batu) dengan peta normal. Hanya bahan yang ditukar; geometri dan draw call sama. Papan soal dan pelat kolom dikecualikan dari tone mapping supaya kontras tetap penuh.
+- Muat malas: `integral/ultra.js` baru mengunduh `integral/aset/` (sekitar 0,4 MB) saat Ultra dipakai di Pos 1.
+- Sumber dan lisensi (CC0): `integral/aset/LISENSI.md`. Pembuat aset: `tools/realisme-pos1/buat_aset.py`.
+- Pengukuran dan screenshot sebelum dan sesudah: `tools/realisme-pos1/` (`ukur.py`, `BASELINE.md`).

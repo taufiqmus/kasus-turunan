@@ -19,3 +19,16 @@ Lulus: medan_cek, pos2, pos4, pos5, catat, amati, layar, hp, hp mendatar.
 Gagal SEBELUM perubahan apa pun: lobi (`mengembalikan balok menambah stok`), pos3 dan pos6 (galat evaluasi skorRonde, Pos 3
 "terkunci"), dosen (`tombol Refresh aktif kembali`). Dicurigai karena lingkungan (rendering perangkat lunak lambat dan
 jaringan Supabase), belum diselidiki. Syarat tahap ini: tidak ada suite yang lulus di baseline menjadi gagal.
+
+## Sesudah (Ultra, ?v=33)
+
+| Konfigurasi | Draw call/frame | Segitiga/frame | fps SwiftShader |
+|---|---|---|---|
+| Sangat tinggi realistik (3r) | 259,3 | 206 ribu | 6,6 |
+| Sangat tinggi sinematik (3s) | 247,2 | 206 ribu | 6,0 |
+| Ultra realistik (4r) | 261,0 | 206 ribu | 5,2 |
+| Ultra sinematik (4s) | 247,0 | 206 ribu | 6,0 |
+
+- Draw call dan segitiga praktis sama (hanya bahan yang ditukar). Biaya Ultra ada di shader PBR dan peta normal.
+- Aset baru: 399 KB total (8 tekstur WebP dan langit), dimuat malas hanya saat Ultra dipakai di Pos 1. Unduhan awal lobi naik 6 KB (ultra.js dan kode).
+- Suite uji: sama dengan baseline. `tests/lobi.py` diperbarui dari 4 ke 5 tombol kualitas. Kegagalan lobi (balok), pos3, pos6, dosen sudah ada di baseline. `amati` flaky (lulus pada run ulang).

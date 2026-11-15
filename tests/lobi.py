@@ -169,7 +169,7 @@ with sync_playwright() as p:
             gr=A.evaluate('__L.grafis');cek(f'grafis {q}{g} diterapkan',gr['kual']==q and gr['gaya']==g and gr['pasca']==(g=='s' and q>=1),gr)
     A.evaluate("__L.setGrafis(0,'r',true)")
     if A.is_visible('#hasil'):A.click('#w-tutup');A.wait_for_timeout(400)
-    A.click('#b-grafis');cek('panel grafis tampil dengan 4 kualitas dan 2 gaya',A.is_visible('#grafis') and A.locator('#g-kual .btn').count()==4 and A.locator('#g-gaya .btn').count()==2)
+    A.click('#b-grafis');cek('panel grafis tampil dengan 5 kualitas (termasuk Ultra) dan 2 gaya',A.is_visible('#grafis') and A.locator('#g-kual .btn').count()==5 and A.locator('#g-gaya .btn').count()==2)
     A.click('#g-kual .btn >> nth=1');cek('klik kualitas mengubah pengaturan',A.evaluate('__L.grafis.kual')==1)
     A.evaluate("__L.setGrafis(0,'r',true)");A.click('#b-grafis')
     cek('tanpa galat konsol',not errs,errs)
