@@ -1,9 +1,9 @@
 /* Arena Pos 5 "Teluk Karang": dunia umum (tema pantai) ditambah papan integral tentu, timbangan brankas
    (piring kanan F(atas), piring kiri F(bawah)), dan sumber beban di tiga kamp. */
 import * as THREE from './vendor/three.min.js';
-import {M5} from './medan.js?v=38';
-import {buatDunia,TEMA_PANTAI,mat,tulisanLantai} from './dunia3d.js?v=38';
-import {soal5,nBrankas,nilaiP,teksP,BMAX} from './pos5.js?v=38';
+import {M5} from './medan.js?v=39';
+import {buatDunia,TEMA_PANTAI,mat,tulisanLantai} from './dunia3d.js?v=39';
+import {soal5,nBrankas,nilaiP,teksP,BMAX} from './pos5.js?v=39';
 
 /* letak piring: brankas i berpusat di cx, piring kiri (slot 2i+1) di cx-2.3, piring kanan (slot 2i) di cx+2.3 */
 export const PUSAT=n=>n===1?[0]:[-5.2,5.2];
@@ -63,7 +63,7 @@ export function buatArena5(){
   {
     const dinding=new THREE.Mesh(new THREE.BoxGeometry(96,12,4),mat(0xb9a88a));dinding.position.set(0,5,-5);grup.add(dinding);
     const bingkai=new THREE.Mesh(new THREE.BoxGeometry(21.4,10.6,.6),mat(0x7a4f2a));bingkai.position.set(0,4.9,-2.7);grup.add(bingkai);
-    const papan=new THREE.Mesh(new THREE.PlaneGeometry(20,9.5),new THREE.MeshBasicMaterial({map:txp}));papan.position.set(0,4.85,-2.35);grup.add(papan);
+    const papan=new THREE.Mesh(new THREE.PlaneGeometry(20,9.5),dunia.daftarPapan(new THREE.MeshBasicMaterial({map:txp})));papan.position.set(0,4.85,-2.35);grup.add(papan);
     for(const sx of [-11.6,11.6]){const pel=new THREE.Mesh(new THREE.TorusGeometry(.9,.28,8,18),mat(0xe5392b));pel.position.set(sx,8.4,-2.3);grup.add(pel);}
   }
   /* dua timbangan brankas; brankas B hanya muncul di babak 3 */
@@ -137,6 +137,6 @@ export function buatArena5(){
       for(const b of brankas){if(!b.g.visible)continue;b.sudut+=(b.target-b.sudut)*Math.min(1,dt*3);b.lengan.rotation.z=b.sudut;
         b.pir.forEach((o,j)=>{const s=j?-1:1,x=s*2.3*Math.cos(b.sudut),y=3.6+s*2.3*Math.sin(b.sudut);o.p.position.set(x,y-1.25,-.6);});}
     },
-    setMedan:dunia.setMedan,animMedan:dunia.animMedan,setGerbang:dunia.setGerbang,setKoin:dunia.setKoin,setDetail:dunia.setDetail,padAnim:dunia.padAnim
+    setMedan:dunia.setMedan,animMedan:dunia.animMedan,setGerbang:dunia.setGerbang,setKoin:dunia.setKoin,setDetail:dunia.setDetail,setUltra:dunia.setUltra,padAnim:dunia.padAnim
   };
 }

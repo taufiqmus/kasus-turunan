@@ -1,33 +1,33 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung,sambungAmat} from './rt.js?v=38';
-import {NDEP,GMAX,stokBabak,habisBalok,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=38';
-import * as P1 from './pos1.js?v=38';
-import * as AR from './arena.js?v=38';
-import {buatArena,kolomDari,uTembus} from './arena.js?v=38';
-import {buatArena2,gambarSandi} from './arena2.js?v=38';
-import * as P2 from './pos2.js?v=38';
-import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=38';
-import * as P3 from './pos3.js?v=38';
-import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=38';
-import * as P4 from './pos4.js?v=38';
-import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=38';
-import * as P5 from './pos5.js?v=38';
-import {buatArena6,gambarFinal} from './arena6.js?v=38';
-import * as P6 from './pos6.js?v=38';
-import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=38';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=38';
-import {labelSprite,buangSprite,klem} from './util.js?v=38';
-import {muatUltra,ultraSiap,ultraAset} from './ultra.js?v=38';
-import {posTrex,jarakTrex,hashTeks,R_KENA,R_AWAS,KEC as KEC_TREX} from './trex.js?v=38';
-import {buatDino} from './dino.js?v=38';
-import {M1,M2,M3,M4,M5,M6} from './medan.js?v=38';
+import {sambung,sambungAmat} from './rt.js?v=39';
+import {NDEP,GMAX,stokBabak,habisBalok,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=39';
+import * as P1 from './pos1.js?v=39';
+import * as AR from './arena.js?v=39';
+import {buatArena,kolomDari,uTembus} from './arena.js?v=39';
+import {buatArena2,gambarSandi} from './arena2.js?v=39';
+import * as P2 from './pos2.js?v=39';
+import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=39';
+import * as P3 from './pos3.js?v=39';
+import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=39';
+import * as P4 from './pos4.js?v=39';
+import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=39';
+import * as P5 from './pos5.js?v=39';
+import {buatArena6,gambarFinal} from './arena6.js?v=39';
+import * as P6 from './pos6.js?v=39';
+import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=39';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=39';
+import {labelSprite,buangSprite,klem} from './util.js?v=39';
+import {muatUltra,ultraSiap,ultraAset} from './ultra.js?v=39';
+import {posMusuh,jarakMusuh,hashTeks} from './musuh.js?v=39';
+import {buatFauna,SPESIES} from './fauna.js?v=39';
+import {M1,M2,M3,M4,M5,M6} from './medan.js?v=39';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
 let W=M1;
 import {bacaSesi} from '../core/net.js';
-import * as CT from './catat.js?v=38';
-import * as AM from './amati.js?v=38';
+import * as CT from './catat.js?v=39';
+import * as AM from './amati.js?v=39';
 
 const $=id=>document.getElementById(id);
 const TIM=[['merah','Merah','#e5392b'],['biru','Biru','#2f7fc1'],['hijau','Hijau','#2f9e5b'],['kuning','Kuning','#e0a200'],
@@ -233,15 +233,18 @@ const papan={c:document.createElement('canvas')};
   const kaki=mat(0x1c2230),k1=new THREE.Mesh(new THREE.BoxGeometry(.5,6.5,.5),kaki),k2=k1.clone();k1.position.set(-5,3.2,-24.2);k2.position.set(5,3.2,-24.2);lobiGrup.add(k1,k2);
 }
 const arena=buatArena();scene.add(arena.grup);
-/* T-Rex Pos 1: posisi fungsi jam dinding dan seed tim (trex.js), sama bagi semua anggota tanpa pesan jaringan.
-   Tabrakan dinilai lokal: balok yang dibawa jatuh dan hilang, sama seperti rintangan lain.
-   Model dimuat malas saat masuk Pos 1. Mati di uji otomatis (navigator.webdriver) kecuali ?dino=1, agar uji lain tidak acak. */
-const TREX_ON=!navigator.webdriver||Q.get('dino')==='1';
-/* empat T-Rex, tiap ekor punya rute sendiri dari seed tim + nomor ekor */
-const N_TREX=4,trex={seed:0,ds:[],muat:false,awas:0,serang:Array(N_TREX).fill(0)};
-const seedTrex=i=>(trex.seed+Math.imul(i,0x9E3779B1))|0;
-function siapkanTrex(){if(!TREX_ON||trex.muat)return;trex.muat=true;
-  Promise.all(Array.from({length:N_TREX},()=>buatDino({tinggi:4.2}))).then(L=>{trex.ds=L;for(const d of L)arena.grup.add(d.grup);}).catch(()=>{trex.muat=false;});}
+/* Karakter pengganggu tiap pos (fauna.js): posisi fungsi jam dinding dan seed tim (musuh.js), sama bagi semua anggota tanpa pesan jaringan.
+   Tabrakan dinilai lokal: barang yang dibawa jatuh dan hilang, sama seperti rintangan lain. Pos 6 tidak membawa barang, jadi serangan
+   merampas satu bekal tim. Model dimuat malas saat masuk pos. Mati di uji otomatis (navigator.webdriver) kecuali ?musuh=1. */
+const MUSUH_ON=!navigator.webdriver||Q.get('musuh')==='1'||Q.get('dino')==='1';
+const MUSUH_POS={1:['trex',4],2:['ular',3],3:['serigala',3],4:['laba',3],5:['kepiting',3],6:['triceratops',3]};
+const musuh={seed:0,ds:{},muat:{},awas:0,serang:{}};
+const seedMusuh=(a,i)=>(musuh.seed+Math.imul(a*16+i+1,0x9E3779B1))|0;
+const arenaDi=a=>a===1?arena:ALUR[a].P.arena;
+function siapkanMusuh(a){
+  const m=MUSUH_POS[a];if(!MUSUH_ON||!m||musuh.muat[a])return;musuh.muat[a]=true;
+  Promise.all(Array.from({length:m[1]},()=>buatFauna(m[0]))).then(L=>{musuh.ds[a]=L;musuh.serang[a]=L.map(()=>0);for(const d of L)arenaDi(a).grup.add(d.grup);}).catch(()=>{musuh.muat[a]=false;});
+}
 const arena2=buatArena2();scene.add(arena2.grup);
 const arena3=buatArena3();scene.add(arena3.grup);
 const arena4=buatArena4();scene.add(arena4.grup);
@@ -331,7 +334,7 @@ function onPesan(ev,p){
   if(ev==='p'){
     const q=tim.get(p.id);if(!q||q.bot)return;
     if(![p.x,p.z,p.vx,p.vz].every(Number.isFinite)||Math.abs(p.x)>120||Math.abs(p.z)>120)return;
-    q.tx=p.x;q.tz=p.z;q.vx=klem(p.vx,-14,14);q.vz=klem(p.vz,-14,14);q.c=ang(p.c,0,8)?p.c:0;q.carry=q.c;
+    q.tx=p.x;q.tz=p.z;q.vx=klem(p.vx,-14,14);q.vz=klem(p.vz,-14,14);q.c=ang(p.c,0,8)?p.c:0;q.carry=q.c;q.ub=ang(p.ub,0,999999)?p.ub:-1;q.u=ang(p.u,0,99)?p.u:0;
     const a=ang(p.a,0,6)?p.a:0;if(a!==q.a){q.a=a;q.siap=0;}
     if(!q.tMsg||Math.hypot(q.tx-q.x,q.tz-q.z)>8){q.x=p.x;q.z=p.z;}
     q.tMsg=performance.now();
@@ -412,6 +415,29 @@ function buatAlur(P){
   const id=P.id,ev=k=>k+id,jml=P.mode==='jumlah';
   const A={P,id,st:P.stateBaru(),pend:new Map(),endAt:0,hitung:0,kotor:true,ubahSt:false,tDelta:0,tSt:0,tFlush:0};
   A.r=()=>Math.min(A.st.r,P.NB-1);
+  /* ---- bekal tim: barang yang boleh diambil per babak terbatas (P.bekal). Barang yang hilang karena rintangan atau karakter pengganggu tidak
+     kembali. Bila bekal habis, tidak ada yang membawa barang, dan slot belum bisa dikunci, babak diulang (game over). Disinkronkan lewat pesan
+     posisi: tiap pemain menyiarkan pemakaiannya, tim menjumlahkan. Pengulangan disiarkan otoritas lewat st.u. ---- */
+  A.pakai=0;A.pakaiKey=-1;A.tHabis=0;
+  A.kunciBekal=()=>A.st.r*1000+((A.st.u|0)%1000);
+  A.pakaiSaya=()=>{const k=A.kunciBekal();if(A.pakaiKey!==k){A.pakaiKey=k;A.pakai=0;}return A.pakai;};
+  A.bekalAwal=()=>P.bekal?P.bekal(A.r()):0;
+  A.bekalTim=()=>{let n=A.pakaiSaya();const k=A.kunciBekal();for(const p of anggota())if(p.a===id&&p.ub===k)n+=p.u|0;return n;};
+  A.bekalSisa=()=>Math.max(0,A.bekalAwal()-A.bekalTim());
+  A.bayar=(n=1)=>{if(A.bekalSisa()<n){toast('Bekal tim habis!');return false;}A.pakaiSaya();A.pakai+=n;kirimPosisi(true);return true;};
+  A.kembalikan=n=>{A.pakaiSaya();A.pakai=Math.max(0,A.pakai-n);kirimPosisi(true);};
+  A.rugi=n=>{A.pakaiSaya();A.pakai=Math.min(99,A.pakai+n);kirimPosisi(true);};   // dirampas karakter pengganggu (Pos 6)
+  A.bisaKunci=()=>P.bolehKunci?P.bolehKunci(A.st):A.st.s.every(v=>v>0);
+  A.cekHabis=now=>{
+    const st=A.st;
+    let dibawa=me.carry;for(const p of anggota())if(p.a===id)dibawa+=p.carry|0;
+    if(st.f!==1||A.selesai()||A.bekalAwal()<=0||A.bekalSisa()>0||dibawa>0||A.bisaKunci()){A.tHabis=0;return;}
+    if(!A.tHabis){A.tHabis=now;return;}
+    if(now-A.tHabis<2000||!otoritas())return;
+    A.tHabis=0;A.flush();
+    const b=P.stateBabak(st.r);st.s=b.s;st.k=b.k;st.u=(st.u|0)+1;st.f=0;A.pend.clear();A.endAt=0;A.hitung=0;
+    A.reset();A.stKirim();A.kotor=true;toast('Bekal habis! Babak '+(st.r+1)+' diulang dari awal.');
+  };
   A.selesai=()=>A.st.r>=P.NB;
   A.tampilS=()=>A.selesai()?A.st.sr[P.NB-1]:A.st.s;
   const batas=(i)=>P.batasSlot?P.batasSlot(A.st.r,i):[0,P.maxKode(A.st.r)];
@@ -440,15 +466,15 @@ function buatAlur(P){
   A.atur=()=>{P.atur(A.r(),A);A.kotor=true;};
   A.reset=()=>{if(me.a===id){me.tiles=[];me.carry=0;me.siap=0;}for(const p of anggota())if(p.a===id)p.siap=0;};
   A.adopsi=s=>{
-    const lama=A.st.r;A.st={r:s.r,s:s.s.slice(),k:s.k?s.k.slice():s.s.map(()=>0),sr:s.sr.map(x=>x.slice()),w:s.w.slice(),f:s.f};A.pend.clear();
+    const lama=A.st.r,ulangLama=A.st.u|0;A.st={r:s.r,s:s.s.slice(),k:s.k?s.k.slice():s.s.map(()=>0),sr:s.sr.map(x=>x.slice()),w:s.w.slice(),f:s.f,u:s.u|0};A.pend.clear();
     if(s.f===1)A.endAt=performance.now()+s.m;A.hitung=0;
-    if(A.st.r!==lama)A.reset();
+    if(A.st.r!==lama||A.st.u!==ulangLama)A.reset();
     A.atur();if(A.selesai()&&me.a===id&&!AMAT)A.bukaHasil();
   };
   A.mulaiHitung=()=>{A.hitung=performance.now()+3000;if(me.a===id)toast('Bersiap...');};
   A.kunci=(s,w)=>{
     const r=A.st.r,h=P.skorRonde(r,s,w);catatBabak(id,r,s,w,h);
-    A.st.sr.push(s.slice());A.st.w.push(w);A.st.r++;A.st.f=0;A.hitung=0;
+    A.st.sr.push(s.slice());A.st.w.push(w);A.st.r++;A.st.f=0;A.hitung=0;A.st.u=0;
     const b=P.stateBabak(A.st.r);A.st.s=b.s;A.st.k=b.k;
     A.pend.clear();koinAS[id].clear();P.arena.setKoin(P.M.KOIN_A.map(()=>true));A.reset();A.atur();
     if(me.a===id&&!AMAT)A.tampilRev(r,s,w,h);
@@ -460,8 +486,10 @@ function buatAlur(P){
       for(const x of p.c.slice(0,24))jml?A.terapJumlah(x):A.terapSlot(x);A.tDelta=performance.now();A.ubahSt=true;return true;
     }
     if(e===ev('st')){
+      if(p.s&&p.s.u!==undefined&&!ang(p.s.u,0,9999))return true;
       if(!P.valid(p.s))return true;const s=p.s;
       if(s.r>A.st.r)A.adopsi(s);
+      else if(s.r===A.st.r&&(s.u|0)>(A.st.u|0)&&!A.selesai()){A.adopsi(s);toast('Bekal habis! Babak '+(s.r+1)+' diulang dari awal.');}
       else if(s.r===A.st.r&&!A.selesai()){
         if(jml){const c=s.s.slice();for(const [i,d] of A.pend){const [lo,hi]=batas(i);c[i]=klem(c[i]+d,lo,hi);}A.st.s=c;A.kotor=true;}
         else for(let i=0;i<s.s.length;i++)A.terapSlot([i,s.s[i],s.k[i]]);
@@ -476,6 +504,7 @@ function buatAlur(P){
   /* mulai dan kunci babak; dipanggil tiap bingkai saat pemain berada di pos ini */
   A.alur=(now,blk)=>{
     if(A.selesai()){tSiap=0;return;}
+    A.cekHabis(now);
     const L=[...diri(),...anggota().filter(p=>p.a===id)],semua=L.every(p=>p.siap),pem=pemimpinKunci(),st=A.st;
     if(st.f===0){
       if(A.hitung){if(now>=A.hitung){A.hitung=0;st.f=1;A.endAt=now+P.WAKTU[st.r]*1000;pakaiBoost();toast('MULAI!'+(boostAktif?' Boost: '+BOOST[boostAktif].n+'.':''));A.kotor=true;}}
@@ -504,7 +533,7 @@ function buatAlur(P){
   A.hud=now=>{
     const r=A.r(),sel=A.selesai(),h=P.hud(r,A.tampilS(),A);
     $('a2-babak').textContent=sel?'Selesai':'Babak '+(r+1)+'/'+P.NB;
-    $('a2-isi').textContent=h.isi;$('a2-bawa').textContent=h.bawa;
+    $('a2-isi').textContent=h.isi;$('a2-bawa').textContent=h.bawa;$('a2-bekal').textContent=sel?'-':A.bekalSisa()+' / '+A.bekalAwal();
     const L=[...diri(),...anggota().filter(p=>p.a===id)];$('a2-siap').textContent=L.filter(p=>p.siap).length+'/'+L.length;
     $('a2-waktu').textContent=A.waktu(now);
   };
@@ -539,13 +568,15 @@ function panelUmum(tampil,judul,pilihan,kunci){
     t.disabled=!!o.mati;if(o.kelas)t.classList.add(o.kelas);t.addEventListener('click',()=>{o.aksi();pilihKey='';});box.append(t);
   }
 }
-const taruhKembali=()=>({t:'Taruh kembali',utama:true,aksi:()=>{me.tiles=[];me.carry=0;kirimPosisi();}});
+const taruhKembali=()=>({t:'Taruh kembali',utama:true,aksi:()=>{const A=ALUR[me.a];if(A)A.kembalikan(me.tiles.length);me.tiles=[];me.carry=0;kirimPosisi();}});
 
+/* jumlah wadah paling sedikit (greedy) untuk membentuk nilai v dari pecahan yang tersedia */
+const itemMin=(v,pec)=>{let n=0;v=Math.max(0,Math.round(v));for(const c of pec){n+=Math.floor(v/c);v%=c;}return n;};
 /* ================= Pos 2: Rakit Sandi ================= */
 const CFG2={id:2,setSeed:setSeed2,NB:NB2,WAKTU:WAKTU2,M:M2,mode:'set',get arena(){return arena2;},
   stateBaru:stateBaru2,stateBabak:r=>{const n=r<NB2?nSlot(r):0;return {s:Array(n).fill(0),k:Array(n).fill(0)};},
   maxKode:r=>soal(Math.min(r,NB2-1)).batu.length,sValid,valid:valid2,skorRonde:skorRonde2,skorTim:skorTim2,
-  pesanBelum:'Semua slot harus terisi sebelum sandi dikunci.',
+  bekal:r=>nSlot(r)*2+3,pesanBelum:'Semua slot harus terisi sebelum sandi dikunci.',
   sambut:A=>A.selesai()?'Pos 2 sudah selesai.':(A.st.f===1?'Babak sedang berjalan. Ambil batu sandi di kamp, pasang di altar.':'Ngarai Kuil. Baca sandi di prasasti, lalu semua berdiri di pad hijau untuk mulai.'),
   atur(r){
     const S=soal(r),cerita=S.jenis==='cerita';arena2.setBabak(r);arena2.setMedan(r);
@@ -588,7 +619,7 @@ let kunciMini3='';
 const CFG3={id:3,setSeed:P3.setSeed3,NB:P3.NB3,WAKTU:P3.WAKTU3,M:M3,mode:'set',cap:P3.CAP3,get arena(){return arena3;},
   stateBaru:P3.stateBaru3,stateBabak:r=>{const n=r<P3.NB3?P3.nSlot3(r):0;return {s:Array(n).fill(0),k:Array(n).fill(0)};},
   maxKode:()=>P3.MAXK,sValid:P3.sValid3,valid:P3.valid3,skorRonde:P3.skorRonde3,skorTim:P3.skorTim3,
-  pesanBelum:'Semua suku dan C harus masuk mesin sebelum dikunci.',
+  bekal:r=>P3.nSlot3(r)*2+3,pesanBelum:'Semua suku dan C harus masuk mesin sebelum dikunci.',
   sambut:A=>A.selesai()?'Pos 3 sudah selesai.':(A.st.f===1?'Babak sedang berjalan. Putar balik tiap suku lewat Tungku dan Pemotong.':'Danau Beku. Baca f(x) di layar mesin, lalu semua berdiri di pad hijau untuk mulai.'),
   atur(r){
     arena3.setBabak(r);arena3.setMedan(r);kunciMini3='';$('a2-cv').hidden=false;
@@ -608,7 +639,7 @@ const CFG3={id:3,setSeed:P3.setSeed3,NB:P3.NB3,WAKTU:P3.WAKTU3,M:M3,mode:'set',c
     const blokSuku=me.tiles.filter(b=>b.c==null),tk=me.tiles.map(b=>JSON.stringify(b)).join(';');
     if(cm){
       panelUmum(true,!o.main?'Corong masuk. Suku bisa diambil setelah babak mulai.':(penuh?'Tangan penuh ('+capNow()+' balok).':'Ambil suku f(x) untuk diputar balik'),
-        S.suku.map(([a,n],i)=>({t:P3.teksSuku(a,1,n),mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()){me.tiles.push(P3.balokMentah(r,i));me.carry=me.tiles.length;kirimPosisi();}}})).concat(me.tiles.length?[taruhKembali()]:[]),
+        S.suku.map(([a,n],i)=>({t:P3.teksSuku(a,1,n),mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()&&ALUR[3].bayar()){me.tiles.push(P3.balokMentah(r,i));me.carry=me.tiles.length;kirimPosisi();}}})).concat(me.tiles.length?[taruhKembali()]:[]),
         'm|'+r+'|'+o.main+'|'+tk);
     }else if(dk===0||dk===2){
       const tungku=dk===0,L=[];
@@ -618,7 +649,7 @@ const CFG3={id:3,setSeed:P3.setSeed3,NB:P3.NB3,WAKTU:P3.WAKTU3,M:M3,mode:'set',c
         L.length?L:[{t:'Tidak membawa balok suku',mati:true,aksi:()=>{}}],(tungku?'t|':'p|')+r+'|'+o.main+'|'+tk);
     }else if(dk===1){
       panelUmum(true,!o.main?'Gudang C. Balok C bisa diambil setelah babak mulai.':(r===2?'Pilih nilai C yang membuat F('+S.x0+') = '+S.y0:'Ambil balok konstanta'),
-        S.opsiC.map((t,i)=>({t,mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()){me.tiles.push({c:i});me.carry=me.tiles.length;kirimPosisi();}}})).concat(me.tiles.length?[taruhKembali()]:[]),
+        S.opsiC.map((t,i)=>({t,mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()&&ALUR[3].bayar()){me.tiles.push({c:i});me.carry=me.tiles.length;kirimPosisi();}}})).concat(me.tiles.length?[taruhKembali()]:[]),
         'c|'+r+'|'+o.main+'|'+penuh+'|'+tk);
     }else panelUmum(false);
     const b=$('aksi'),bisa=ck&&o.main&&me.tiles.length>0;
@@ -639,6 +670,7 @@ let kunciMini4='';
 const CFG4={id:4,setSeed:P4.setSeed4,NB:P4.NB4,WAKTU:P4.WAKTU4,M:M4,mode:'jumlah',cap:P4.CAP4,get arena(){return arena4;},
   stateBaru:P4.stateBaru4,stateBabak:r=>{const n=r<P4.NB4?P4.nSlot4(r):0;return {s:Array(n).fill(0),k:Array(n).fill(0)};},
   maxKode:()=>P4.VMAX,batasSlot:()=>[0,P4.VMAX],sValid:P4.sValid4,valid:P4.valid4,skorRonde:P4.skorRonde4,skorTim:P4.skorTim4,
+  bekal:r=>Math.ceil(1.5*P4.soal4(r).V.reduce((a,v)=>a+itemMin(v,[5,2,1]),0))+4,
   bolehKunci:st=>st.s.some(v=>v>0),pesanBelum:'Isi tangki dulu sebelum dikunci.',
   sambut:A=>A.selesai()?'Pos 4 sudah selesai.':(A.st.f===1?'Babak sedang berjalan. Isi tiap tangki sesuai volume pada waktunya.':'Hutan Sungai. Baca grafik debit di papan, lalu semua berdiri di pad hijau untuk mulai.'),
   atur(r){
@@ -660,7 +692,7 @@ const CFG4={id:4,setSeed:P4.setSeed4,NB:P4.NB4,WAKTU:P4.WAKTU4,M:M4,mode:'jumlah
     if(dk>=0){
       const wd=P4.WADAH[dk];
       panelUmum(true,!o.main?'Kamp '+W.KAMP[dk].nama+'. Air bisa diambil setelah babak mulai.':(penuh?'Tangan penuh ('+capNow()+' wadah).':W.KAMP[dk].nama+': '+wd.nama+' '+wd.L+' liter'),
-        [{t:'Ambil '+wd.nama+' '+wd.L+' L',mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()){me.tiles.push(wd.L);me.carry=me.tiles.length;kirimPosisi();}}}].concat(me.tiles.length?[taruhKembali()]:[]),
+        [{t:'Ambil '+wd.nama+' '+wd.L+' L',mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()&&ALUR[4].bayar()){me.tiles.push(wd.L);me.carry=me.tiles.length;kirimPosisi();}}}].concat(me.tiles.length?[taruhKembali()]:[]),
         'k|'+dk+'|'+o.main+'|'+tk);
     }else if(ti>=0){
       const v=A.st.s[ti];
@@ -683,6 +715,7 @@ const brNama=i=>'ABCD'[i];
 const CFG5={id:5,setSeed:P5.setSeed5,NB:P5.NB5,WAKTU:P5.WAKTU5,M:M5,mode:'jumlah',cap:P5.CAP5,get arena(){return arena5;},
   stateBaru:P5.stateBaru5,stateBabak:r=>{const n=r<P5.NB5?P5.nSlot5(r):0;return {s:Array(n).fill(0),k:Array(n).fill(0)};},
   maxKode:()=>P5.BMAX,batasSlot:()=>[0,P5.BMAX],sValid:P5.sValid5,valid:P5.valid5,skorRonde:P5.skorRonde5,skorTim:P5.skorTim5,
+  bekal:r=>Math.ceil(1.5*P5.soal5(r).br.reduce((a,B)=>a+itemMin(Math.abs(B.I),[10,5,1]),0))+4,
   bolehKunci:st=>{if(!st.s.length)return false;for(let i=0;i<st.s.length;i+=2)if(!(st.s[i]>0||st.s[i+1]>0))return false;return true;},
   pesanBelum:'Muat beban di setiap brankas dulu sebelum dikunci.',
   sambut:A=>A.selesai()?'Pos 5 sudah selesai.':(A.st.f===1?'Babak sedang berjalan. Muat F(atas) di piring kanan dan F(bawah) di piring kiri.':'Teluk Karang. Baca soal di papan, lalu semua berdiri di pad hijau untuk mulai.'),
@@ -710,7 +743,7 @@ const CFG5={id:5,setSeed:P5.setSeed5,NB:P5.NB5,WAKTU:P5.WAKTU5,M:M5,mode:'jumlah
     if(dk>=0){
       const bb=P5.BEBAN[dk];
       panelUmum(true,!o.main?'Kamp '+W.KAMP[dk].nama+'. Beban bisa diambil setelah babak mulai.':(penuh?'Tangan penuh ('+capNow()+' beban).':W.KAMP[dk].nama+': '+bb.nama+' '+bb.kg+' kg'),
-        [{t:'Ambil '+bb.nama+' '+bb.kg+' kg',mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()){me.tiles.push(bb.kg);me.carry=me.tiles.length;kirimPosisi();}}}].concat(me.tiles.length?[taruhKembali()]:[]),
+        [{t:'Ambil '+bb.nama+' '+bb.kg+' kg',mati:!o.main||penuh,aksi:()=>{if(me.tiles.length<capNow()&&ALUR[5].bayar()){me.tiles.push(bb.kg);me.carry=me.tiles.length;kirimPosisi();}}}].concat(me.tiles.length?[taruhKembali()]:[]),
         'k|'+dk+'|'+o.main+'|'+tk);
     }else if(pi>=0){
       const v=A.st.s[pi],B=P5.soal5(r).br[pi>>1],kanan=pi%2===0;
@@ -732,7 +765,7 @@ let kunciMini6='';
 const CFG6={id:6,setSeed:P6.setSeed6,NB:P6.NB6,WAKTU:P6.WAKTU6,M:M6,mode:'set',get arena(){return arena6;},
   stateBaru:P6.stateBaru6,stateBabak:r=>{const n=r<P6.NB6?P6.NSTASIUN:0;return {s:Array(n).fill(0),k:Array(n).fill(0)};},
   maxKode:()=>4,sValid:P6.sValid6,valid:P6.valid6,skorRonde:P6.skorRonde6,skorTim:P6.skorTim6,
-  pesanBelum:'Ketiga pos harus dijawab sebelum dikunci.',
+  bekal:()=>8,pesanBelum:'Ketiga pos harus dijawab sebelum dikunci.',
   sambut:A=>A.selesai()?'Pos 6 sudah selesai.':(A.st.f===1?'Babak sedang berjalan. Daki ke tiga pos dan pilih jawaban di sana.':'Puncak Kalkulus. Baca tiga soal di papan, bagi tugas, lalu semua berdiri di pad hijau untuk mulai.'),
   atur(r){
     arena6.setBabak(r);arena6.setMedan(r);kunciMini6='';$('a2-cv').hidden=false;
@@ -755,7 +788,7 @@ const CFG6={id:6,setSeed:P6.setSeed6,NB:P6.NB6,WAKTU:P6.WAKTU6,M:M6,mode:'set',g
     if(dk>=0){
       const q=P6.soal6(r)[dk],v=A.st.s[dk]|0;
       panelUmum(true,W.KAMP[dk].nama+': '+q.t+(o.main?'':' (jawab setelah babak mulai)'),
-        q.o.map((t,i)=>({t:P6.HURUF[i]+'. '+t,utama:v===i+1,kelas:'opsi',mati:!o.main,aksi:()=>{A.ubahSlot(dk,i+1);toast('Pos '+W.KAMP[dk].nama+': jawaban '+P6.HURUF[i]+'.');}})),
+        q.o.map((t,i)=>({t:P6.HURUF[i]+'. '+t,utama:v===i+1,kelas:'opsi',mati:!o.main,aksi:()=>{if(v!==i+1&&!A.bayar())return;A.ubahSlot(dk,i+1);toast('Pos '+W.KAMP[dk].nama+': jawaban '+P6.HURUF[i]+'.');}})),
         's|'+r+'|'+dk+'|'+v+'|'+o.main);
     }else panelUmum(false);
     $('aksi').hidden=true;if(tahan)tahan=false;
@@ -767,6 +800,7 @@ function ambilBatu(kode){
   const A=ALUR[2];
   if(me.a!==2||A.st.f!==1||me.tiles.length>=capNow()||blok())return;
   const r=A.st.r,k=W.diKamp(me.x,me.z),b=soal(r).batu[kode-1];if(k<0||!b||KAMP_JENIS[b.k]!==k)return;
+  if(!A.bayar())return;
   me.tiles.push(kode);me.carry=me.tiles.length;pilihKey='';kirimPosisi();
   toast('Membawa '+teksBatu(r,kode)+' ('+P2.NAMA_JENIS[b.k]+').');
 }
@@ -1042,7 +1076,7 @@ for(let i=0;i<6;i++){const b=$('m-pos').children[i];if(b){b.disabled=i>=POS_AKTI
 /* ---------- arena dan aksi ---------- */
 function setArea(a){
   if(AL()&&a!==me.a)AL().flush();
-  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;if(a===1)siapkanTrex();if(kual===4&&kualEf()!==keTerap){aud.lambat=0;terapKual();}
+  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;if(a>=1)siapkanMusuh(a);if(kual===4&&(kualEf()!==keTerap||me.a!==areaTerap)){aud.lambat=0;terapKual();}
   arena.grup.visible=a===1;for(const k in ALUR)ALUR[k].P.arena.grup.visible=a===+k;lobiGrup.visible=a===0;rumput.position.y=a>=1?-9:0;
   $('arhud').hidden=a!==1;$('ar2').hidden=a<2;$('pilih').hidden=true;
   $('peta').hidden=false;$('peta').classList.toggle('ar',a>=1);$('stam').classList.toggle('ar',a>=1);$('c-koin').hidden=false;
@@ -1164,22 +1198,27 @@ function tabrak(now,h){
   kb=titikMundur(h.mundur||3);me.vx=me.vz=0;kotor=true;if(ada)kirimPosisi(true);   // anggota lain perlu tahu bawaan 0 (aturan balok habis)
   toast(h.msg+(ada?(me.a===2?' Batu sandi jatuh.':' Balok jatuh.'):'')+(h.j==='ubin'||h.j==='palu'||h.j==='pintu'?'':' Lompat untuk menghindar.'));
 }
-function trexTick(now,tSec,dt,bisaKena){
-  let awas=false;
-  trex.ds.forEach((d,i)=>{
-    const p=posTrex(W,seedTrex(i),tSec);d.grup.position.set(p.x,W.tinggiTanah(p.x,p.z),p.z);d.grup.rotation.y=p.arah;
-    d.main(now<trex.serang[i]||p.aum?'Attack':'Walk');d.langkah(KEC_TREX);d.perbarui(dt);   // kaki bergerak sesuai kecepatan
-    const jr=jarakTrex(p,me.x,me.z);
-    if(bisaKena&&me.carry>0&&jr<R_KENA){trexKena(now,i);bisaKena=false;}
-    else if(me.carry>0&&jr<R_AWAS)awas=true;
+const SATUAN={1:'balok',2:'batu sandi',3:'balok suku',4:'wadah air',5:'beban'};
+function musuhTick(now,tSec,dt,bisaKena){
+  const a=me.a,L=musuh.ds[a],m=MUSUH_POS[a];if(!L)return;
+  const S=SPESIES[m[0]];let awas=false;
+  L.forEach((d,i)=>{
+    const p=posMusuh(W,seedMusuh(a,i),tSec,S);if(!p){d.grup.visible=false;return;}d.grup.visible=true;
+    d.grup.position.set(p.x,W.tinggiTanah(p.x,p.z),p.z);d.grup.rotation.y=p.arah;
+    d.main(now<musuh.serang[a][i]||p.aum?'serang':'jalan');d.langkah(S.kec);d.perbarui(dt);   // kaki bergerak sesuai kecepatan
+    const jr=jarakMusuh(p,S,me.x,me.z),rawan=a===6||me.carry>0;
+    if(bisaKena&&rawan&&jr<S.kena){musuhKena(now,a,i,S);bisaKena=false;}
+    else if(rawan&&jr<S.awas)awas=true;
   });
-  if(awas&&now-trex.awas>6000){trex.awas=now;getar(40);toast('Awas T-Rex! Balok yang kamu bawa bisa jatuh.');}
+  if(awas&&now-musuh.awas>6000){musuh.awas=now;getar(40);toast('Awas '+S.nama+'! '+(a===6?'Serangannya merampas bekal tim.':'Barang yang kamu bawa bisa jatuh.'));}
 }
-function trexKena(now,i){
-  if(boostAktif==='p'){boostAktif=null;tabrakTil=now+1600;trex.serang[i]=now+1200;toast('Perisai menahan serangan T-Rex!');boostUI();return;}
-  const jml=me.carry;me.carry=0;me.tiles=[];stunTil=now+900;tabrakTil=now+2500;trex.serang[i]=now+1200;getar(120);
+function musuhKena(now,a,i,S){
+  musuh.serang[a][i]=now+1200;
+  if(boostAktif==='p'){boostAktif=null;tabrakTil=now+1600;toast('Perisai menahan serangan '+S.nama+'!');boostUI();return;}
+  const jml=me.carry;me.carry=0;me.tiles=[];stunTil=now+900;tabrakTil=now+2500;getar(120);
   kb=titikMundur(3);me.vx=me.vz=0;kotor=true;
-  toast('T-Rex menyambar! '+jml+' balok hilang.');kirimPosisi(true);
+  if(a===6){ALUR[6].rugi(1);toast(S.nama+' merampas 1 bekal tim!');}
+  else{toast(S.nama+' menyambar! '+jml+' '+SATUAN[a]+' hilang.');kirimPosisi(true);}
 }
 /* balok habis: otoritas mengulang babak (kolom kosong, stok penuh, kembali ke pad) dan menyiarkan st dengan u+1.
    Kondisi harus bertahan 2 detik agar selisih yang masih di jalan sempat tiba. */
@@ -1232,9 +1271,9 @@ function tebakKual(){
   if(hp)return inti>=8&&mem>=6?2:(inti>=6&&mem>=4?1:0);
   return inti>=8?2:1;
 }
-let kual=1,gaya='r',kualManual=false,pasca=false,rtP=null,peringatFps=false,keTerap=-1,ultraMuat=0;
+let kual=1,gaya='r',kualManual=false,pasca=false,rtP=null,peringatFps=false,keTerap=-1,areaTerap=-1,ultraMuat=0;
 /* tingkat yang berlaku sekarang: Ultra hanya menyala di Pos 1 */
-const kualEf=()=>kual===4&&!(me&&me.a===1)?3:kual;
+const kualEf=()=>kual===4&&!(me&&me.a>=1)?3:kual;
 try{const o=JSON.parse(localStorage.getItem('ki-grafis')||'null');if(o&&Number.isInteger(o.q)&&o.q>=0&&o.q<KUAL.length&&GAYA[o.g]){kual=o.q;gaya=o.g;kualManual=!!o.m;}else kual=tebakKual();}catch(e){kual=tebakKual();}
 /* tahap akhir gaya sinematik: pemetaan nada, gradasi warna hangat-sejuk, vinyet, butiran halus, blur kedalaman */
 const pScene=new THREE.Scene(),pCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
@@ -1263,7 +1302,7 @@ void main(){
 pScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),pMat));
 function bisaPasca(){try{const gl=renderer.getContext();return !!(renderer.capabilities.isWebGL2!==false&&(gl.getExtension('EXT_color_buffer_float')||gl.getExtension('EXT_color_buffer_half_float')));}catch(e){return false;}}
 function terapKual(){
-  const ke=kualEf(),k=KUAL[ke],sin=gaya==='s',ult=ke===4;keTerap=ke;
+  const ke=kualEf(),k=KUAL[ke],sin=gaya==='s',ult=ke===4;keTerap=ke;areaTerap=me?me.a:-1;
   /* Ultra: aset dimuat malas saat pertama dibutuhkan; sementara belum siap, tampil seperti sangat tinggi */
   if(ult&&!ultraSiap()&&!ultraMuat){ultraMuat=1;muatUltra(renderer).then(()=>{ultraMuat=0;terapKual();},()=>{ultraMuat=0;if(kual===4){kual=3;terapKual();toast('Aset Ultra gagal diunduh. Kembali ke sangat tinggi.');}});}
   const UT=ult&&ultraSiap()?ultraAset():null;
@@ -1281,7 +1320,8 @@ function terapKual(){
   }
   if(sin)sunDir.set(-.62,.5,.58).normalize();else if(UT)sunDir.set(.5,.62,.6).normalize();else sunDir.set(.45,.8,.4).normalize();
   renderer.toneMapping=sin||UT?THREE.ACESFilmicToneMapping:THREE.NoToneMapping;renderer.toneMappingExposure=sin?.75:(UT?.95:1);
-  arena.setUltra(UT,!!UT);   /* bahan PBR hanya di arena Pos 1 */
+  /* bahan PBR hanya di arena pos yang sedang dimainkan (arena lain dikembalikan ke bahan asli agar tidak memakan memori) */
+  [arena,...Object.keys(ALUR).map(k=>ALUR[k].P.arena)].forEach((X,i)=>{const aktif=i===0?me&&me.a===1:me&&me.a===i+1;X.setUltra(UT,!!UT&&aktif);});
   const b=k.bay>0,ubah=renderer.shadowMap.enabled!==b||sun.shadow.mapSize.x!==k.bay||renderer.userData_tm!==renderer.toneMapping;
   renderer.shadowMap.enabled=b;sun.castShadow=b;renderer.shadowMap.type=ke>=2?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;sun.shadow.radius=ult?3:1;
   if(b)sun.shadow.mapSize.set(k.bay,k.bay);
@@ -1447,7 +1487,7 @@ $('b-masuk').addEventListener('click',async()=>{
   if(prev.r){prev.on=false;prev.r.dispose();prev.r.forceContextLoss&&prev.r.forceContextLoss();}
   $('c-ruang').textContent='Ruang '+kode;
   const ct=$('c-tim');ct.textContent='';const sw=document.createElement('span');sw.className='sw';sw.style.background=t.warna;ct.append(sw,'Tim '+t.nama);
-  setSeed(kode+'|'+saya.tim);trex.seed=hashTeks(kode+'|'+saya.tim);st.g=stokBabak(st.r);for(const k in ALUR){const P=ALUR[k].P;if(P.setSeed)P.setSeed(kode+'|'+saya.tim);ALUR[k].st=P.stateBaru();ALUR[k].atur();}arena.setWarna(t.warna);aturArena();
+  setSeed(kode+'|'+saya.tim);musuh.seed=hashTeks(kode+'|'+saya.tim);st.g=stokBabak(st.r);for(const k in ALUR){const P=ALUR[k].P;if(P.setSeed)P.setSeed(kode+'|'+saya.tim);ALUR[k].st=P.stateBaru();ALUR[k].atur();}arena.setWarna(t.warna);aturArena();
   tGabung=performance.now();
   rt=sambung(kode,{id:saya.id,nama:saya.nama,tim:saya.tim,av:kodeAv(saya.av)},{
     status:s=>{
@@ -1515,7 +1555,7 @@ function mulaiAmat(kode){
 }
 /* hanya sisi tampilan area (tanpa interaksi pemain) */
 function areaAmat(a){
-  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;if(a===1)siapkanTrex();if(kual===4&&kualEf()!==keTerap){aud.lambat=0;terapKual();}
+  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;if(a>=1)siapkanMusuh(a);if(kual===4&&(kualEf()!==keTerap||me.a!==areaTerap)){aud.lambat=0;terapKual();}
   arena.grup.visible=a===1;for(const k in ALUR)ALUR[k].P.arena.grup.visible=a===+k;lobiGrup.visible=a===0;rumput.position.y=a>=1?-9:0;
   $('arhud').hidden=a!==1;$('ar2').hidden=a<2;$('pilih').hidden=true;$('hitung').hidden=true;
   gerbangAmat=false;arena.setGerbang(false);for(const k in ALUR)ALUR[k].P.arena.setGerbang(false);
@@ -1532,7 +1572,7 @@ function pilihTimAmat(t){
   if(!AMAT||!saya||!TIM.some(x=>x.id===t))return;
   saya.tim=t;amatSigTim=t;
   for(const id of [...tim.keys()])hapusPemain(id);
-  setSeed(saya.kode+'|'+t);trex.seed=hashTeks(saya.kode+'|'+t);st=stateBaru();st.g=stokBabak(st.r);pend.clear();hitungMundur=0;endAt=0;
+  setSeed(saya.kode+'|'+t);musuh.seed=hashTeks(saya.kode+'|'+t);st=stateBaru();st.g=stokBabak(st.r);pend.clear();hitungMundur=0;endAt=0;
   for(const k in ALUR){const A=ALUR[k],P=A.P;if(P.setSeed)P.setSeed(saya.kode+'|'+t);A.st=P.stateBaru();A.pend.clear();A.hitung=0;A.endAt=0;A.kotor=true;}
   amatMode='bebas';amatIkut=null;
   rt.pilih(t);areaAmat(me.a);
@@ -1622,7 +1662,8 @@ function pemainBaru0(){
 const lalu={x:0,z:0,vx:0,vz:0,t:0,c:0,a:0};
 function kirimPosisi(paksa){
   if(!me)return;
-  kirim('p',{id:saya.id,x:+me.x.toFixed(1),z:+me.z.toFixed(1),vx:+me.vx.toFixed(1),vz:+me.vz.toFixed(1),a:me.a,c:me.carry});
+  const Ab=ALUR[me.a];   /* ub = kunci babak+ulang, u = bekal yang sudah saya pakai di babak itu (tim menjumlahkan) */
+  kirim('p',{id:saya.id,x:+me.x.toFixed(1),z:+me.z.toFixed(1),vx:+me.vx.toFixed(1),vz:+me.vz.toFixed(1),a:me.a,c:me.carry,...(Ab?{ub:Ab.kunciBekal(),u:Ab.pakaiSaya()}:{})});
   lalu.x=me.x;lalu.z=me.z;lalu.vx=me.vx;lalu.vz=me.vz;lalu.t=performance.now();lalu.c=me.carry;lalu.a=me.a;
 }
 function perluPosisi(now){
@@ -1757,7 +1798,7 @@ function frame(now){
         const udara=!!(me.emo&&me.emo.k===1&&Math.sin(((now-me.emo.t)/700)*Math.PI)*1.6>.7);
         const h=W.bahaya(r,me.x,me.z,tSec,udara);if(h)tabrak(now,h);
       }
-      if(me.a===1&&TREX_ON)trexTick(now,tSec,dt,main&&!lontar&&!kb&&now>=stunTil&&now>=tabrakTil&&!blk);
+      if(MUSUH_ON)musuhTick(now,tSec,dt,main&&!lontar&&!kb&&now>=stunTil&&now>=tabrakTil&&!blk);
       /* trampolin: melempar pemain melewati air */
       {
         const md=W.medanBabak(r);
@@ -1873,4 +1914,4 @@ document.fonts&&document.fonts.ready.then(gambarPapan);
 
 /* kait uji */
 window.__L={AMAT,amatPilih:t=>pilihTimAmat(t),amatArea:a=>keArea(a),amatIkuti:id=>{amatMode='ikuti';amatIkut=id;},get amatMode(){return amatMode;},get saya(){return saya;},catatBabak,P1,AR,arena,get endAt(){return endAt;},get stunTil(){return stunTil;},get me(){return me;},tim,luar,papanData,get st(){return st;},aud,get rt(){return rt;},gerbang,C,hit,
-  MED,M2,M3,M4,M5,M6,P2,P3,P4,P5,P6,arena2,arena3,arena4,arena5,arena6,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca,ke:kualEf(),siap:kualEf()!==4||ultraSiap()};},trex,setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};
+  MED,M2,M3,M4,M5,M6,P2,P3,P4,P5,P6,arena2,arena3,arena4,arena5,arena6,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca,ke:kualEf(),siap:kualEf()!==4||ultraSiap()};},musuh,setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};

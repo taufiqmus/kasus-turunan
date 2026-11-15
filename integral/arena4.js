@@ -1,9 +1,9 @@
 /* Arena Pos 4 "Hutan Sungai": dunia umum (tema hutan) ditambah papan grafik debit, tiga tangki kaca berisi air
    (volume pada waktu t1, t2, t3), dan sumber air di tiga kamp. */
 import * as THREE from './vendor/three.min.js';
-import {M4} from './medan.js?v=38';
-import {buatDunia,TEMA_HUTAN,mat,tulisanLantai} from './dunia3d.js?v=38';
-import {soal4,rDi,VMAX,luasPotong} from './pos4.js?v=38';
+import {M4} from './medan.js?v=39';
+import {buatDunia,TEMA_HUTAN,mat,tulisanLantai} from './dunia3d.js?v=39';
+import {soal4,rDi,VMAX,luasPotong} from './pos4.js?v=39';
 
 export const TANGKI=[-6,0,6].map(x=>({x,z:1.7,px:x,pz:4.6,r:1.4}));
 export const tangkiDi=(x,z)=>TANGKI.findIndex(t=>Math.hypot(x-t.px,z-t.pz)<t.r);
@@ -46,7 +46,7 @@ export function buatArena4(){
     const dinding=new THREE.Mesh(new THREE.BoxGeometry(96,12,4),mat(0x6f7d63));dinding.position.set(0,5,-5);grup.add(dinding);
     const lumut=new THREE.Mesh(new THREE.BoxGeometry(98,1,6),mat(0x3f7a44));lumut.position.set(0,11.4,-5);grup.add(lumut);
     const bingkai=new THREE.Mesh(new THREE.BoxGeometry(21.4,10.6,.6),mat(0x4a3a24));bingkai.position.set(0,4.9,-2.7);grup.add(bingkai);
-    const papan=new THREE.Mesh(new THREE.PlaneGeometry(20,9.5),new THREE.MeshBasicMaterial({map:txp}));papan.position.set(0,4.85,-2.35);grup.add(papan);
+    const papan=new THREE.Mesh(new THREE.PlaneGeometry(20,9.5),dunia.daftarPapan(new THREE.MeshBasicMaterial({map:txp})));papan.position.set(0,4.85,-2.35);grup.add(papan);
   }
   /* tangki kaca: air naik sesuai volume, angka liter tertulis di pelat depan */
   const tangki=TANGKI.map((o,i)=>{
@@ -92,6 +92,6 @@ export function buatArena4(){
         tulis(o,'t = '+(S.t[i]??''),v+' L',sorot===i);o.pl.material.color.setHex(sorot===i?0xffd96b:0xcfe9f5);});
     },
     setBawa(items){let k=0;for(const it of items)for(let j=0;j<it.n&&k<64;j++){P.set(it.x,it.y+j*.55,it.z);M.compose(P,Q,S1);bawa.setMatrixAt(k++,M);}bawa.count=k;bawa.instanceMatrix.needsUpdate=true;},
-    setMedan:dunia.setMedan,animMedan:dunia.animMedan,setGerbang:dunia.setGerbang,setKoin:dunia.setKoin,setDetail:dunia.setDetail,padAnim:dunia.padAnim
+    setMedan:dunia.setMedan,animMedan:dunia.animMedan,setGerbang:dunia.setGerbang,setKoin:dunia.setKoin,setDetail:dunia.setDetail,setUltra:dunia.setUltra,padAnim:dunia.padAnim
   };
 }

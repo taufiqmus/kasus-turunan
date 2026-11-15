@@ -1,9 +1,9 @@
 /* Arena Pos 6 "Puncak Kalkulus": dunia umum (tema gunung) ditambah papan ringkasan soal di plaza,
    papan soal di tiap pos jawaban, dan bendera kamp yang berwarna sesuai pilihan tim. */
 import * as THREE from './vendor/three.min.js';
-import {M6} from './medan.js?v=38';
-import {buatDunia,TEMA_GUNUNG,mat,tulisanLantai} from './dunia3d.js?v=38';
-import {soal6,HURUF,NSTASIUN} from './pos6.js?v=38';
+import {M6} from './medan.js?v=39';
+import {buatDunia,TEMA_GUNUNG,mat,tulisanLantai} from './dunia3d.js?v=39';
+import {soal6,HURUF,NSTASIUN} from './pos6.js?v=39';
 
 const WARNA_OPSI=['#e5392b','#2f7fc1','#2f9e5b','#e0a200'];
 function bungkus(g,teks,maks){
@@ -59,12 +59,12 @@ export function buatArena6(){
     const dinding=new THREE.Mesh(new THREE.BoxGeometry(96,12,4),mat(0x7a7f86));dinding.position.set(0,5,-5);grup.add(dinding);
     const salju=new THREE.Mesh(new THREE.BoxGeometry(98,1,6),mat(0xf4f8fb));salju.position.set(0,11.4,-5);grup.add(salju);
     const bingkai=new THREE.Mesh(new THREE.BoxGeometry(21.4,10.6,.6),mat(0x3d4652));bingkai.position.set(0,4.9,-2.7);grup.add(bingkai);
-    const papan=new THREE.Mesh(new THREE.PlaneGeometry(20,9.5),new THREE.MeshBasicMaterial({map:txp}));papan.position.set(0,4.85,-2.35);grup.add(papan);
+    const papan=new THREE.Mesh(new THREE.PlaneGeometry(20,9.5),dunia.daftarPapan(new THREE.MeshBasicMaterial({map:txp})));papan.position.set(0,4.85,-2.35);grup.add(papan);
   }
   /* tiap pos: papan soal menghadap jalan datang; bendera kamp dan huruf di lantai menunjukkan pilihan tim */
   const pos=dunia.gudangs.map(({g,bend})=>{
     const c=document.createElement('canvas');c.width=640;c.height=560;const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;tx.anisotropy=4;
-    const papan=new THREE.Mesh(new THREE.PlaneGeometry(5.6,4.9),new THREE.MeshBasicMaterial({map:tx}));papan.position.set(0,3.6,3.6);papan.rotation.y=Math.PI;g.add(papan);
+    const papan=new THREE.Mesh(new THREE.PlaneGeometry(5.6,4.9),dunia.daftarPapan(new THREE.MeshBasicMaterial({map:tx})));papan.position.set(0,3.6,3.6);papan.rotation.y=Math.PI;g.add(papan);
     const punggung=new THREE.Mesh(new THREE.BoxGeometry(5.9,5.2,.16),mat(0x3d4652));punggung.position.set(0,3.6,3.7);g.add(punggung);
     for(const sx of [-2.9,2.9]){const t=new THREE.Mesh(new THREE.CylinderGeometry(.12,.14,6,8),mat(0x3d4652));t.position.set(sx,3,3.7);g.add(t);}
     bend.material=bend.material.clone();
@@ -84,6 +84,6 @@ export function buatArena6(){
     setBabak(r){rNow=r;kunciPapan='';tata();},
     setSlot(s){sNow=(s||[]).slice();tata();},
     setBawa(){},
-    setMedan:dunia.setMedan,animMedan:dunia.animMedan,setGerbang:dunia.setGerbang,setKoin:dunia.setKoin,setDetail:dunia.setDetail,padAnim:dunia.padAnim
+    setMedan:dunia.setMedan,animMedan:dunia.animMedan,setGerbang:dunia.setGerbang,setKoin:dunia.setKoin,setDetail:dunia.setDetail,setUltra:dunia.setUltra,padAnim:dunia.padAnim
   };
 }

@@ -2,7 +2,7 @@
    gerbang, koin, dan semua rintangan. Isi khusus tiap pos (bendungan, kuil, kolom, altar) ditambah oleh modul pos.
    W = dunia dari medan.js, T = tema warna dan tumbuhan. */
 import * as THREE from './vendor/three.min.js';
-import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=38';
+import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=39';
 
 export const mat=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
 /* ---------- bahan PBR untuk tingkat Ultra (Pos 1). Geometri dan jumlah draw call tidak berubah; hanya bahan yang ditukar ---------- */
@@ -142,6 +142,8 @@ export function buatDunia(W,T){
   const D=W.DUNIA,M=new THREE.Matrix4(),Q=new THREE.Quaternion(),P=new THREE.Vector3(),S=new THREE.Vector3();
   /* benda yang bahannya ditukar ke PBR di tingkat Ultra: {o, asli, jenis, opsi, p} */
   const ultra=[],reg=(o,jenis,opsi)=>{ultra.push({o,asli:o.material,jenis,opsi:opsi||{},p:null});return o;};
+  /* papan soal dan pelat tulisan (MeshBasic): tidak ikut tone mapping di Ultra supaya kontras tetap penuh */
+  const papan=[],daftarPapan=m=>{papan.push(m);return m;};
   /* ---------- tanah ---------- */
   {
     const st=.8,nx=Math.ceil((D.x1-D.x0)/st),nz=Math.ceil((D.z1-D.z0)/st);
@@ -480,6 +482,7 @@ export function buatDunia(W,T){
     setDetail(f,hias){for(const m of flora){m.count=Math.round(m.userData.maks*(m.userData.hias?(hias?1:0):f));m.visible=m.count>0;}},
     padAnim(t,siap){const s=1+Math.sin(t*3)*.04;cp.scale.set(s,s,1);cp.material.opacity=siap?.95:.6;},
     /* tingkat Ultra: tukar ke bahan PBR (T = tekstur dari ultra.js) atau kembalikan bahan asli */
-    setUltra(T,on){for(const r of ultra){r.o.material=on&&T?(r.p||(r.p=buatPbr(T,r.jenis,r.asli,r.opsi))):r.asli;}}
+    setUltra(T,on){for(const r of ultra){r.o.material=on&&T?(r.p||(r.p=buatPbr(T,r.jenis,r.asli,r.opsi))):r.asli;}for(const m of papan){m.toneMapped=!(on&&T);m.needsUpdate=true;}},
+    daftarPapan
   };
 }

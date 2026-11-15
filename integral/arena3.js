@@ -1,9 +1,9 @@
 /* Arena Pos 3 "Danau Beku": dunia umum (tema salju) ditambah Mesin Putar Balik dengan layar besar,
    corong masuk dan keluar di plaza, dan tiga stasiun: Tungku (naikkan pangkat), Gudang C, Pemotong (bagi koefisien). */
 import * as THREE from './vendor/three.min.js';
-import {M3} from './medan.js?v=38';
-import {buatDunia,TEMA_SALJU,mat,tulisanLantai} from './dunia3d.js?v=38';
-import {soal3,teksF,teksFTim,teksTurunanTim,NB3} from './pos3.js?v=38';
+import {M3} from './medan.js?v=39';
+import {buatDunia,TEMA_SALJU,mat,tulisanLantai} from './dunia3d.js?v=39';
+import {soal3,teksF,teksFTim,teksTurunanTim,NB3} from './pos3.js?v=39';
 
 export const CORONG={masuk:{x:-5.5,z:4.2,r:1.6},keluar:{x:5.5,z:4.2,r:1.6}};
 export const diCorong=(c,x,z)=>Math.hypot(x-CORONG[c].x,z-CORONG[c].z)<CORONG[c].r;
@@ -115,6 +115,6 @@ export function buatArena3(){
     setBawa(items){let k=0;for(const it of items)for(let j=0;j<it.n&&k<64;j++){P.set(it.x,it.y+j*.6,it.z);M.compose(P,Q,S1);bawa.setMatrixAt(k++,M);}bawa.count=k;bawa.instanceMatrix.needsUpdate=true;},
     setMedan:dunia.setMedan,
     animMedan(t,dt){animAsli(t,dt);for(const o of roda)o.r.rotation.z=t*.8*o.arah;api.scale.y=1+Math.sin(t*9)*.15;gergaji.rotation.x=t*8;},
-    setGerbang:dunia.setGerbang,setKoin:dunia.setKoin,setDetail:dunia.setDetail,padAnim:dunia.padAnim
+    setGerbang:dunia.setGerbang,setKoin:dunia.setKoin,setDetail:dunia.setDetail,setUltra:dunia.setUltra,padAnim:dunia.padAnim
   };
 }

@@ -1,9 +1,9 @@
 /* Arena Pos 2 "Ngarai Kuil": dunia umum dari dunia3d.js (tema gurun) ditambah fasad kuil dengan prasasti sandi,
    altar notasi integral di plaza (slot batu), rak batu sandi di tiap kamp, dan batu yang dibawa pemain. */
 import * as THREE from './vendor/three.min.js';
-import {M2} from './medan.js?v=38';
-import {buatDunia,TEMA_GURUN,mat,tulisanLantai} from './dunia3d.js?v=38';
-import {soal,tata,batuKamp,teksBatu} from './pos2.js?v=38';
+import {M2} from './medan.js?v=39';
+import {buatDunia,TEMA_GURUN,mat,tulisanLantai} from './dunia3d.js?v=39';
+import {soal,tata,batuKamp,teksBatu} from './pos2.js?v=39';
 
 /* gambar prasasti: grafik daerah berarsir atau cerita. Dipakai juga untuk kartu kecil di HUD dan ulasan. */
 export function gambarSandi(cv,r,opsi={}){
@@ -80,7 +80,7 @@ export function buatArena2(){
     const atas=new THREE.Mesh(new THREE.BoxGeometry(98,1.2,6),batuG);atas.position.set(0,12.4,-5);grup.add(atas);
     for(let i=-6;i<=6;i++){if(Math.abs(i)<2)continue;const p=new THREE.Mesh(new THREE.CylinderGeometry(.9,1.1,12,10),batuG);p.position.set(i*7.2,6,-2.4);grup.add(p);}
     const bingkai=new THREE.Mesh(new THREE.BoxGeometry(21.4,10.6,.6),gelap);bingkai.position.set(0,4.9,-2.7);grup.add(bingkai);
-    const pr=new THREE.Mesh(new THREE.PlaneGeometry(20,9.5),new THREE.MeshBasicMaterial({map:txp}));pr.position.set(0,4.85,-2.35);grup.add(pr);
+    const pr=new THREE.Mesh(new THREE.PlaneGeometry(20,9.5),dunia.daftarPapan(new THREE.MeshBasicMaterial({map:txp})));pr.position.set(0,4.85,-2.35);grup.add(pr);
     /* tangga kuil */
     for(let i=0;i<3;i++){const t=new THREE.Mesh(new THREE.BoxGeometry(30-i*2,.25,1.2),batuG);t.position.set(0,.12+i*.0,-.2-i*.9);t.position.y=.12+i*.25;grup.add(t);}
   }
@@ -155,6 +155,6 @@ export function buatArena2(){
     grup,dunia,
     setBabak(r){gambarSandi(cw,r);txp.needsUpdate=true;bangunAltar(r);bangunRak(r);},
     setSlot,setBawa,
-    setMedan:dunia.setMedan,animMedan:dunia.animMedan,setGerbang:dunia.setGerbang,setKoin:dunia.setKoin,setDetail:dunia.setDetail,padAnim:dunia.padAnim
+    setMedan:dunia.setMedan,animMedan:dunia.animMedan,setGerbang:dunia.setGerbang,setKoin:dunia.setKoin,setDetail:dunia.setDetail,setUltra:dunia.setUltra,padAnim:dunia.padAnim
   };
 }
