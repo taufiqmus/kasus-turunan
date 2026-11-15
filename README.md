@@ -147,3 +147,9 @@ Dosen memantau lobi dan pos tiap tim tanpa ikut bermain: dari dashboard tekan "P
 - Hanya mendengar: tidak memakai `track()` sehingga tidak muncul di daftar hadir, bukan otoritas dan bukan pemimpin kunci, dan satu-satunya pesan yang boleh dikirim adalah `minta` (meminta keadaan terbaru). Kanal tim hanya dibuka untuk satu tim pada satu waktu. Kode: `sambungAmat` di `rt.js`, bagian "mode pengamat" di `lobi.js`.
 - Panel bawah: pilih tim, ikuti anggota (area dan kamera menyusul), kamera bebas (WASD, Q/E, Shift), atau pindah area (Lobi, Pos 1 sampai 6). HUD pos menampilkan keadaan tim yang dipantau; jendela ulasan tidak menghalangi.
 - Uji: `tests/amati.py`.
+
+## Layar penuh di HP (v=32)
+- Saat mahasiswa menekan Masuk di HP, halaman meminta layar penuh otomatis (Android Chrome). Tombol "Layar penuh" di menu tetap ada.
+- `integral/manifest.webmanifest` dan ikon: Lobi Integral bisa dipasang ke Layar Utama dan dibuka tanpa bar peramban (juga di iPhone, yang tidak mendukung Fullscreen API).
+- Kartu masuk menampilkan petunjuk pasang ke Layar Utama hanya di HP yang belum membuka dari ikon. Peramban dalam aplikasi (WhatsApp, Instagram) umumnya tidak bisa layar penuh; buka lewat Chrome atau Safari.
+- Peringkat tim dan form buat sesi ada di `integral/dosen.html`. Uji: `tests/layar.py`.

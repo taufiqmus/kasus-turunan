@@ -2,6 +2,12 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="ikon-192.png">
+<meta name="theme-color" content="#9fd4ee">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Lobi Integral (prototipe v2)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -223,6 +229,7 @@ body.hp #boost .btn{padding:8px}
       <div id="cr"><canvas id="cr-prev" width="300" height="380"></canvas><div id="cr-opsi"></div></div>
       <button class="btn big" id="b-masuk" type="button" style="margin-top:14px;width:100%">Masuk</button>
       <p class="fmsg" id="m-msg" role="alert"></p>
+      <p class="note" id="tip-hp" hidden>Agar layar penuh tanpa bar di atas: buka tautan ini di Chrome atau Safari (bukan dari dalam WhatsApp atau Instagram), lalu pilih Tambahkan ke Layar Utama dan buka dari ikonnya.</p>
     </div>
   </div>
 </section>
@@ -341,6 +348,6 @@ body.hp #boost .btn{padding:8px}
 </div>
 
 <script src="./vendor/supabase.js"></script>
-<script type="module" src="lobi.js?v=31"></script>
+<script type="module" src="lobi.js?v=32"></script>
 </body>
 </html>

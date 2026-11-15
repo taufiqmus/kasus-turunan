@@ -1,30 +1,30 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung,sambungAmat} from './rt.js?v=31';
-import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=31';
-import * as P1 from './pos1.js?v=31';
-import * as AR from './arena.js?v=31';
-import {buatArena,kolomDari,uTembus} from './arena.js?v=31';
-import {buatArena2,gambarSandi} from './arena2.js?v=31';
-import * as P2 from './pos2.js?v=31';
-import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=31';
-import * as P3 from './pos3.js?v=31';
-import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=31';
-import * as P4 from './pos4.js?v=31';
-import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=31';
-import * as P5 from './pos5.js?v=31';
-import {buatArena6,gambarFinal} from './arena6.js?v=31';
-import * as P6 from './pos6.js?v=31';
-import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=31';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=31';
-import {labelSprite,buangSprite,klem} from './util.js?v=31';
-import {M1,M2,M3,M4,M5,M6} from './medan.js?v=31';
+import {sambung,sambungAmat} from './rt.js?v=32';
+import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=32';
+import * as P1 from './pos1.js?v=32';
+import * as AR from './arena.js?v=32';
+import {buatArena,kolomDari,uTembus} from './arena.js?v=32';
+import {buatArena2,gambarSandi} from './arena2.js?v=32';
+import * as P2 from './pos2.js?v=32';
+import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=32';
+import * as P3 from './pos3.js?v=32';
+import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=32';
+import * as P4 from './pos4.js?v=32';
+import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=32';
+import * as P5 from './pos5.js?v=32';
+import {buatArena6,gambarFinal} from './arena6.js?v=32';
+import * as P6 from './pos6.js?v=32';
+import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=32';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=32';
+import {labelSprite,buangSprite,klem} from './util.js?v=32';
+import {M1,M2,M3,M4,M5,M6} from './medan.js?v=32';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
 let W=M1;
 import {bacaSesi} from '../core/net.js';
-import * as CT from './catat.js?v=31';
-import * as AM from './amati.js?v=31';
+import * as CT from './catat.js?v=32';
+import * as AM from './amati.js?v=32';
 
 const $=id=>document.getElementById(id);
 const TIM=[['merah','Merah','#e5392b'],['biru','Biru','#2f7fc1'],['hijau','Hijau','#2f9e5b'],['kuning','Kuning','#e0a200'],
@@ -1352,7 +1352,13 @@ function isiSiap(){
 
 /* ---------- masuk ---------- */
 let masukBerjalan=false;
+function layarPenuhOtomatis(){
+  try{if(HP&&!AMAT&&!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{});}catch(e){}
+}
+{const mandiri=matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+ if(HP&&!mandiri&&$('tip-hp'))$('tip-hp').hidden=false;}
 $('b-masuk').addEventListener('click',async()=>{
+  layarPenuhOtomatis();
   if(masukBerjalan)return;
   const tok=$('in-token').value.trim().toUpperCase().replace(/[^A-Z0-9-]/g,'');
   const nama=$('in-nama').value.trim(),kode=($('in-kode').value.trim()||tok).toUpperCase().replace(/[^A-Z0-9-]/g,'');
