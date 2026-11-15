@@ -15,10 +15,17 @@ Skrip pengubah: `tools/realisme-pos1/buat_aset.py`.
 - ambientCG: https://ambientcg.com (lisensi https://docs.ambientcg.com/license/)
 - Poly Haven: https://polyhaven.com (lisensi https://polyhaven.com/license)
 
-## Dinosaurus (prototipe pengganggu Pos 1)
+## Karakter pengganggu tiap pos
 
-| Berkas | Sumber | Aset asli | Lisensi |
+Semua model glTF ber-rig dan beranimasi, CC0 1.0, oleh Quaternius, diunduh dari Poly Pizza. Dimuat malas hanya saat pemain masuk pos yang memakainya.
+
+| Berkas | Dipakai di | Sumber (Poly Pizza) | Aset asli |
 |---|---|---|---|
-| trex.glb | Poly Pizza (https://poly.pizza/m/UYtneO5FpF) | "T-Rex" oleh Quaternius, ber-rig, 6 animasi (Attack, Death, Idle, Jump, Run, Walk) | CC0 1.0 |
+| trex.glb | Pos 1 | https://poly.pizza/m/UYtneO5FpF | T-Rex |
+| ular.glb | Pos 2 | https://poly.pizza/m/x9x0viZs8V | Snake |
+| serigala.glb | Pos 3 | https://poly.pizza/m/XU7oNeKShV | Wolf |
+| laba.glb | Pos 4 | https://poly.pizza/m/yRYJiAJyiM | Spider |
+| kepiting.glb | Pos 5 | https://poly.pizza/m/Gs3yfsV5lB | Crab Enemy |
+| triceratops.glb | Pos 6 | https://poly.pizza/m/IGvrUqGrRM | Triceratops |
 
 Pemuat model (`integral/vendor/GLTFLoader.js`, `BufferGeometryUtils.js`, `SkeletonUtils.js`) disalin dari three.js r187 (lisensi MIT, sama dengan `three.min.js`); impor `'three'` diganti ke `./three.min.js`.

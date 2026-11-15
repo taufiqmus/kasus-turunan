@@ -154,21 +154,22 @@ Dosen memantau lobi dan pos tiap tim tanpa ikut bermain: dari dashboard tekan "P
 - Kartu masuk menampilkan petunjuk pasang ke Layar Utama hanya di HP yang belum membuka dari ikon. Peramban dalam aplikasi (WhatsApp, Instagram) umumnya tidak bisa layar penuh; buka lewat Chrome atau Safari.
 - Peringkat tim dan form buat sesi ada di `integral/dosen.html`. Uji: `tests/layar.py`.
 
-## Grafis Ultra khusus Pos 1 (prototipe, v=33)
+## Grafis Ultra, karakter pengganggu, dan bekal (Pos 1 sampai 6, prototipe, v=39)
 
-Tingkat kelima di tombol Grafis. Berlaku hanya di Pos 1 (di lobi dan pos lain sama dengan sangat tinggi), dipilih manual, tidak pernah dipilih otomatis (default HP tidak berubah), dan turun sendiri ke sangat tinggi bila fps rendah.
-
+### Grafis Ultra
+Tingkat kelima di tombol Grafis. Berlaku di semua pos (di lobi sama dengan sangat tinggi), dipilih manual, tidak pernah dipilih otomatis (default HP tidak berubah), dan turun sendiri ke sangat tinggi bila fps rendah.
 - Cahaya: langit foto (Poly Haven, LDR 1k) sebagai latar dan peta lingkungan, tone mapping ACES, matahari condong keemasan, cahaya sekitar hangat, bayangan lembut.
-- Bahan: tekstur PBR 512 px WebP (beton, tanah, kayu, batu) dengan peta normal. Hanya bahan yang ditukar; geometri dan draw call sama. Papan soal dan pelat kolom dikecualikan dari tone mapping supaya kontras tetap penuh.
-- Muat malas: `integral/ultra.js` baru mengunduh `integral/aset/` (sekitar 0,4 MB) saat Ultra dipakai di Pos 1.
-- Sumber dan lisensi (CC0): `integral/aset/LISENSI.md`. Pembuat aset: `tools/realisme-pos1/buat_aset.py`.
-- Pengukuran dan screenshot sebelum dan sesudah: `tools/realisme-pos1/` (`ukur.py`, `BASELINE.md`).
+- Bahan: tekstur PBR 512 px WebP (beton, tanah, kayu, batu) dengan peta normal; hanya bahan yang ditukar, geometri dan draw call sama. Papan soal dan pelat tulisan dikecualikan dari tone mapping supaya kontras penuh.
+- Muat malas (`integral/ultra.js`, sekitar 0,4 MB) saat Ultra dipakai di pos. Sumber dan lisensi (CC0): `integral/aset/LISENSI.md`. Pembuat aset: `tools/realisme-pos1/buat_aset.py`; ukuran dan screenshot: `tools/realisme-pos1/`.
 
-## T-Rex pengganggu di Pos 1 (prototipe)
+### Karakter pengganggu
+Tiap pos punya karakter sendiri (model CC0 Quaternius, `integral/fauna.js`, `integral/aset/*.glb`, sekitar 0,2 sampai 0,45 MB per spesies, dimuat malas saat masuk pos): Pos 1 T-Rex (4 ekor), Pos 2 ular gurun, Pos 3 serigala salju, Pos 4 laba-laba raksasa, Pos 5 kepiting raksasa, Pos 6 triceratops (masing-masing 3 ekor).
+- Gerak: fungsi murni jam dinding dan seed (kode ruang, tim, pos, nomor ekor) di `integral/musuh.js`, sama bagi semua anggota tanpa pesan jaringan. Berjalan di jalan yang cukup lebar (komponen terhubung terbesar), tidak pernah masuk plaza dan zona soal, tidak masuk lingkaran kamp (berhenti dan mengaum di tepi kamp, lalu mengitari).
+- Efek: pemain yang membawa barang dan tersambar kehilangan semua bawaannya (hilang, tidak kembali ke kamp, sama seperti rintangan). Perisai menahan satu serangan. Pos 6 tidak membawa barang: serangan merampas 1 bekal tim.
+- Di uji Playwright (navigator.webdriver) karakter mati kecuali `?musuh=1`, agar uji lain tidak acak. Galeri: `tests/galeri_fauna.html?s=trex|ular|serigala|laba|kepiting|triceratops`.
 
-- Model: "T-Rex" CC0 oleh Quaternius (glTF ber-rig, 6 animasi), dimuat malas saat masuk Pos 1 (`integral/dino.js`, `integral/aset/trex.glb`, GLTFLoader r187 di `integral/vendor/`), sekitar 0,5 MB.
-- Gerak: fungsi murni jam dinding dan seed tim (`integral/trex.js`), sama bagi semua anggota tanpa pesan jaringan. Berjalan di jalan lebar (tidak lewat jembatan gantung dan batu pijakan), tidak pernah masuk plaza dan zona kolom, berhenti dan mengaum di kamp.
-- Empat T-Rex (tinggi 4,2), tiap ekor rute sendiri dari seed tim dan nomor ekor. Berhenti dan mengaum di tepi kamp, tidak masuk pusat kamp.
-- Efek: pemain yang membawa balok dan tersambar kehilangan semua balok bawaannya (hilang, sama seperti rintangan lain). Perisai menahan satu serangan. Peringatan "Awas T-Rex" saat jarak di bawah 9.
-- Balok habis: bila babak berjalan, stok semua kamp 0, tidak ada anggota yang membawa balok, dan balok di kolom kurang dari kebutuhan babak, babak diulang (kolom kosong, stok diisi ulang, tim kembali ke pad). Otoritas tim menyiarkan `st` dengan penghitung `u` yang naik; tidak ada jenis pesan baru.
-- Uji: `node tests/trex_cek.mjs`. Di uji Playwright (navigator.webdriver) T-Rex dimatikan kecuali `?dino=1`, agar uji lain tidak acak.
+### Stok, bekal, dan game over
+- Pos 1: stok kamp 1,5 kali kebutuhan + 4 (tidak mengisi ulang). Bila babak berjalan, stok semua kamp 0, tidak ada yang membawa balok, dan balok di kolom kurang dari kebutuhan, babak diulang (kolom kosong, stok diisi ulang, kembali ke pad; stopwatch tetap jalan).
+- Pos 2 sampai 5: bekal tim per babak (Pos 2: 2 kali jumlah slot + 3, Pos 3 sama, Pos 4 dan 5: 1,5 kali jumlah wadah minimum + 4). Tiap pengambilan barang memakai 1 bekal; "Taruh kembali" mengembalikannya; barang yang hilang karena rintangan atau karakter tidak. Pos 6: 8 bekal, tiap jawaban baru atau ganti jawaban memakai 1.
+- Game over: bekal habis, tidak ada yang membawa barang, dan slot belum bisa dikunci -> babak diulang di semua pemain. Sinkronisasi tanpa jenis pesan baru: pemakaian bekal ikut pesan posisi (`ub`, `u`), pengulangan disiarkan otoritas lewat `st.u`.
+- Uji: `node tests/musuh_cek.mjs` (lintasan di keenam dunia, aturan Pos 1) dan `python3 tests/musuh.py` (dua pemain per pos: karakter, sambaran, bekal, game over).
