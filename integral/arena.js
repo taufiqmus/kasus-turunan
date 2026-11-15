@@ -3,7 +3,7 @@
 import * as THREE from './vendor/three.min.js';
 import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=32';
 import {M1} from './medan.js?v=32';
-import {buatDunia,TEMA_HIJAU,mat} from './dunia3d.js?v=32';
+import {buatDunia,TEMA_HIJAU,mat,uvMeter,buatPbr} from './dunia3d.js?v=32';
 export {uTembus} from './dunia3d.js?v=32';
 
 export const SY=.9,UB=UBAG*SY,WX=9;
@@ -17,11 +17,13 @@ export const tinggiTanah=M1.tinggiTanah;
 export function buatArena(){
   const dunia=buatDunia(M1,TEMA_HIJAU),grup=dunia.grup;
   /* ---------- bendungan ---------- */
+  /* bagian bendungan yang bahannya ditukar ke beton PBR di tingkat Ultra (UV dalam meter agar tekstur tidak melar) */
+  const betonU=[];
   {
-    const beton=mat(0xcfc8b8),gelapB=mat(0x9b958a);
-    const badan=new THREE.Mesh(new THREE.BoxGeometry(96,14,4),beton);badan.position.set(0,6,-5);grup.add(badan);
-    const atas=new THREE.Mesh(new THREE.BoxGeometry(96,.6,5),gelapB);atas.position.set(0,13.2,-5);grup.add(atas);
-    for(let i=-5;i<=5;i++){if(Math.abs(i)<2)continue;const p=new THREE.Mesh(new THREE.BoxGeometry(2.2,13,2.4),gelapB);p.position.set(i*8,6.5,-2.6);grup.add(p);}
+    const beton=mat(0xcfc8b8),gelapB=mat(0x9b958a),B=(w,h,d)=>uvMeter(new THREE.BoxGeometry(w,h,d),4);
+    const badan=new THREE.Mesh(B(96,14,4),beton);badan.position.set(0,6,-5);grup.add(badan);betonU.push(badan);
+    const atas=new THREE.Mesh(B(96,.6,5),gelapB);atas.position.set(0,13.2,-5);grup.add(atas);betonU.push(atas);
+    for(let i=-5;i<=5;i++){if(Math.abs(i)<2)continue;const p=new THREE.Mesh(B(2.2,13,2.4),gelapB);p.position.set(i*8,6.5,-2.6);grup.add(p);betonU.push(p);}
     const bingkai=new THREE.Mesh(new THREE.BoxGeometry(21,10.4,.5),mat(0x1c2230));bingkai.position.set(0,4.9,-2.6);grup.add(bingkai);
   }
   /* dinding kurva */
@@ -68,7 +70,7 @@ export function buatArena(){
   }
 
   /* pelat zona kolom di lantai */
-  const pelat=[];
+  const pelat=[];let ultraOn=false;
   function bangunPelat(n,xs){
     for(const p of pelat){grup.remove(p);p.geometry.dispose();if(p.material.map)p.material.map.dispose();p.material.dispose();}
     pelat.length=0;const w=2*WX/n;
@@ -80,7 +82,7 @@ export function buatArena(){
       const fs=n>8?22:30;g.font='800 '+fs+'px "Chakra Petch",sans-serif';
       g.fillText('x = '+(Math.round(xs[i]*100)/100),c.width/2,c.height/2);
       const tx2=new THREE.CanvasTexture(c);tx2.colorSpace=THREE.SRGBColorSpace;
-      const p=new THREE.Mesh(new THREE.PlaneGeometry(w-.06,ZONA.z1-ZONA.z0),new THREE.MeshBasicMaterial({map:tx2}));
+      const p=new THREE.Mesh(new THREE.PlaneGeometry(w-.06,ZONA.z1-ZONA.z0),new THREE.MeshBasicMaterial({map:tx2,toneMapped:!ultraOn}));
       p.rotation.x=-Math.PI/2;p.rotation.z=0;p.position.set(kolX(n,i),.03,(ZONA.z0+ZONA.z1)/2);p.userData.i=i;grup.add(p);pelat.push(p);
     }
   }
@@ -145,6 +147,13 @@ export function buatArena(){
     setBabak(o){nKol=o.n;gambarDinding(o);bangunPelat(o.n,o.xs);},
     setWarna(w){warna=w;for(const b of tumpuk)b.material.color.set(w);},
     setStok,setBags,setBawa,
+    /* tingkat Ultra: beton PBR di bendungan, tanah, kayu, batu; papan soal dan pelat tidak ikut tone mapping supaya kontras tetap penuh */
+    setUltra(T,on){
+      ultraOn=!!on;dunia.setUltra(T,on);
+      for(const m of betonU){if(!m.userData.asli)m.userData.asli=m.material;
+        m.material=on&&T?(m.userData.p||(m.userData.p=buatPbr(T,'beton',m.userData.asli,{ns:.8,kasar:.95}))):m.userData.asli;}
+      for(const mt of [dinding.material,...pelat.map(p=>p.material)]){mt.toneMapped=!ultraOn;mt.needsUpdate=true;}
+    },
     setMedan:dunia.setMedan,animMedan:dunia.animMedan,setGerbang:dunia.setGerbang,setKoin:dunia.setKoin,setDetail:dunia.setDetail,padAnim:dunia.padAnim,
     sorot(i){for(const p of pelat)p.material.color.set(p.userData.i===i?0xffd96b:0xffffff);},
     get n(){return nKol;}

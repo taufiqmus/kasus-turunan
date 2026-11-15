@@ -8,7 +8,7 @@ from PIL import Image
 SRC=sys.argv[1];OUT=os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','..','integral','aset')
 os.makedirs(OUT,exist_ok=True)
 # nama keluaran: (folder, awalan berkas, terang sasaran, sisa warna asli 0..1, kualitas warna)
-TEK={'beton':('Concrete034',.86,.25,78),'tanah':('Ground054',.86,.30,76),'kayu':('Planks023A',None,1.0,80),'batu':('Rock058',.84,.25,76)}
+TEK={'beton':('Concrete034',.86,.25,78),'tanah':('Ground054',.86,.30,76),'kayu':('Planks023A',.8,.55,80),'batu':('Rock058',.84,.25,76)}
 def muat(d,suf):return Image.open(os.path.join(SRC,d,f'{d}_1K-JPG_{suf}.jpg'))
 tot=0
 for nama,(d,terang,warna,qw) in TEK.items():

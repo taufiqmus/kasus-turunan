@@ -5,6 +5,21 @@ import * as THREE from './vendor/three.min.js';
 import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=32';
 
 export const mat=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
+/* ---------- bahan PBR untuk tingkat Ultra (Pos 1). Geometri dan jumlah draw call tidak berubah; hanya bahan yang ditukar ---------- */
+/* UV dalam meter (tile = lebar satu ulangan tekstur) untuk kotak, supaya tekstur tidak melar di bendungan 96 m */
+export function uvMeter(geo,tile){
+  const p=geo.attributes.position,n=geo.attributes.normal,uv=new Float32Array(p.count*2);
+  for(let i=0;i<p.count;i++){
+    const ax=Math.abs(n.getX(i)),ay=Math.abs(n.getY(i)),az=Math.abs(n.getZ(i)),x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+    const [u,v]=ax>=ay&&ax>=az?[z,y]:(ay>=az?[x,z]:[x,y]);uv[2*i]=u/tile;uv[2*i+1]=v/tile;
+  }
+  geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));return geo;
+}
+export function buatPbr(T,jenis,asli,o={}){
+  const m=new THREE.MeshStandardMaterial({color:asli.color.clone(),map:T[jenis],normalMap:T[jenis+'_n'],normalScale:new THREE.Vector2(o.ns||1,o.ns||1),
+    roughness:o.kasar==null?.92:o.kasar,metalness:0,vertexColors:!!asli.vertexColors,flatShading:!!o.datar});
+  return o.tembus?tembus(m):m;
+}
 /* tumbuhan dan batu yang menutupi pemain dari kamera dibuat tembus pandang berbintik, supaya karakter selalu terlihat.
    uTembus = posisi pemain di ruang kamera (z positif = di depan kamera). */
 export const uTembus={value:new THREE.Vector3(0,0,-1)};
@@ -125,18 +140,20 @@ export function buatDunia(W,T){
   const grup=new THREE.Group();grup.visible=false;
   const Y=(x,z)=>W.tinggi(x,z);
   const D=W.DUNIA,M=new THREE.Matrix4(),Q=new THREE.Quaternion(),P=new THREE.Vector3(),S=new THREE.Vector3();
+  /* benda yang bahannya ditukar ke PBR di tingkat Ultra: {o, asli, jenis, opsi, p} */
+  const ultra=[],reg=(o,jenis,opsi)=>{ultra.push({o,asli:o.material,jenis,opsi:opsi||{},p:null});return o;};
   /* ---------- tanah ---------- */
   {
     const st=.8,nx=Math.ceil((D.x1-D.x0)/st),nz=Math.ceil((D.z1-D.z0)/st);
-    const pos=new Float32Array((nx+1)*(nz+1)*3),col=new Float32Array((nx+1)*(nz+1)*3),idx=[],C=new THREE.Color();
+    const pos=new Float32Array((nx+1)*(nz+1)*3),col=new Float32Array((nx+1)*(nz+1)*3),uvT=new Float32Array((nx+1)*(nz+1)*2),idx=[],C=new THREE.Color();
     for(let j=0,k=0;j<=nz;j++)for(let i=0;i<=nx;i++,k+=3){
       const x=D.x0+i*st,z=D.z0+j*st,n=derau(x*1.7,z*1.7);
-      pos[k]=x;pos[k+1]=W.tinggiTanah(x,z);pos[k+2]=z;T.tanah(W,x,z,W.jarakJalan(x,z),n,C);C.multiplyScalar(.94+.06*n);col[k]=C.r;col[k+1]=C.g;col[k+2]=C.b;
+      pos[k]=x;pos[k+1]=W.tinggiTanah(x,z);pos[k+2]=z;uvT[2*(k/3)]=x/5;uvT[2*(k/3)+1]=z/5;T.tanah(W,x,z,W.jarakJalan(x,z),n,C);C.multiplyScalar(.94+.06*n);col[k]=C.r;col[k+1]=C.g;col[k+2]=C.b;
     }
     for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i,b=a+1,c=a+nx+1,d=c+1;idx.push(a,c,b,b,c,d);}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));
-    g.setIndex(idx);g.computeVertexNormals();
-    const tanah=new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true}));tanah.userData.tanah=true;grup.add(tanah);
+    g.setAttribute('uv',new THREE.BufferAttribute(uvT,2));g.setIndex(idx);g.computeVertexNormals();
+    const tanah=new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true}));tanah.userData.tanah=true;grup.add(tanah);reg(tanah,'tanah',{ns:1.2,datar:true});
   }
   /* ---------- kamp: alas, cincin, tenda, bendera. Isi kamp diisi modul pos lewat gudangs[i].g ---------- */
   const gudangs=[];
@@ -147,7 +164,7 @@ export function buatDunia(W,T){
     const cg=new THREE.Mesh(new THREE.RingGeometry(d.r-1.7,d.r-1.4,28),new THREE.MeshBasicMaterial({color:0xff6f47,side:THREE.DoubleSide}));
     cg.rotation.x=-Math.PI/2;cg.position.y=.05;g.add(cg);
     const tenda=new THREE.Mesh(new THREE.ConeGeometry(1.9,2.4,4),mat(T.kamp[di]));tenda.position.set(-2.5,1.2,-1.9);tenda.rotation.y=Math.PI/4;g.add(tenda);
-    const tiang=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,7,6),mat(0x6b4a26));tiang.position.set(2.6,3.5,-2);g.add(tiang);
+    const tiang=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,7,6),mat(0x6b4a26));tiang.position.set(2.6,3.5,-2);g.add(tiang);reg(tiang,'kayu',{kasar:.8});
     const bend=new THREE.Mesh(new THREE.BoxGeometry(1.7,1,.08),mat(T.kamp[di]));bend.position.set(3.5,6.4,-2);g.add(bend);
     gudangs.push({g,bend,nama:d.nama});
   });
@@ -167,7 +184,7 @@ export function buatDunia(W,T){
   const palang=new THREE.Group();palang.position.set(-2.3,1.3,0);gerb.add(palang);
   {
     const kayuG=mat(0x6b4a26);
-    for(const sx of [-2.3,2.3]){const t=new THREE.Mesh(new THREE.BoxGeometry(.4,2.4,.4),kayuG);t.position.set(sx,1.2,0);gerb.add(t);}
+    for(const sx of [-2.3,2.3]){const t=new THREE.Mesh(uvMeter(new THREE.BoxGeometry(.4,2.4,.4),1.5),kayuG);t.position.set(sx,1.2,0);gerb.add(t);reg(t,'kayu',{kasar:.8});}
     const pg=new THREE.BoxGeometry(4.6,.3,.3);pg.translate(2.3,0,0);palang.add(new THREE.Mesh(pg,mat(0x6fb7e9)));
     const pg2=new THREE.BoxGeometry(4.6,.3,.3);pg2.translate(2.3,-.6,0);palang.add(new THREE.Mesh(pg2,mat(0x6fb7e9)));
   }
@@ -195,7 +212,7 @@ export function buatDunia(W,T){
     const kayu1=mat(0xc08a4a),kayu2=mat(0xb27a3c),tali=mat(0x6b4a26);
     for(const GT of GTS){
       const z0=GT.z0,z1=GT.z1,n=11,y=Y(GT.x,(GT.z0+GT.z1)/2);
-      for(let k=0;k<n;k++){const pl=new THREE.Mesh(new THREE.BoxGeometry(2.7,.16,(z1-z0)/n-.07),k%2?kayu1:kayu2);pl.position.set(GT.x,y+.02,z0+(k+.5)*(z1-z0)/n);grup.add(pl);}
+      for(let k=0;k<n;k++){const pl=new THREE.Mesh(uvMeter(new THREE.BoxGeometry(2.7,.16,(z1-z0)/n-.07),1.5),k%2?kayu1:kayu2);pl.position.set(GT.x,y+.02,z0+(k+.5)*(z1-z0)/n);grup.add(pl);reg(pl,'kayu',{kasar:.8});}
       for(const sx of [-1,1]){
         const rl=new THREE.Mesh(new THREE.BoxGeometry(.1,.1,z1-z0),tali);rl.position.set(GT.x+sx*1.4,y+1,(z0+z1)/2);grup.add(rl);
         for(const zz of [z0,z1,(z0+z1)/2]){const t=new THREE.Mesh(new THREE.BoxGeometry(.2,1.2,.2),tali);t.position.set(GT.x+sx*1.4,y+.5,zz);grup.add(t);}
@@ -205,8 +222,8 @@ export function buatDunia(W,T){
       const [ax,az,bx,bz]=W.JEMB_KAYU,dx=bx-ax,dz=bz-az,L=Math.hypot(dx,dz),ux=dx/L,uz=dz/L,rot=Math.atan2(ux,uz);
       const t0=(A.z0-.8-az)/dz*L,t1=(A.z1+.8-az)/dz*L,m=9;
       for(let k=0;k<m;k++){
-        const t=t0+(k+.5)*(t1-t0)/m,pl=new THREE.Mesh(new THREE.BoxGeometry(4.2,.18,(t1-t0)/m-.07),k%2?kayu1:kayu2);
-        pl.position.set(ax+ux*t,.06,az+uz*t);pl.rotation.y=rot;grup.add(pl);
+        const t=t0+(k+.5)*(t1-t0)/m,pl=new THREE.Mesh(uvMeter(new THREE.BoxGeometry(4.2,.18,(t1-t0)/m-.07),1.5),k%2?kayu1:kayu2);
+        pl.position.set(ax+ux*t,.06,az+uz*t);pl.rotation.y=rot;grup.add(pl);reg(pl,'kayu',{kasar:.8});
       }
       for(const sx of [-1,1]){const tm=(t0+t1)/2,rl=new THREE.Mesh(new THREE.BoxGeometry(.14,.5,t1-t0),tali);
         rl.position.set(ax+ux*tm+sx*uz*2.1,.5,az+uz*tm-sx*ux*2.1);rl.rotation.y=rot;grup.add(rl);}
@@ -224,6 +241,7 @@ export function buatDunia(W,T){
     const gBat=new THREE.CylinderGeometry(.24,.32,1.6,6),gMah=gurun?new THREE.ConeGeometry(2.2,.9,7):new THREE.IcosahedronGeometry(1.5,0);
     const gBatL=gurun?new THREE.CylinderGeometry(.2,.3,4.4,6):gBat;
     const a=mk(gA,NP),b=mk(gB,NP),c=mk(gBat,NP),mah=mk(gMah,NL),bl=mk(gBatL,NL),batu=mk(new THREE.IcosahedronGeometry(1,0),NB),semak=mk(new THREE.ConeGeometry(.6,.9,5),NS);
+    reg(batu,'batu',{tembus:true,ns:1.3,datar:true});
     const m=new THREE.Matrix4(),q=new THREE.Quaternion(),p=new THREE.Vector3(),sc=new THREE.Vector3(),C=new THREE.Color(),e=new THREE.Euler();
     const HP=T.warnaA||(gurun?[0x4f8f4a,0x5c9c52,0x467f43,0x6aa85a]:[0x1f6b3a,0x2a7d44,0x2f8a4c,0x246b3f]),HP2=T.warnaB||HP,HL=T.warnaMahkota||(gurun?[0x3f9a52,0x4fae5a,0x5bb565,0x358a46]:[0x4fae5a,0x6cc06a,0x3f9a52,0x8cc96a]);
     let np=0,nl=0,nb=0,ns=0;
@@ -460,6 +478,8 @@ export function buatDunia(W,T){
     setKoin(ada){koinAda=ada.slice();},
     /* kepadatan tumbuhan 0..1 dari tingkat kualitas; semak hias hanya di tingkat tinggi */
     setDetail(f,hias){for(const m of flora){m.count=Math.round(m.userData.maks*(m.userData.hias?(hias?1:0):f));m.visible=m.count>0;}},
-    padAnim(t,siap){const s=1+Math.sin(t*3)*.04;cp.scale.set(s,s,1);cp.material.opacity=siap?.95:.6;}
+    padAnim(t,siap){const s=1+Math.sin(t*3)*.04;cp.scale.set(s,s,1);cp.material.opacity=siap?.95:.6;},
+    /* tingkat Ultra: tukar ke bahan PBR (T = tekstur dari ultra.js) atau kembalikan bahan asli */
+    setUltra(T,on){for(const r of ultra){r.o.material=on&&T?(r.p||(r.p=buatPbr(T,r.jenis,r.asli,r.opsi))):r.asli;}}
   };
 }

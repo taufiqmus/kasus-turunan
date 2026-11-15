@@ -1,0 +1,19 @@
+{
+ "muat_hingga_lobi_dtk": 1.34,
+ "unduhan_awal_kb": 1278.0,
+ "berkas_awal": 27,
+ "area": 1,
+ "4r": {
+  "draw_call_per_frame": 259.8,
+  "segitiga_per_frame": 206439,
+  "fps_swiftshader": 6.2
+ },
+ "4s": {
+  "draw_call_per_frame": 247.1,
+  "segitiga_per_frame": 206141,
+  "fps_swiftshader": 6.0
+ },
+ "unduhan_total_kb": 1654.4,
+ "unduhan_aset_kb": 376.4,
+ "error_halaman": []
+}

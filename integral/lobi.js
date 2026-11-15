@@ -18,6 +18,7 @@ import * as P6 from './pos6.js?v=32';
 import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=32';
 import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=32';
 import {labelSprite,buangSprite,klem} from './util.js?v=32';
+import {muatUltra,ultraSiap,ultraAset} from './ultra.js?v=33';
 import {M1,M2,M3,M4,M5,M6} from './medan.js?v=32';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
@@ -1029,7 +1030,7 @@ for(let i=0;i<6;i++){const b=$('m-pos').children[i];if(b){b.disabled=i>=POS_AKTI
 /* ---------- arena dan aksi ---------- */
 function setArea(a){
   if(AL()&&a!==me.a)AL().flush();
-  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;
+  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;if(kual===4&&kualEf()!==keTerap){aud.lambat=0;terapKual();}
   arena.grup.visible=a===1;for(const k in ALUR)ALUR[k].P.arena.grup.visible=a===+k;lobiGrup.visible=a===0;rumput.position.y=a>=1?-9:0;
   $('arhud').hidden=a!==1;$('ar2').hidden=a<2;$('pilih').hidden=true;
   $('peta').hidden=false;$('peta').classList.toggle('ar',a>=1);$('stam').classList.toggle('ar',a>=1);$('c-koin').hidden=false;
@@ -1178,7 +1179,9 @@ const KUAL=[
   {n:'rendah',pr:.75,bay:0,flora:.3,hias:0,kabut:[60,150],ket:'Tanpa bayangan, tumbuhan sedikit. Untuk HP lama.'},
   {n:'sedang',pr:1,bay:1024,flora:.6,hias:0,kabut:[80,200],ket:'Bayangan sederhana dan kabut. Untuk HP umum.'},
   {n:'tinggi',pr:1.5,bay:2048,flora:1,hias:1,kabut:[90,235],ket:'Bayangan halus, tumbuhan rapat. Untuk HP baru dan laptop.'},
-  {n:'sangat tinggi',pr:2,bay:4096,flora:1,hias:1,kabut:[100,270],ket:'Resolusi penuh, bayangan paling tajam, pandangan jauh. Untuk laptop dengan GPU.'}];
+  {n:'sangat tinggi',pr:2,bay:4096,flora:1,hias:1,kabut:[100,270],ket:'Resolusi penuh, bayangan paling tajam, pandangan jauh. Untuk laptop dengan GPU.'},
+  /* Ultra: hanya berlaku di Pos 1 (di tempat lain sama dengan sangat tinggi), hanya dipilih manual, turun sendiri ke sangat tinggi bila tersendat */
+  {n:'ultra',pr:1.5,bay:2048,flora:1,hias:1,kabut:[100,270],ultra:1,ket:'Khusus Pos 1: bahan beton, tanah, kayu, batu bertekstur, langit dan cahaya film. Unduh sekitar 0,4 MB saat pertama dipakai. Di pos lain sama dengan sangat tinggi.'}];
 const GAYA={r:{n:'realistik'},s:{n:'sinematik'}};
 function tebakKual(){
   let gpu='';try{const gl=renderer.getContext(),e=gl.getExtension('WEBGL_debug_renderer_info');gpu=String(e?gl.getParameter(e.UNMASKED_RENDERER_WEBGL):'').toLowerCase();}catch(e){}
@@ -1187,7 +1190,9 @@ function tebakKual(){
   if(hp)return inti>=8&&mem>=6?2:(inti>=6&&mem>=4?1:0);
   return inti>=8?2:1;
 }
-let kual=1,gaya='r',kualManual=false,pasca=false,rtP=null,peringatFps=false;
+let kual=1,gaya='r',kualManual=false,pasca=false,rtP=null,peringatFps=false,keTerap=-1,ultraMuat=0;
+/* tingkat yang berlaku sekarang: Ultra hanya menyala di Pos 1 */
+const kualEf=()=>kual===4&&!(me&&me.a===1)?3:kual;
 try{const o=JSON.parse(localStorage.getItem('ki-grafis')||'null');if(o&&Number.isInteger(o.q)&&o.q>=0&&o.q<KUAL.length&&GAYA[o.g]){kual=o.q;gaya=o.g;kualManual=!!o.m;}else kual=tebakKual();}catch(e){kual=tebakKual();}
 /* tahap akhir gaya sinematik: pemetaan nada, gradasi warna hangat-sejuk, vinyet, butiran halus, blur kedalaman */
 const pScene=new THREE.Scene(),pCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
@@ -1216,24 +1221,34 @@ void main(){
 pScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),pMat));
 function bisaPasca(){try{const gl=renderer.getContext();return !!(renderer.capabilities.isWebGL2!==false&&(gl.getExtension('EXT_color_buffer_float')||gl.getExtension('EXT_color_buffer_half_float')));}catch(e){return false;}}
 function terapKual(){
-  const k=KUAL[kual],sin=gaya==='s';
+  const ke=kualEf(),k=KUAL[ke],sin=gaya==='s',ult=ke===4;keTerap=ke;
+  /* Ultra: aset dimuat malas saat pertama dibutuhkan; sementara belum siap, tampil seperti sangat tinggi */
+  if(ult&&!ultraSiap()&&!ultraMuat){ultraMuat=1;muatUltra(renderer).then(()=>{ultraMuat=0;terapKual();},()=>{ultraMuat=0;if(kual===4){kual=3;terapKual();toast('Aset Ultra gagal diunduh. Kembali ke sangat tinggi.');}});}
+  const UT=ult&&ultraSiap()?ultraAset():null;
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,k.pr));
-  pohon.visible=kual>0;arena.setDetail(k.flora,!!k.hias);for(const id in ALUR)ALUR[id].P.arena.setDetail(k.flora,!!k.hias);
-  scene.background.set(sin?0xf6c090:0x9fd4ee);
-  scene.fog=new THREE.Fog(sin?0xf3bd92:0xa9d8ee,k.kabut[0]*(sin?.55:1),k.kabut[1]*(sin?.8:1));
-  hemi.color.set(sin?0xffe2c4:0xffffff);hemi.groundColor.set(sin?0x8272a6:0x7aa860);hemi.intensity=sin?1.9:1.5;
-  sun.color.set(sin?0xffb070:0xfff1d6);sun.intensity=sin?2.9:1.6;
-  if(sin)sunDir.set(-.62,.5,.58).normalize();else sunDir.set(.45,.8,.4).normalize();
-  renderer.toneMapping=sin?THREE.ACESFilmicToneMapping:THREE.NoToneMapping;renderer.toneMappingExposure=sin?.75:1;
+  pohon.visible=ke>0;arena.setDetail(k.flora,!!k.hias);for(const id in ALUR)ALUR[id].P.arena.setDetail(k.flora,!!k.hias);
+  const langit=UT&&!sin;   /* Ultra realistik: langit foto sebagai latar */
+  if(langit)scene.background=UT.langit;else{if(!(scene.background&&scene.background.isColor))scene.background=new THREE.Color();scene.background.set(sin?0xf6c090:0x9fd4ee);}
+  scene.fog=new THREE.Fog(sin?0xf3bd92:(langit?0xb9c4d2:0xa9d8ee),k.kabut[0]*(sin?.55:1),k.kabut[1]*(sin?.8:1));
+  scene.environment=UT?UT.env:null;scene.environmentIntensity=UT?(sin?.3:.55):1;
+  if(UT&&!sin){   /* cahaya sekitar hangat: langit-tanah hangat, matahari condong keemasan */
+    hemi.color.set(0xfff0dc);hemi.groundColor.set(0x9a8260);hemi.intensity=.8;sun.color.set(0xffdca8);sun.intensity=2.5;
+  }else{
+    hemi.color.set(sin?0xffe2c4:0xffffff);hemi.groundColor.set(sin?0x8272a6:0x7aa860);hemi.intensity=sin?1.9:1.5;
+    sun.color.set(sin?0xffb070:0xfff1d6);sun.intensity=sin?2.9:1.6;
+  }
+  if(sin)sunDir.set(-.62,.5,.58).normalize();else if(UT)sunDir.set(.5,.62,.6).normalize();else sunDir.set(.45,.8,.4).normalize();
+  renderer.toneMapping=sin||UT?THREE.ACESFilmicToneMapping:THREE.NoToneMapping;renderer.toneMappingExposure=sin?.75:(UT?.95:1);
+  arena.setUltra(UT,!!UT);   /* bahan PBR hanya di arena Pos 1 */
   const b=k.bay>0,ubah=renderer.shadowMap.enabled!==b||sun.shadow.mapSize.x!==k.bay||renderer.userData_tm!==renderer.toneMapping;
-  renderer.shadowMap.enabled=b;sun.castShadow=b;renderer.shadowMap.type=kual>=2?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
+  renderer.shadowMap.enabled=b;sun.castShadow=b;renderer.shadowMap.type=ke>=2?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;sun.shadow.radius=ult?3:1;
   if(b)sun.shadow.mapSize.set(k.bay,k.bay);
   if(ubah){
     renderer.userData_tm=renderer.toneMapping;
     if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}
     scene.traverse(o=>{if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>{m.needsUpdate=true;});else o.material.needsUpdate=true;}});
   }
-  pasca=sin&&kual>=1&&bisaPasca();pMat.uniforms.dof.value=kual>=2?1:0;
+  pasca=sin&&ke>=1&&bisaPasca();pMat.uniforms.dof.value=ke>=2?1:0;
   ukur();segarGrafis();
   try{localStorage.setItem('ki-grafis',JSON.stringify({q:kual,g:gaya,m:kualManual}));}catch(e){}
 }
@@ -1278,7 +1293,8 @@ function auditTick(dt){
     aud.fps=aud.n/aud.t;aud.fmin=aud.min;hit.kps=hit.kirim/aud.t;hit.tps=hit.terima/aud.t;hit.kirim=hit.terima=0;
     aud.riwayat.push(Math.round(aud.fps));if(aud.riwayat.length>30)aud.riwayat.shift();
     if(aud.fps<27&&!document.hidden){if(++aud.lambat>=2){aud.lambat=0;
-      if(!kualManual&&kual>0){kual--;terapKual();toast('Kualitas diturunkan ke '+KUAL[kual].n+' agar lancar.');}
+      if(kualEf()===4){kual=3;terapKual();toast('Ultra dimatikan agar lancar. Kembali ke sangat tinggi.');}
+      else if(!kualManual&&kual>0){kual--;terapKual();toast('Kualitas diturunkan ke '+KUAL[kual].n+' agar lancar.');}
       else if(kualManual&&kual>0&&!peringatFps){peringatFps=true;toast('Permainan tersendat. Turunkan kualitas di menu Grafis.');}}}else aud.lambat=0;
     aud.n=0;aud.t=0;aud.min=999;
     if(!$('audit').hidden)isiAudit();
@@ -1457,7 +1473,7 @@ function mulaiAmat(kode){
 }
 /* hanya sisi tampilan area (tanpa interaksi pemain) */
 function areaAmat(a){
-  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;
+  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;if(kual===4&&kualEf()!==keTerap){aud.lambat=0;terapKual();}
   arena.grup.visible=a===1;for(const k in ALUR)ALUR[k].P.arena.grup.visible=a===+k;lobiGrup.visible=a===0;rumput.position.y=a>=1?-9:0;
   $('arhud').hidden=a!==1;$('ar2').hidden=a<2;$('pilih').hidden=true;$('hitung').hidden=true;
   gerbangAmat=false;arena.setGerbang(false);for(const k in ALUR)ALUR[k].P.arena.setGerbang(false);
@@ -1813,4 +1829,4 @@ document.fonts&&document.fonts.ready.then(gambarPapan);
 
 /* kait uji */
 window.__L={AMAT,amatPilih:t=>pilihTimAmat(t),amatArea:a=>keArea(a),amatIkuti:id=>{amatMode='ikuti';amatIkut=id;},get amatMode(){return amatMode;},get saya(){return saya;},catatBabak,P1,AR,arena,get endAt(){return endAt;},get stunTil(){return stunTil;},get me(){return me;},tim,luar,papanData,get st(){return st;},aud,get rt(){return rt;},gerbang,C,hit,
-  MED,M2,M3,M4,M5,M6,P2,P3,P4,P5,P6,arena2,arena3,arena4,arena5,arena6,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca};},setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};
+  MED,M2,M3,M4,M5,M6,P2,P3,P4,P5,P6,arena2,arena3,arena4,arena5,arena6,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca,ke:kualEf(),siap:kualEf()!==4||ultraSiap()};},setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};
