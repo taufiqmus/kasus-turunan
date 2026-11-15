@@ -46,6 +46,19 @@ with sync_playwright() as p:
     with pg.expect_download() as d2:pg.click('#b-csv-m')
     csv2=open(d2.value.path(),encoding='utf-8-sig').read()
     cek('CSV rekap mahasiswa tersedia',len(csv2.strip().splitlines())==5,len(csv2.strip().splitlines()))
+    # peringkat tim
+    baris=pg.eval_on_selector_all('#d-tim tr',"rs=>rs.map(r=>[...r.cells].map(c=>c.innerText.trim().replace(/\\s+/g,' ')))")
+    cek('peringkat: merah #1 total 217, biru #2 total 130',len(baris)==2 and baris[0][0].startswith('1') and baris[0][4]=='217' and baris[1][0].startswith('2') and baris[1][4]=='130',baris)
+    cek('peringkat: belum ada panah di render pertama','\u25b2' not in pg.inner_text('#d-tim') and '\u25bc' not in pg.inner_text('#d-tim'))
+    HS2=HS+[h('2201003','int-p5-b2',100,100,'biru','R1',[]),h('2201004','int-p5-b2',100,100,'biru','R1',[]),h('2201003','int-p6-b1',100,100,'biru','R1',[]),h('2201004','int-p6-b1',100,100,'biru','R1',[])]
+    pg.evaluate("([ps,hs])=>__D.set(__D.olah(ps,hs))",[PS,HS2]);pg.wait_for_timeout(200)
+    baris=pg.eval_on_selector_all('#d-tim tr',"rs=>rs.map(r=>[...r.cells].map(c=>c.innerText.trim().replace(/\\s+/g,' ')))")
+    cek('peringkat: biru menyusul ke #1 dengan panah naik',baris[0][4]=='330' and '\u25b2' in baris[0][0] and '\u25bc' in baris[1][0],baris)
+    with pg.expect_download() as dt:pg.click('#b-csv-t')
+    ct=open(dt.value.path(),encoding='utf-8-sig').read().splitlines()
+    cek('CSV peringkat tim: judul dan 2 baris, juara pertama total 330',ct[0].startswith('"peringkat"') or ct[0].startswith('peringkat') ,ct[:1])
+    cek('CSV peringkat tim: 2 baris data',len(ct)==3 and ',"330",' in ct[1],ct)
+    pg.evaluate("([ps,hs])=>__D.set(__D.olah(ps,hs))",[PS,HS]);pg.wait_for_timeout(100)
     # buat sesi dari dosen.html
     posted=[]
     def rt(route):

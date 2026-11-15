@@ -43,6 +43,7 @@ th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;
 .sw{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);vertical-align:-1px;margin-right:5px}
 .hm{display:inline-block;min-width:38px;text-align:center;border:2px solid var(--ink);border-radius:8px;padding:0 4px;font-weight:700}
 .kosong{opacity:.6}
+.naik{color:#0a7a3b;font-weight:800;font-size:12px}.turun{color:#b3261e;font-weight:800;font-size:12px}
 [hidden]{display:none!important}
 @media(max-width:640px){.tl{grid-template-columns:1fr 70px}.tl .bar{grid-column:1 / -1;order:3}}
 </style>
@@ -84,6 +85,7 @@ th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;
           <button class="btn" id="b-amat" type="button">Pantau langsung</button>
           <button class="btn alt" id="b-csv-m" type="button">CSV rekap mahasiswa</button>
           <button class="btn alt" id="b-csv-b" type="button">CSV per babak</button>
+          <button class="btn alt" id="b-csv-t" type="button">CSV peringkat tim</button>
         </div>
       </div>
       <div class="stat" id="d-stat"></div>
@@ -104,8 +106,9 @@ th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;
     </section>
 
     <section class="card">
-      <h2>Tim</h2>
-      <div class="wrapt"><table><thead><tr><th>Tim</th><th>Ruang</th><th>Anggota</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th><th>Pantau</th></tr></thead><tbody id="d-tim"></tbody></table></div>
+      <h2>Peringkat tim</h2>
+      <p class="note">Total = jumlah skor terbaik tiap babak yang sudah dikunci tim (satu babak dihitung sekali). Seri dipecah oleh total waktu yang lebih singkat. Panah menunjukkan perubahan peringkat sejak data berubah.</p>
+      <div class="wrapt"><table><thead><tr><th>#</th><th>Tim</th><th>Ruang</th><th>Anggota</th><th>Total</th><th>Babak</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th><th>Pantau</th></tr></thead><tbody id="d-tim"></tbody></table></div>
     </section>
 
     <section class="card">
@@ -123,7 +126,7 @@ const $=id=>document.getElementById(id);
 const AUTH={at:null,rt:null,email:''};
 const TIMW={merah:['Merah','#e5392b'],biru:['Biru','#2f7fc1'],hijau:['Hijau','#2f9e5b'],kuning:['Kuning','#e0a200'],ungu:['Ungu','#7a4bc4'],oranye:['Oranye','#ee7d1a'],tosca:['Tosca','#17a2a2'],pink:['Pink','#e0559b']};
 const NPOS=6,NB=3;
-let SESI=[],CUR=null,timer=0,LAST=null;
+let SESI=[],CUR=null,timer=0,LAST=null,PREVR={},ARAH={};
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const rata=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
 const fmt=v=>v==null?'-':String(Math.round(v));
@@ -192,7 +195,7 @@ async function segarkan(){
   try{await sinkron();}
   finally{b.disabled=false;b.textContent=t;}
 }
-function pilih(s){CUR=s;LAST=null;loadSesi();loadDetail();$('detail').hidden=false;$('detail').scrollIntoView({behavior:'smooth'});}
+function pilih(s){if(!CUR||CUR.id!==s.id){PREVR={};ARAH={};}CUR=s;LAST=null;loadSesi();loadDetail();$('detail').hidden=false;$('detail').scrollIntoView({behavior:'smooth'});}
 
 /* baca semua baris dengan paginasi limit/offset (batas bawaan server 1000 baris; tanpa header khusus agar aman dari CORS) */
 async function semuaBaris(path){
@@ -268,17 +271,35 @@ function render(){
     return '<div class="tl"><div><b>Pos '+m.pos+'</b> '+esc(NAMA_POS[m.pos-1])+'<br>'+esc(labelKode(m.pos,m.kode))+'<div class="j">Tim: '+esc([...m.tim].slice(0,8).join(', '))+(m.tim.size>8?' dan lainnya':'')+'</div></div><div class="bar m"><i style="width:'+pr+'%"></i></div><div><b>'+pr+'%</b><div class="j">'+m.n+' dari '+dasar[m.pos]+'</div></div></div>';}).join(''):'<p class="note">Belum ada miskonsepsi tercatat.</p>';
 
   /* tim */
-  const T=new Map();
-  for(const g of grup){const k=g.ruang+'|'+g.tim;let x=T.get(k);if(!x){x={ruang:g.ruang,tim:g.tim,ang:new Set(),pos:{}};T.set(k,x);}for(const a of g.anggota)x.ang.add(a);(x.pos[g.pos]=x.pos[g.pos]||[]).push(g.skor);}
-  $('d-tim').innerHTML=[...T.values()].sort((a,b)=>a.ruang.localeCompare(b.ruang)||a.tim.localeCompare(b.tim)).map(x=>{
-    const w=(TIMW[x.tim]||[x.tim,'#888']);let r='<tr><td><span class="sw" style="background:'+esc(w[1])+'"></span>'+esc(w[0])+'</td><td>'+esc(x.ruang)+'</td><td>'+esc([...x.ang].join(', '))+'</td>';
-    for(let p=1;p<=NPOS;p++){const a=x.pos[p];r+='<td>'+(a?'<span class="hm" style="background:'+warnaSel(rata(a))+'">'+fmt(rata(a))+'</span>':'<span class="kosong">-</span>')+'</td>';}
-    return r+'<td><button class="btn alt" type="button" data-ruang="'+esc(x.ruang)+'" data-tim="'+esc(x.tim)+'">Pantau</button></td></tr>';}).join('')||'<tr><td colspan="10" class="note">Belum ada data.</td></tr>';
+  const TR=rekapTim();
+  const arah=hitungArah(TR);
+  $('d-tim').innerHTML=TR.map((x,i)=>{
+    const w=(TIMW[x.tim]||[x.tim,'#888']);const a=arah[x.k]||0;
+    const pan=a>0?'<span class="naik" title="naik '+a+' peringkat">&#9650;'+a+'</span>':a<0?'<span class="turun" title="turun '+(-a)+' peringkat">&#9660;'+(-a)+'</span>':'';
+    let r='<tr><td><b>'+(i+1)+'</b> '+pan+'</td><td><span class="sw" style="background:'+esc(w[1])+'"></span>'+esc(w[0])+'</td><td>'+esc(x.ruang)+'</td><td>'+esc([...x.ang].join(', '))+'</td><td><b>'+x.total+'</b></td><td>'+x.n+'</td>';
+    for(let p=1;p<=NPOS;p++){const v=x.pos[p];r+='<td>'+(v?'<span class="hm" style="background:'+warnaSel(rata(v))+'">'+fmt(rata(v))+'</span>':'<span class="kosong">-</span>')+'</td>';}
+    return r+'<td><button class="btn alt" type="button" data-ruang="'+esc(x.ruang)+'" data-tim="'+esc(x.tim)+'">Pantau</button></td></tr>';}).join('')||'<tr><td colspan="13" class="note">Belum ada data.</td></tr>';
 
   /* mahasiswa */
   const rows=rekapMhs();
   $('d-mhs').innerHTML=rows.map((r,i)=>{let s='<tr><td>'+(i+1)+'</td><td><b>'+esc(r.user)+'</b></td><td>'+esc(r.nim)+'</td><td>'+fmt(r.rata)+'</td><td>'+r.n+'</td><td>'+mmss(r.det)+'</td>';
     for(let p=1;p<=NPOS;p++)s+='<td>'+(r.pos[p]!=null?fmt(r.pos[p]):'<span class="kosong">-</span>')+'</td>';return s+'</tr>';}).join('')||'<tr><td colspan="12" class="note">Belum ada data.</td></tr>';
+}
+function rekapTim(){
+  const T=new Map();
+  for(const g of LAST.grup){
+    const k=g.ruang+'|'+g.tim;let x=T.get(k);
+    if(!x){x={k,ruang:g.ruang,tim:g.tim,ang:new Set(),pos:{},total:0,n:0,det:0};T.set(k,x);}
+    for(const a of g.anggota)x.ang.add(a);
+    (x.pos[g.pos]=x.pos[g.pos]||[]).push(g.skor);x.total+=g.skor;x.n++;x.det+=(g.detik||0);
+  }
+  return [...T.values()].sort((a,b)=>b.total-a.total||a.det-b.det||a.ruang.localeCompare(b.ruang)||a.tim.localeCompare(b.tim));
+}
+/* perubahan peringkat bersifat lengket: tetap terlihat sampai peringkat tim itu berubah lagi */
+function hitungArah(TR){
+  const now={};TR.forEach((x,i)=>{now[x.k]=i+1;});
+  for(const k in now){if(PREVR[k]!=null&&PREVR[k]!==now[k])ARAH[k]=PREVR[k]-now[k];}
+  PREVR=now;return ARAH;
 }
 function rekapMhs(){
   const by={};
@@ -296,6 +317,12 @@ $('b-csv-m').addEventListener('click',()=>{
   const L=[['peringkat','username','nim','rata_skor','babak_tercatat','detik_rata',...[1,2,3,4,5,6].map(p=>'pos'+p)].join(',')];
   rekapMhs().forEach((r,i)=>L.push([i+1,r.user,r.nim,r.rata==null?'':r.rata.toFixed(1),r.n,r.det==null?'':Math.round(r.det),...[1,2,3,4,5,6].map(p=>r.pos[p]==null?'':r.pos[p].toFixed(1))].map(q).join(',')));
   unduh('integral-rekap-'+CUR.token+'.csv',L);
+});
+$('b-csv-t').addEventListener('click',()=>{
+  if(!LAST)return;
+  const L=[['peringkat','tim','ruang','anggota','total','babak_dikunci','detik_total',...[1,2,3,4,5,6].map(p=>'pos'+p)].join(',')];
+  rekapTim().forEach((x,i)=>L.push([i+1,namaTim(x.tim),x.ruang,[...x.ang].join('; '),x.total,x.n,Math.round(x.det),...[1,2,3,4,5,6].map(p=>x.pos[p]?rata(x.pos[p]).toFixed(1):'')].map(q).join(',')));
+  unduh('integral-peringkat-tim-'+CUR.token+'.csv',L);
 });
 $('b-csv-b').addEventListener('click',()=>{
   if(!LAST)return;
