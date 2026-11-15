@@ -36,14 +36,14 @@ export const PETUNJUK={
     'Piring kanan = F(atas), piring kiri = F(bawah). Isi brankas = selisihnya.',
     'Ambil beban: 1 kg di Dermaga, 5 kg di Gua Karang, 10 kg di Mercusuar. Bawa maksimal 2.',
     'Taruh di piring yang benar, lalu semua berdiri di PAD untuk mengunci.'],
-    awas:'Konstanta C saling menghapus. Kepiting menjatuhkan beban. Bekal habis = babak diulang.'},
+    awas:'Kepiting patroli (titik kuning di peta mini) menyapu semua jalan: tunggu sampai lewat. Kepiting raksasa menjatuhkan beban. Bekal habis = babak diulang.'},
   6:{judul:'Pos 6: Puncak Final',warna:'#17a2a2',langkah:[
     'Semua berdiri di PAD hijau untuk mulai.',
     'Baca tiga soal di papan, lalu bagi tugas antar anggota.',
     'Daki ke Pos Lembah, Pos Tebing, dan Puncak. Di tiap pos pilih jawaban A, B, C, atau D.',
     'Jawaban boleh diganti sampai dikunci, tetapi tiap perubahan memakai bekal.',
     'Ketiga pos terjawab, lalu semua berdiri di PAD untuk mengunci.'],
-    awas:'Triceratops merampas bekal tim kalau menabrakmu. Bekal habis = babak diulang.'},
+    awas:'Kambing gunung (titik kuning di peta mini) menyapu semua jalan: tunggu sampai lewat. Triceratops merampas bekal tim. Bekal habis = babak diulang.'},
 };
 const W=1024,H=800;
 function bungkus(g,teks,lebar){const kata=teks.split(' '),baris=[];let b='';for(const k of kata){const c=b?b+' '+k:k;if(g.measureText(c).width>lebar&&b){baris.push(b);b=k;}else b=c;}if(b)baris.push(b);return baris;}

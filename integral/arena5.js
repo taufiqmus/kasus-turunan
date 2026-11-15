@@ -1,9 +1,9 @@
 /* Arena Pos 5 "Teluk Karang": dunia umum (tema pantai) ditambah papan integral tentu, timbangan brankas
    (piring kanan F(atas), piring kiri F(bawah)), dan sumber beban di tiga kamp. */
 import * as THREE from './vendor/three.min.js';
-import {M5} from './medan.js?v=40';
-import {buatDunia,TEMA_PANTAI,mat,tulisanLantai} from './dunia3d.js?v=40';
-import {soal5,nBrankas,nilaiP,teksP,BMAX} from './pos5.js?v=40';
+import {M5} from './medan.js?v=41';
+import {buatDunia,TEMA_PANTAI,mat,tulisanLantai} from './dunia3d.js?v=41';
+import {soal5,nBrankas,nilaiP,teksP,BMAX} from './pos5.js?v=41';
 
 /* letak piring: brankas i berpusat di cx, piring kiri (slot 2i+1) di cx-2.3, piring kanan (slot 2i) di cx+2.3 */
 export const PUSAT=n=>n===1?[0]:[-5.2,5.2];

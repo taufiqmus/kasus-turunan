@@ -1,9 +1,9 @@
 /* Arena Pos 4 "Hutan Sungai": dunia umum (tema hutan) ditambah papan grafik debit, tiga tangki kaca berisi air
    (volume pada waktu t1, t2, t3), dan sumber air di tiga kamp. */
 import * as THREE from './vendor/three.min.js';
-import {M4} from './medan.js?v=40';
-import {buatDunia,TEMA_HUTAN,mat,tulisanLantai} from './dunia3d.js?v=40';
-import {soal4,rDi,VMAX,luasPotong} from './pos4.js?v=40';
+import {M4} from './medan.js?v=41';
+import {buatDunia,TEMA_HUTAN,mat,tulisanLantai} from './dunia3d.js?v=41';
+import {soal4,rDi,VMAX,luasPotong} from './pos4.js?v=41';
 
 export const TANGKI=[-6,0,6].map(x=>({x,z:1.7,px:x,pz:4.6,r:1.4}));
 export const tangkiDi=(x,z)=>TANGKI.findIndex(t=>Math.hypot(x-t.px,z-t.pz)<t.r);

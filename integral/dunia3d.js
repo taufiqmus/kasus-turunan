@@ -2,7 +2,7 @@
    gerbang, koin, dan semua rintangan. Isi khusus tiap pos (bendungan, kuil, kolom, altar) ditambah oleh modul pos.
    W = dunia dari medan.js, T = tema warna dan tumbuhan. */
 import * as THREE from './vendor/three.min.js';
-import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=40';
+import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=41';
 
 export const mat=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
 /* ---------- bahan PBR untuk tingkat Ultra (Pos 1). Geometri dan jumlah draw call tidak berubah; hanya bahan yang ditukar ---------- */

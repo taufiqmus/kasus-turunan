@@ -68,6 +68,7 @@ with sync_playwright() as p:
         if rq.method=='POST':posted.append(json.loads(rq.post_data));route.fulfill(status=201,headers=h,body='');return
         route.fulfill(status=200,headers=dict(h,**{'content-type':'application/json'}),body='[]')
     pg.route('**/rest/v1/sesi*',rt)
+    pg.route('**/rest/v1/peserta*',rt);pg.route('**/rest/v1/hasil*',rt)   # refresh juga memuat detail sesi: cegat agar uji tidak bergantung pada jaringan
     pg.evaluate("document.getElementById('app').hidden=false")
     pg.fill('#n-nama','Kelas A Integral');pg.fill('#n-token','int-a1');pg.click('#b-new');pg.wait_for_timeout(600)
     cek('buat sesi: token huruf besar, semesta integral',posted and posted[0].get('token')=='INT-A1' and posted[0].get('semesta')=='integral' and posted[0].get('nama')=='Kelas A Integral',posted)

@@ -10,6 +10,9 @@ export const derau=(x,z)=>Math.sin(x*.37+z*.21)*Math.sin(z*.33-x*.17)+.5*Math.si
 export const PAL_L=3.6,PAL_A=3.0,PAL_Y=4.4;
 export const DURI_HIT=.8,BOLA_R=1.1,RINT_R=.9,RINT_MAKS=12,DURI_MAKS=10;
 /* tiga petak duri melintang tegak lurus arah ruas (dx,dz) di titik (x,z) */
+/* kawanan yang menyapu semua jalan (lihat M.posPatroli): n0[k] kawanan di komponen jaringan utama babak k, ditambah satu kawanan di tiap komponen jalan
+   lain (jumlah komponen = nKomp), supaya tidak ada jalan yang luput dan tidak ada jalan yang tertutup terus. Kecepatan naik tiap babak. */
+const sapuRute=(k,nKomp,n0,r=1.3)=>{const kec=[2.2,2.6,3][k];return [...Array.from({length:n0[k]},(_,i)=>({rute:true,komp:0,kec,r,f:i/n0[k]})),...Array.from({length:nKomp-1},(_,i)=>({rute:true,komp:i+1,kec,r,f:0}))];};
 const lintang=(x,z,dx,dz)=>{const L=Math.hypot(dx,dz),px=dz/L,pz=-dx/L;return [-1.4,0,1.4].map(o=>[x+px*o,z+pz*o]);};
 const baris=(cx,z,s)=>[[cx-s,z],[cx,z],[cx+s,z]];
 function jarakRuas(x,z,s){
@@ -328,8 +331,8 @@ export const M4=buatMedan({
       duri:[{pts:lintang(-8,12,-8,8),f:0},{pts:lintang(-34,32,0,14),f:.4},{pts:lintang(17,7,6,6),f:.2},{pts:lintang(-7,50,14,4),f:.6},{pts:lintang(13,35,6,6),f:.8}].map(o=>({...o,T:Td})),
       ubin:[25,27,29].map((z,n)=>({x:24,z,w:4,d:1.9,f:fr(n*.37),T:[7,6,5][k]})),
       rakit:[{ax:'z',c:-20,a0:24,a1:30,len:2.6,lebar:1.5,T:[7,6,5][k],f:0}],
-      /* kawanan lebah menyapu seluruh jaringan jalan (rute utama) dan satu rantai jalan kecil; makin banyak dan cepat tiap babak */
-      patroli:[...Array.from({length:[2,3,4][k]},(_,i)=>({rute:true,komp:0,kec:[2.2,2.6,3],r:1.2,f:i/[2,3,4][k]})).map(o=>({...o,kec:o.kec[k]})),{rute:true,komp:1,kec:[2.2,2.6,3][k],r:1.2,f:0}],
+      /* kawanan lebah menyapu seluruh jaringan jalan: 2, 3, 4 kawanan di jaringan utama dan 1 di rantai jalan kecil */
+      patroli:sapuRute(k,2,[2,3,4],1.2),
       jatuh:[{x0:-22,x1:-8,z0:42,z1:51,n:[3,4,5][k],T:4.5,f:0,r:1.2}]
     };
   }
@@ -378,7 +381,8 @@ export const M5=buatMedan({
       duri:[{pts:lintang(23,15,6,10),f:0},{pts:lintang(-8,12,-8,8),f:.4},{pts:lintang(-23,33,-2,6),f:.7}].concat(k===2?[{pts:lintang(6,42.5,-8,9),f:.2}]:[]).map(o=>({...o,T:Td})),
       ubin:[25,27,29,31].map((z,n)=>({x:26,z,w:4,d:1.9,f:fr(n*.29),T:[7,6,5][k]})),
       rakit:[{ax:'z',c:-22,a0:22,a1:30,len:2.6,lebar:1.5,T:[7,6,5][k],f:0}],
-      patroli:[{x0:10,z0:22,x1:10,z1:34,r:1.3,T:[7,6,5][k],f:0},{x0:25,z0:35.25,x1:19,z1:42.75,r:1.8,T:[6,5,4.2][k],f:.4}].concat(k>=1?[{x0:-30,z0:10,x1:-36,z1:18,r:2,T:[7,6,5][k],f:.6}]:[]),
+      /* kepiting menyapu seluruh jaringan jalan (empat komponen jalan, tiap komponen punya kawanan sendiri) */
+      patroli:sapuRute(k,4,[1,2,2]),
       pasang:[{x0:-3.2,x1:3.2,z0:38,z1:44,T:[10,9,8][k],f:0}].concat(k>=1?[{x0:7,x1:13,z0:42,z1:52,T:[10,9,8][k],f:.5}]:[]),
       jatuh:[{x0:-22,x1:-8,z0:42,z1:51,n:[3,4,5][k],T:4.5,f:0,r:1.2}],
       bola:[[{x:-1.2,T:13,f:0}],[{x:1.2,T:11,f:0}],[{x:-1.2,T:10,f:0},{x:1.2,T:10,f:.5}]][k].map(b=>({...b,z0:53,z1:38}))
@@ -421,7 +425,8 @@ export const M6=buatMedan({
       kayu:[{ax:'x',c:20,m:-24,A:2.6,f:0}].concat(k>=1?[{ax:'x',c:30,m:-24,A:2.6,f:.5}]:[]).map(o=>({...o,T})),
       duri:[{pts:lintang(-4,12,-8,8),f:0},{pts:lintang(22,17,4,10),f:.4}].concat(k===2?[{pts:lintang(-19,43,10,10),f:.7}]:[]).map(o=>({...o,T:Td})),
       ubin:[26,28,30].map((z,n)=>({x:24,z,w:4,d:1.9,f:fr(n*.31),T:[7,6,5][k]})),
-      patroli:[{x0:14,z0:24,x1:14,z1:40,r:1.3,T:[7,6,5][k],f:0}].concat(k>=1?[{x0:-22,z0:40,x1:-16,z1:46,r:1.8,T:[6,5,4.2][k],f:.3}]:[]),
+      /* kambing gunung menyapu seluruh jaringan jalan (dua komponen jalan) */
+      patroli:sapuRute(k,2,[1,2,2]),
       lengan:[{x:-1,z:36,L:2.6,w:[1.3,1.7,2.1][k],n:[2,2,3][k],f:0}],
       jatuh:[{x0:-8,x1:8,z0:42,z1:52,n:[3,4,5][k],T:4.5,f:0,r:1.2}],
       bola:[[{x:0,T:13,f:0}],[{x:0,T:11,f:0}],[{x:-1.2,T:10,f:0},{x:1.2,T:10,f:.5}]][k].map(b=>({...b,z0:52,z1:12}))
