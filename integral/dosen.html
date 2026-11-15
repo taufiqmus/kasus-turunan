@@ -169,11 +169,11 @@ async function loadSesi(){
 }
 function pilih(s){CUR=s;LAST=null;loadSesi();loadDetail();$('detail').hidden=false;$('detail').scrollIntoView({behavior:'smooth'});}
 
-/* baca semua baris dengan paginasi (batas bawaan server 1000 baris) */
+/* baca semua baris dengan paginasi limit/offset (batas bawaan server 1000 baris; tanpa header khusus agar aman dari CORS) */
 async function semuaBaris(path){
   const out=[];
   for(let i=0;i<20;i++){
-    const j=await req(path,{headers:{'Range-Unit':'items','Range':(i*1000)+'-'+(i*1000+999)}});
+    const j=await req(path+'&limit=1000&offset='+(i*1000));
     out.push(...j);if(j.length<1000)break;
   }
   return out;
