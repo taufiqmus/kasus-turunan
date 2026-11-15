@@ -38,6 +38,7 @@ const Q=new URLSearchParams(location.search);
 const AMAT=Q.has('amati');
 document.body.classList.toggle('amat',AMAT);
 /* HP: layar sentuh (atau ?hp=1 untuk uji). Mengatur tata letak ringkas, kamera lebih dekat, getar, layar tetap menyala */
+const SUTRADARA=Q.has('sutradara');
 const HP=Q.has('hp')||matchMedia('(pointer:coarse)').matches;
 document.body.classList.toggle('hp',HP);
 
@@ -1644,6 +1645,7 @@ function frame(now){
         if(now>=tabrakTil&&!kb)catatJejak();
       }
     }
+    if(SUTRADARA&&window.__KAM&&window.__KAM.vx!=null){me.vx=window.__KAM.vx;me.vz=window.__KAM.vz||0;}
     animAv(me,dt,t,now);
 
     /* posisi dan aksi */
@@ -1797,6 +1799,9 @@ function frame(now){
     cam.position.copy(kamP);cam.lookAt(tx,oy,tz);
     if(ar){cam.updateMatrixWorld();kamL.set(tx,kamY+1.2,tz).applyMatrix4(cam.matrixWorldInverse);uTembus.value.set(-kamL.x,-kamL.y,-kamL.z);}else uTembus.value.z=-1;
   }
+  /* kamera sutradara: hanya aktif dengan ?sutradara=1, untuk merekam video */
+  if(SUTRADARA&&window.__KAM&&window.__KAM.sembunyi)me.grp.visible=false;
+  if(SUTRADARA&&window.__KAM){const K=window.__KAM;cam.position.set(K.p[0],K.p[1],K.p[2]);cam.lookAt(K.l[0],K.l[1],K.l[2]);if(K.fov&&cam.fov!==K.fov){cam.fov=K.fov;cam.updateProjectionMatrix();}}
   /* matahari mengikuti pemain agar peta bayangan tetap tajam di sekitarnya */
   {const sy2=mulai?kamY:0,L=mulai&&me.a>=1?44:52,sc=sun.shadow.camera;sun.target.position.set(tx,sy2,tz);sun.position.set(tx+sunDir.x*70,sy2+sunDir.y*70,tz+sunDir.z*70);
    if(sc.right!==L){sc.left=-L;sc.right=L;sc.top=L;sc.bottom=-L;sc.near=1;sc.far=160;sc.updateProjectionMatrix();}}
