@@ -44,7 +44,7 @@ th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;
 <body>
 <main>
 <h1>Dashboard Dosen</h1>
-<p class="note">Kasus Turunan. NIM hanya tampil di halaman ini. Jangan bagikan layar ke mahasiswa.</p>
+<p class="note">Kasus Turunan. NIM hanya tampil di halaman ini. Jangan bagikan layar ke mahasiswa. <a href="integral/dosen.html">Dashboard Lobi Integral</a></p>
 
 <section class="card" id="login">
   <h2>Masuk</h2>
@@ -161,7 +161,7 @@ async function loadDetail(quiet){
     const [fresh,ps,hs]=await Promise.all([
       req('/rest/v1/sesi?id=eq.'+id+'&select=*'),
       req('/rest/v1/peserta?sesi_id=eq.'+id+'&select=nim,masuk_pada,mahasiswa(username)&order=masuk_pada.asc'),
-      req('/rest/v1/hasil?sesi_id=eq.'+id+'&select=nim,kasus,skor,detik,rincian')]);
+      req('/rest/v1/hasil?sesi_id=eq.'+id+'&kasus=not.like.int-*&select=nim,kasus,skor,detik,rincian')]);
     if(fresh[0])CUR=fresh[0];
     render(ps,hs);
   }catch(e){if(!quiet)$('d-note').textContent=e.message;}

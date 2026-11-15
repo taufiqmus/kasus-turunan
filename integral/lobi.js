@@ -1,28 +1,29 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung} from './rt.js?v=30';
-import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=30';
-import * as P1 from './pos1.js?v=30';
-import * as AR from './arena.js?v=30';
-import {buatArena,kolomDari,uTembus} from './arena.js?v=30';
-import {buatArena2,gambarSandi} from './arena2.js?v=30';
-import * as P2 from './pos2.js?v=30';
-import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=30';
-import * as P3 from './pos3.js?v=30';
-import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=30';
-import * as P4 from './pos4.js?v=30';
-import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=30';
-import * as P5 from './pos5.js?v=30';
-import {buatArena6,gambarFinal} from './arena6.js?v=30';
-import * as P6 from './pos6.js?v=30';
-import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=30';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=30';
-import {labelSprite,buangSprite,klem} from './util.js?v=30';
-import {M1,M2,M3,M4,M5,M6} from './medan.js?v=30';
+import {sambung} from './rt.js?v=31';
+import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=31';
+import * as P1 from './pos1.js?v=31';
+import * as AR from './arena.js?v=31';
+import {buatArena,kolomDari,uTembus} from './arena.js?v=31';
+import {buatArena2,gambarSandi} from './arena2.js?v=31';
+import * as P2 from './pos2.js?v=31';
+import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=31';
+import * as P3 from './pos3.js?v=31';
+import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=31';
+import * as P4 from './pos4.js?v=31';
+import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=31';
+import * as P5 from './pos5.js?v=31';
+import {buatArena6,gambarFinal} from './arena6.js?v=31';
+import * as P6 from './pos6.js?v=31';
+import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=31';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=31';
+import {labelSprite,buangSprite,klem} from './util.js?v=31';
+import {M1,M2,M3,M4,M5,M6} from './medan.js?v=31';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
 let W=M1;
 import {bacaSesi} from '../core/net.js';
+import * as CT from './catat.js?v=31';
 
 const $=id=>document.getElementById(id);
 const TIM=[['merah','Merah','#e5392b'],['biru','Biru','#2f7fc1'],['hijau','Hijau','#2f9e5b'],['kuning','Kuning','#e0a200'],
@@ -57,7 +58,15 @@ const simpanProfil=()=>{try{localStorage.setItem('ki-profil',JSON.stringify({nam
     box.append(b);
   }
   const s=bacaSesi();if(profil.nama)$('in-nama').value=profil.nama;else if(s&&s.user)$('in-nama').value=String(s.user).slice(0,12);
-  if(Q.get('kode'))$('in-kode').value=Q.get('kode').toUpperCase().slice(0,10);
+  /* kode ruang mengikuti token selama pemain belum mengubahnya sendiri */
+  let kodeSentuh=!!Q.get('kode');
+  $('in-kode').addEventListener('input',()=>{kodeSentuh=true;});
+  $('in-token').addEventListener('input',()=>{const t=$('in-token').value.toUpperCase().replace(/[^A-Z0-9-]/g,'');if(!kodeSentuh&&t)$('in-kode').value=t.slice(0,20);});
+  if(Q.get('kode'))$('in-kode').value=Q.get('kode').toUpperCase().slice(0,20);
+  /* sesi kelas: dari portal (sudah punya kunci) atau token yang diketik; NIM hanya diminta bila belum punya kunci */
+  const por=CT.dariPortal();
+  if(por){$('in-token').value=por.token;if(!kodeSentuh)$('in-kode').value=por.token;$('kls-nim').hidden=true;$('kls').open=true;$('kls-info').textContent='Tercatat sebagai '+por.user+' di sesi '+por.token+'.';}
+  else{let t='';try{t=localStorage.getItem('kt-token')||'';}catch(e){}if(Q.get('token'))t=Q.get('token');$('in-token').value=String(t).toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,20);if($('in-token').value){$('kls').open=true;if(!kodeSentuh)$('in-kode').value=$('in-token').value;}}
 }
 
 const mat=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
@@ -223,7 +232,7 @@ const arena5=buatArena5();scene.add(arena5.grup);
 const arena6=buatArena6();scene.add(arena6.grup);bayang(scene);
 
 /* ---------- keadaan ---------- */
-let saya=null,me=null,rt=null,mulai=false,hasilBuka=false,rodaBuka=false,revBuka=false,kotor=true,tGabung=0;
+let kelas=null,saya=null,me=null,rt=null,mulai=false,hasilBuka=false,rodaBuka=false,revBuka=false,kotor=true,tGabung=0;
 let endAt=0,hitungMundur=0,rodaR=-1,stunTil=0,tabrakTil=0;
 const blok=()=>hasilBuka||rodaBuka||revBuka;
 const tim=new Map();      /* anggota tim lain: id -> pemain (termasuk bot render) */
@@ -354,8 +363,20 @@ function flush(){
   kirim('d',{r:st.r,c:[...pend]});pend.clear();tFlush=performance.now();
 }
 function mulaiHitung(){hitungMundur=performance.now()+3000;toast('Bersiap...');}
+/* catat hasil satu babak ke sesi kelas. Dipanggil oleh tiap anggota tim yang sedang online saat babak dikunci. */
+const cat={ok:0,gagal:0,ditolak:0,pesan:''};
+function catatBabak(pos,r,s,w,h){
+  if(!kelas||!saya)return;
+  const Wk=pos===1?WAKTU:(ALUR[pos]&&ALUR[pos].P.WAKTU)||[];
+  const detik=Math.round((Wk[r]||0)*(1-w/1000));
+  const rincian={v:1,pos,r:r+1,tim:saya.tim,ruang:saya.kode,nama:saya.nama,w,a:h.akurasi,c:CT.kodeCatatan(pos,h),s:Array.isArray(s)?s.slice(0,24).map(x=>Number.isFinite(x)?x:0):[]};
+  CT.catat(kelas,{pos,r,skor:h.skor,detik,rincian},(h2,msg)=>{
+    if(h2==='ok')cat.ok++;else{cat[h2]++;cat.pesan=msg||'';toast(h2==='gagal'?'Skor babak ini belum tersimpan ke sesi (jaringan). Permainan tetap jalan.':'Skor tidak disimpan: '+(msg||'ditolak server')+'.');}
+    isiAudit();
+  });
+}
 function kunciBabak(c,w){
-  const r=st.r,h=skorRonde(r,c,w);koinAS[1].clear();arena.setKoin(M1.KOIN_A.map(()=>true));
+  const r=st.r,h=skorRonde(r,c,w);catatBabak(1,r,c,w,h);koinAS[1].clear();arena.setKoin(M1.KOIN_A.map(()=>true));
   st.sr.push(c.slice());st.w.push(w);st.r++;st.f=0;st.c=st.r<BABAK.length?Array(BABAK[st.r]).fill(0):[];st.g=stokBabak(st.r);
   pend.clear();me.carry=0;me.siap=0;for(const p of anggota())p.siap=0;hitungMundur=0;
   aturArena();kotor=true;
@@ -405,7 +426,7 @@ function buatAlur(P){
   };
   A.mulaiHitung=()=>{A.hitung=performance.now()+3000;if(me.a===id)toast('Bersiap...');};
   A.kunci=(s,w)=>{
-    const r=A.st.r,h=P.skorRonde(r,s,w);
+    const r=A.st.r,h=P.skorRonde(r,s,w);catatBabak(id,r,s,w,h);
     A.st.sr.push(s.slice());A.st.w.push(w);A.st.r++;A.st.f=0;A.hitung=0;
     const b=P.stateBabak(A.st.r);A.st.s=b.s;A.st.k=b.k;
     A.pend.clear();koinAS[id].clear();P.arena.setKoin(P.M.KOIN_A.map(()=>true));A.reset();A.atur();
@@ -1265,6 +1286,7 @@ function isiAudit(){
   $('a-msg').textContent=hit.kps.toFixed(1)+' / '+hit.tps.toFixed(1)+' per dtk';
   $('a-jeda').textContent=Math.round(jedaPos())+' / '+Math.round(jedaFlush())+' ms';
   $('a-beban').textContent=beban().toFixed(0)+' dari 100 per dtk';
+  $('a-sesi').textContent=kelas?kelas.token+': '+cat.ok+' tersimpan'+(cat.gagal+cat.ditolak?', '+(cat.gagal+cat.ditolak)+' gagal':''):'tidak dipakai';
 }
 function laporan(){
   const n=nPemain(),r=aud.riwayat,avg=r.length?Math.round(r.reduce((a,b)=>a+b,0)/r.length):0,pg=aud.pings;
@@ -1281,6 +1303,7 @@ function laporan(){
     'Pesan kirim/terima per detik: '+hit.kps.toFixed(1)+' / '+hit.tps.toFixed(1),
     'Jeda posisi/kirim aksi: '+Math.round(jedaPos())+' / '+Math.round(jedaFlush())+' ms',
     'Perkiraan beban proyek: '+beban().toFixed(0)+' dari 100 pesan per detik',
+    'Sesi kelas: '+(kelas?kelas.token+' ('+kelas.user+'), tersimpan '+cat.ok+', gagal '+cat.gagal+', ditolak '+cat.ditolak:'tidak dipakai'),
     'Pos 1: babak '+Math.min(st.r+1,3)+', skor tim '+(skorTim(st)!=null?skorTim(st):'belum'),
     'Skor tiap pos: '+skorSemua().map((v,i)=>'P'+(i+1)+' '+(v??'-')).join(', ')].join('\n');
 }
@@ -1320,9 +1343,27 @@ function isiSiap(){
 }
 
 /* ---------- masuk ---------- */
-$('b-masuk').addEventListener('click',()=>{
-  const nama=$('in-nama').value.trim(),kode=$('in-kode').value.trim().toUpperCase().replace(/[^A-Z0-9-]/g,'');
+let masukBerjalan=false;
+$('b-masuk').addEventListener('click',async()=>{
+  if(masukBerjalan)return;
+  const tok=$('in-token').value.trim().toUpperCase().replace(/[^A-Z0-9-]/g,'');
+  const nama=$('in-nama').value.trim(),kode=($('in-kode').value.trim()||tok).toUpperCase().replace(/[^A-Z0-9-]/g,'');
   if(!nama||!kode){$('m-msg').textContent='Isi nama dan kode ruang.';return;}
+  /* sesi kelas bersifat opsional, tetapi bila token diisi harus berhasil agar tidak mengira skor tercatat padahal tidak */
+  kelas=null;
+  if(tok){
+    const por=CT.dariPortal();
+    if(por&&por.token===tok)kelas=por;
+    else{
+      const nim=$('in-nim').value.trim();
+      if(!CT.TOKEN_SAH.test(tok)){$('m-msg').textContent='Token sesi tidak valid. Kosongkan untuk bermain tanpa pencatatan.';return;}
+      if(!CT.NIM_SAH.test(nim)){$('m-msg').textContent='Isi NIM (angka lengkap), atau kosongkan token untuk bermain tanpa pencatatan.';return;}
+      masukBerjalan=true;$('b-masuk').disabled=true;$('m-msg').textContent='Memeriksa sesi...';
+      try{kelas=await CT.masukSesi(tok,nama,nim);}
+      catch(e){$('m-msg').textContent=(e&&e.message||'Gagal masuk sesi.')+' Kosongkan token untuk bermain tanpa pencatatan.';masukBerjalan=false;$('b-masuk').disabled=false;return;}
+      masukBerjalan=false;$('b-masuk').disabled=false;$('m-msg').textContent='';
+    }
+  }
   profil.nama=nama;simpanProfil();
   let id=null;try{id=sessionStorage.getItem('ki-id');}catch(e){}
   if(!id){id=Math.random().toString(36).slice(2,10);try{sessionStorage.setItem('ki-id',id);}catch(e){}}
@@ -1612,5 +1653,5 @@ terapKual();gambarPapan();requestAnimationFrame(frame);
 document.fonts&&document.fonts.ready.then(gambarPapan);
 
 /* kait uji */
-window.__L={P1,AR,arena,get endAt(){return endAt;},get stunTil(){return stunTil;},get me(){return me;},tim,luar,papanData,get st(){return st;},aud,get rt(){return rt;},gerbang,C,hit,
+window.__L={catatBabak,P1,AR,arena,get endAt(){return endAt;},get stunTil(){return stunTil;},get me(){return me;},tim,luar,papanData,get st(){return st;},aud,get rt(){return rt;},gerbang,C,hit,
   MED,M2,M3,M4,M5,M6,P2,P3,P4,P5,P6,arena2,arena3,arena4,arena5,arena6,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca};},setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};

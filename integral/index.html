@@ -38,6 +38,8 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #rev-t{margin:8px 0;text-align:left}
 #rev-t .r{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed #cdbf9c;font-weight:700}
 .kecil{font-size:12px;margin:6px 0}
+#kls{margin-top:10px;border:2px dashed rgba(28,34,48,.35);border-radius:10px;padding:6px 10px}
+#kls summary{cursor:pointer;font-weight:700;font-size:13px}
 #hitung{position:fixed;z-index:4;left:50%;top:38%;transform:translate(-50%,-50%);font-family:var(--display);font-size:120px;color:#fff6e4;-webkit-text-stroke:6px var(--ink);paint-order:stroke fill;pointer-events:none}
 @media (max-width:560px){
 #c-ruang{display:none}
@@ -178,7 +180,17 @@ body.hp #boost .btn{padding:8px}
       <label class="f" for="in-nama">Nama panggilan</label>
       <input type="text" id="in-nama" maxlength="12" spellcheck="false" autocomplete="off">
       <label class="f" for="in-kode">Kode ruang (samakan dengan teman)</label>
-      <input type="text" id="in-kode" maxlength="10" spellcheck="false" autocapitalize="characters" autocomplete="off" value="UJI">
+      <input type="text" id="in-kode" maxlength="20" spellcheck="false" autocapitalize="characters" autocomplete="off" value="UJI">
+      <details id="kls">
+        <summary>Sesi kelas dari dosen (opsional)</summary>
+        <label class="f" for="in-token">Token sesi</label>
+        <input type="text" id="in-token" maxlength="20" spellcheck="false" autocapitalize="characters" autocomplete="off" placeholder="mis. JLN-7K2P">
+        <div id="kls-nim">
+          <label class="f" for="in-nim">NIM</label>
+          <input type="text" id="in-nim" maxlength="20" inputmode="numeric" spellcheck="false" autocomplete="off">
+        </div>
+        <p class="kecil" id="kls-info">Isi token dan NIM agar skor tiap babak tercatat untuk dosen. Kosongkan untuk bermain tanpa pencatatan. Kode ruang otomatis memakai token bila dikosongkan.</p>
+      </details>
       <label class="f">Tim</label>
       <div class="tims" id="in-tim"></div>
       <label class="f">Karakter</label>
@@ -254,6 +266,7 @@ body.hp #boost .btn{padding:8px}
     <dt>Pesan kirim/terima</dt><dd id="a-msg">-</dd>
     <dt>Jeda posisi / kirim aksi</dt><dd id="a-jeda">-</dd>
     <dt>Perkiraan beban proyek</dt><dd id="a-beban">-</dd>
+    <dt>Sesi kelas</dt><dd id="a-sesi">-</dd>
   </dl>
   <label class="tgl"><input type="checkbox" id="a-sim"> Simulasi kelas 40 (5 per tim)</label>
   <div class="row">
@@ -294,6 +307,6 @@ body.hp #boost .btn{padding:8px}
 </div>
 
 <script src="./vendor/supabase.js"></script>
-<script type="module" src="lobi.js?v=30"></script>
+<script type="module" src="lobi.js?v=31"></script>
 </body>
 </html>

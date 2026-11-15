@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Dosen | Lobi Integral</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700..800&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c2230;--paper:#fff6e4;--apricot:#ffd9a3;--coral:#ff6f47;--sun:#ffc83d;--alert:#e5392b;--blue:#2f7fc1;--good:#2f9e5b;
+  --display:"Bricolage Grotesque","Arial Black",sans-serif;--ui:"Chakra Petch","Trebuchet MS",sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--apricot);color:var(--ink);font:500 15px/1.45 var(--ui);min-height:100vh}
+main{max-width:1100px;margin:0 auto;padding:18px 14px 60px}
+h1{font:800 clamp(28px,6vw,44px)/1 var(--display);margin:0 0 4px}
+h2{font:800 20px/1.1 var(--display);margin:0 0 10px}
+.card{background:var(--paper);border:3px solid var(--ink);border-radius:16px;box-shadow:6px 6px 0 var(--ink);padding:14px;margin:16px 0}
+.btn{font:700 14px var(--ui);padding:8px 13px;border:3px solid var(--ink);border-radius:12px;background:var(--sun);color:var(--ink);box-shadow:0 3px 0 var(--ink);cursor:pointer;text-decoration:none;display:inline-block}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.btn.alt{background:#fff}.btn.red{background:var(--coral);color:#fff}
+input{font:600 15px var(--ui);padding:8px 10px;border:3px solid var(--ink);border-radius:10px;background:#fff;color:var(--ink);width:100%}
+label{display:block;font-weight:700;font-size:13px;margin:10px 0 3px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.sesi{border:3px solid var(--ink);border-radius:12px;padding:10px;background:#fff;cursor:pointer}
+.sesi.on{background:var(--sun)}
+.sesi b{font:800 22px var(--display);letter-spacing:.03em}
+.pill{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:0 9px;font-size:12px;font-weight:700;color:#fff;background:var(--ink)}
+.pill.open{background:var(--good)}.pill.closed{background:var(--alert)}
+.msg{color:var(--alert);font-weight:700;min-height:1.3em}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 8px;border-bottom:2px solid rgba(28,34,48,.15);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;top:0;background:var(--paper)}
+.wrapt{overflow:auto;max-height:60vh}
+.stat{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+.stat div{border:3px solid var(--ink);border-radius:12px;padding:6px 12px;background:#fff}
+.stat b{display:block;font:800 24px var(--display)}
+.note{font-size:13px;opacity:.85}
+.bar{height:14px;border:2px solid var(--ink);border-radius:8px;background:#fff;overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;background:var(--blue)}
+.bar.m i{background:var(--coral)}
+.tl{display:grid;grid-template-columns:minmax(150px,1.6fr) minmax(110px,1fr) 70px;gap:4px 10px;align-items:center;padding:6px 0;border-bottom:2px solid rgba(28,34,48,.12)}
+.tl .j{font-size:12px;opacity:.8}
+.sw{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);vertical-align:-1px;margin-right:5px}
+.hm{display:inline-block;min-width:38px;text-align:center;border:2px solid var(--ink);border-radius:8px;padding:0 4px;font-weight:700}
+.kosong{opacity:.6}
+[hidden]{display:none!important}
+@media(max-width:640px){.tl{grid-template-columns:1fr 70px}.tl .bar{grid-column:1 / -1;order:3}}
+</style>
+</head>
+<body>
+<main>
+<h1>Dashboard Dosen: Lobi Integral</h1>
+<p class="note">Skor, waktu, dan miskonsepsi tiap tim. NIM hanya tampil di halaman ini. Jangan bagikan layar ke mahasiswa. <a href="../dashboard.html">Dashboard Kasus Turunan</a></p>
+
+<section class="card" id="login">
+  <h2>Masuk</h2>
+  <label for="em">Email dosen</label><input id="em" type="email" autocomplete="username">
+  <label for="pw">Kata sandi</label><input id="pw" type="password" autocomplete="current-password">
+  <p class="msg" id="lg-msg"></p>
+  <button class="btn" id="b-login" type="button">Masuk</button>
+  <p class="note">Akun yang sama dengan dashboard Kasus Turunan. Mahasiswa masuk ke Lobi Integral dengan token sesi dan NIM, lalu skor tiap babak tercatat otomatis.</p>
+</section>
+
+<div id="app" hidden>
+  <div class="row" style="justify-content:space-between"><span class="note" id="who"></span><button class="btn alt" id="b-out" type="button">Keluar</button></div>
+
+  <section class="card">
+    <h2>Pilih sesi</h2>
+    <p class="note">Buat sesi baru di dashboard Kasus Turunan. Saran: pakai satu token khusus untuk Lobi Integral, supaya peringkat Kasus Turunan tidak tercampur skor Integral. Minta mahasiswa memakai token yang sama sebagai kode ruang (otomatis terisi).</p>
+    <p class="msg" id="n-msg"></p>
+    <div class="grid" id="sesi-list"></div>
+  </section>
+
+  <div id="detail" hidden>
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 id="d-title" style="margin:0"></h2>
+        <div class="row">
+          <button class="btn alt" id="b-csv-m" type="button">CSV rekap mahasiswa</button>
+          <button class="btn alt" id="b-csv-b" type="button">CSV per babak</button>
+        </div>
+      </div>
+      <div class="stat" id="d-stat"></div>
+      <p class="note" id="d-note"></p>
+    </section>
+
+    <section class="card">
+      <h2>Per pos</h2>
+      <div id="d-pos"></div>
+      <p class="note">Rata-rata skor tim (0 sampai 100) per babak. Sel yang rendah menandai soal yang menyulitkan kelas.</p>
+      <div class="wrapt"><table id="d-heat"></table></div>
+    </section>
+
+    <section class="card">
+      <h2>Peta miskonsepsi</h2>
+      <p class="note">Kesalahan konsep yang paling sering muncul, dihitung per tim dan babak (bukan per orang). Cocok untuk bahan ulasan di awal pertemuan berikutnya.</p>
+      <div id="d-mis"></div>
+    </section>
+
+    <section class="card">
+      <h2>Tim</h2>
+      <div class="wrapt"><table><thead><tr><th>Tim</th><th>Ruang</th><th>Anggota</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr></thead><tbody id="d-tim"></tbody></table></div>
+    </section>
+
+    <section class="card">
+      <h2>Mahasiswa</h2>
+      <div class="wrapt"><table><thead><tr><th>#</th><th>Username</th><th>NIM</th><th>Rata-rata skor</th><th>Babak tercatat</th><th>Waktu rata-rata</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr></thead><tbody id="d-mhs"></tbody></table></div>
+    </section>
+  </div>
+</div>
+</main>
+
+<script type="module">
+import {NAMA_POS,labelKode} from './catat.js?v=31';
+const SB={url:'https://xktcstifwufjpvqoeixn.supabase.co',key:'sb_publishable_0fZkEaMFUbR9KXA3DccyvA_pZFzd9iN'};
+const $=id=>document.getElementById(id);
+const AUTH={at:null,rt:null,email:''};
+const TIMW={merah:['Merah','#e5392b'],biru:['Biru','#2f7fc1'],hijau:['Hijau','#2f9e5b'],kuning:['Kuning','#e0a200'],ungu:['Ungu','#7a4bc4'],oranye:['Oranye','#ee7d1a'],tosca:['Tosca','#17a2a2'],pink:['Pink','#e0559b']};
+const NPOS=6,NB=3;
+let SESI=[],CUR=null,timer=0,LAST=null;
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rata=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const fmt=v=>v==null?'-':String(Math.round(v));
+const mmss=d=>d==null?'-':Math.floor(d/60)+':'+String(Math.round(d%60)).padStart(2,'0');
+const namaTim=t=>(TIMW[t]||[t])[0];
+
+async function req(path,opt){
+  opt=opt||{};
+  const h={'apikey':SB.key,'Content-Type':'application/json'};
+  if(AUTH.at)h['Authorization']='Bearer '+AUTH.at;
+  Object.assign(h,opt.headers||{});
+  let r;
+  try{r=await fetch(SB.url+path,{method:opt.method||'GET',headers:h,body:opt.body?JSON.stringify(opt.body):undefined});}
+  catch(e){throw new Error('Tidak bisa terhubung ke server.');}
+  if(r.status===401&&AUTH.rt&&!opt._retry){if(await refresh())return req(path,Object.assign({},opt,{_retry:true}));}
+  let j=null;try{j=await r.json();}catch(e){}
+  if(!r.ok)throw new Error((j&&(j.message||j.msg||j.error_description))||('Galat '+r.status));
+  return j;
+}
+async function refresh(){
+  try{const r=await fetch(SB.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{'apikey':SB.key,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:AUTH.rt})});
+    if(!r.ok)return false;const j=await r.json();AUTH.at=j.access_token;AUTH.rt=j.refresh_token;store();return true;}catch(e){return false;}
+}
+function store(){try{sessionStorage.setItem('kt-auth',JSON.stringify(AUTH));}catch(e){}}
+async function login(){
+  $('lg-msg').textContent='';
+  try{
+    const j=await req('/auth/v1/token?grant_type=password',{method:'POST',body:{email:$('em').value.trim(),password:$('pw').value}});
+    AUTH.at=j.access_token;AUTH.rt=j.refresh_token;AUTH.email=j.user&&j.user.email||$('em').value.trim();store();$('pw').value='';start();
+  }catch(e){$('lg-msg').textContent=/invalid/i.test(e.message)?'Email atau kata sandi salah.':e.message;}
+}
+function logout(){AUTH.at=AUTH.rt=null;try{sessionStorage.removeItem('kt-auth');}catch(e){}clearInterval(timer);$('app').hidden=true;$('login').hidden=false;}
+async function start(){
+  $('login').hidden=true;$('app').hidden=false;$('who').textContent='Masuk sebagai '+AUTH.email;
+  await loadSesi();
+  const q=new URLSearchParams(location.search).get('sesi');
+  if(q){const s=SESI.find(x=>x.token===q.toUpperCase());if(s)pilih(s);}
+  clearInterval(timer);timer=setInterval(()=>{if(CUR&&!document.hidden)loadDetail(true);},8000);
+}
+async function loadSesi(){
+  try{SESI=await req('/rest/v1/sesi?select=*&order=dibuat.desc');}catch(e){$('n-msg').textContent=e.message;return;}
+  const L=$('sesi-list');L.innerHTML='';
+  if(!SESI.length)L.innerHTML='<p class="note">Belum ada sesi. Buat di dashboard Kasus Turunan.</p>';
+  for(const s of SESI){
+    const d=document.createElement('div');d.className='sesi'+(CUR&&CUR.id===s.id?' on':'');d.tabIndex=0;
+    d.innerHTML='<b>'+esc(s.token)+'</b> <span class="pill '+esc(s.status)+'">'+(s.status==='open'?'terbuka':'ditutup')+'</span><br>'+esc(s.nama);
+    d.addEventListener('click',()=>pilih(s));d.addEventListener('keydown',e=>{if(e.key==='Enter')pilih(s);});L.append(d);
+  }
+}
+function pilih(s){CUR=s;LAST=null;loadSesi();loadDetail();$('detail').hidden=false;$('detail').scrollIntoView({behavior:'smooth'});}
+
+/* baca semua baris dengan paginasi (batas bawaan server 1000 baris) */
+async function semuaBaris(path){
+  const out=[];
+  for(let i=0;i<20;i++){
+    const j=await req(path,{headers:{'Range-Unit':'items','Range':(i*1000)+'-'+(i*1000+999)}});
+    out.push(...j);if(j.length<1000)break;
+  }
+  return out;
+}
+async function loadDetail(quiet){
+  if(!CUR)return;const id=CUR.id;
+  try{
+    const [ps,hs]=await Promise.all([
+      semuaBaris('/rest/v1/peserta?sesi_id=eq.'+id+'&select=nim,masuk_pada,mahasiswa(username)&order=masuk_pada.asc'),
+      semuaBaris('/rest/v1/hasil?sesi_id=eq.'+id+'&kasus=like.int-*&select=nim,kasus,skor,detik,rincian,dibuat&order=dibuat.asc')]);
+    if(CUR&&CUR.id===id){LAST=olah(ps,hs);render();}
+  }catch(e){if(!quiet)$('d-note').textContent=e.message;}
+}
+
+/* data mentah menjadi baris per mahasiswa-babak, lalu digabung menjadi satu catatan per tim-babak */
+function olah(ps,hs){
+  const nama={};for(const p of ps)nama[p.nim]=p.mahasiswa&&p.mahasiswa.username||p.nim;
+  const baris=[];
+  for(const h of hs){
+    const m=/^int-p([1-6])-b([1-3])$/.exec(h.kasus);if(!m)continue;
+    const x=h.rincian&&typeof h.rincian==='object'?h.rincian:{};
+    baris.push({nim:h.nim,user:nama[h.nim]||'?',pos:+m[1],r:+m[2],skor:h.skor,detik:h.detik,a:typeof x.a==='number'?x.a:null,
+      tim:String(x.tim||'?'),ruang:String(x.ruang||'?'),c:Array.isArray(x.c)?x.c.map(String):[],dibuat:h.dibuat});
+  }
+  const G=new Map();
+  for(const b of baris){
+    const k=[b.ruang,b.tim,b.pos,b.r].join('|');let g=G.get(k);
+    if(!g){g={ruang:b.ruang,tim:b.tim,pos:b.pos,r:b.r,skor:b.skor,a:b.a,detik:b.detik,c:b.c,anggota:new Set()};G.set(k,g);}
+    g.anggota.add(b.user);if(b.skor>g.skor)g.skor=b.skor;
+  }
+  return {ps,baris,grup:[...G.values()]};
+}
+
+function warnaSel(v){if(v==null)return '#fff';const t=Math.max(0,Math.min(100,v))/100;return 'hsl('+Math.round(8+t*118)+',70%,'+Math.round(80-t*8)+'%)';}
+function render(){
+  const {ps,baris,grup}=LAST;
+  $('d-title').textContent=CUR.token+' | '+CUR.nama;
+  const mhs=new Set(baris.map(b=>b.nim)),timSet=new Set(grup.map(g=>g.ruang+'|'+g.tim));
+  const rs=rata(grup.map(g=>g.skor));
+  $('d-stat').innerHTML='<div><b>'+ps.length+'</b>masuk sesi</div><div><b>'+mhs.size+'</b>bermain Integral</div><div><b>'+timSet.size+'</b>tim</div><div><b>'+grup.length+'</b>babak dikunci</div><div><b>'+fmt(rs)+'</b>rata-rata skor tim</div>';
+  $('d-note').textContent=baris.length?('Diperbarui '+new Date().toLocaleTimeString('id-ID')+'. Otomatis tiap 8 detik.'):'Belum ada skor Integral tercatat di sesi ini. Pastikan mahasiswa mengisi token dan NIM di formulir Lobi Integral.';
+
+  /* per pos */
+  let h='';
+  for(let p=1;p<=NPOS;p++){
+    const G=grup.filter(g=>g.pos===p),sk=rata(G.map(g=>g.skor)),dt=rata(G.map(g=>g.detik));
+    const tuntas=new Set(),per={};
+    for(const g of G){const k=g.ruang+'|'+g.tim;(per[k]=per[k]||new Set()).add(g.r);}
+    for(const k in per)if(per[k].size>=NB)tuntas.add(k);
+    h+='<div class="tl"><div><b>Pos '+p+'</b> '+esc(NAMA_POS[p-1])+'<div class="j">'+G.length+' babak dikunci, '+tuntas.size+' tim tuntas, waktu rata-rata '+mmss(dt)+'</div></div><div class="bar"><i style="width:'+(sk==null?0:Math.round(sk))+'%"></i></div><div><b>'+fmt(sk)+'</b></div></div>';
+  }
+  $('d-pos').innerHTML=h;
+  let t='<thead><tr><th>Pos</th>';for(let r=1;r<=NB;r++)t+='<th>Babak '+r+'</th>';t+='</tr></thead><tbody>';
+  for(let p=1;p<=NPOS;p++){
+    t+='<tr><td>'+p+'. '+esc(NAMA_POS[p-1])+'</td>';
+    for(let r=1;r<=NB;r++){const G=grup.filter(g=>g.pos===p&&g.r===r),v=rata(G.map(g=>g.skor));t+='<td><span class="hm" style="background:'+warnaSel(v)+'">'+fmt(v)+'</span> <span class="note">('+G.length+')</span></td>';}
+    t+='</tr>';
+  }
+  $('d-heat').innerHTML=t+'</tbody>';
+
+  /* miskonsepsi */
+  const M=new Map();
+  for(const g of grup)for(const k of new Set(g.c)){const key=g.pos+'|'+k;let m=M.get(key);if(!m){m={pos:g.pos,kode:k,n:0,tim:new Set()};M.set(key,m);}m.n++;m.tim.add(namaTim(g.tim));}
+  const dasar={};for(const g of grup)dasar[g.pos]=(dasar[g.pos]||0)+1;
+  const ML=[...M.values()].sort((a,b)=>b.n/(dasar[b.pos]||1)-a.n/(dasar[a.pos]||1)||b.n-a.n).slice(0,15);
+  $('d-mis').innerHTML=ML.length?ML.map(m=>{const pr=Math.round(100*m.n/(dasar[m.pos]||1));
+    return '<div class="tl"><div><b>Pos '+m.pos+'</b> '+esc(NAMA_POS[m.pos-1])+'<br>'+esc(labelKode(m.pos,m.kode))+'<div class="j">Tim: '+esc([...m.tim].slice(0,8).join(', '))+(m.tim.size>8?' dan lainnya':'')+'</div></div><div class="bar m"><i style="width:'+pr+'%"></i></div><div><b>'+pr+'%</b><div class="j">'+m.n+' dari '+dasar[m.pos]+'</div></div></div>';}).join(''):'<p class="note">Belum ada miskonsepsi tercatat.</p>';
+
+  /* tim */
+  const T=new Map();
+  for(const g of grup){const k=g.ruang+'|'+g.tim;let x=T.get(k);if(!x){x={ruang:g.ruang,tim:g.tim,ang:new Set(),pos:{}};T.set(k,x);}for(const a of g.anggota)x.ang.add(a);(x.pos[g.pos]=x.pos[g.pos]||[]).push(g.skor);}
+  $('d-tim').innerHTML=[...T.values()].sort((a,b)=>a.ruang.localeCompare(b.ruang)||a.tim.localeCompare(b.tim)).map(x=>{
+    const w=(TIMW[x.tim]||[x.tim,'#888']);let r='<tr><td><span class="sw" style="background:'+esc(w[1])+'"></span>'+esc(w[0])+'</td><td>'+esc(x.ruang)+'</td><td>'+esc([...x.ang].join(', '))+'</td>';
+    for(let p=1;p<=NPOS;p++){const a=x.pos[p];r+='<td>'+(a?'<span class="hm" style="background:'+warnaSel(rata(a))+'">'+fmt(rata(a))+'</span>':'<span class="kosong">-</span>')+'</td>';}
+    return r+'</tr>';}).join('')||'<tr><td colspan="9" class="note">Belum ada data.</td></tr>';
+
+  /* mahasiswa */
+  const rows=rekapMhs();
+  $('d-mhs').innerHTML=rows.map((r,i)=>{let s='<tr><td>'+(i+1)+'</td><td><b>'+esc(r.user)+'</b></td><td>'+esc(r.nim)+'</td><td>'+fmt(r.rata)+'</td><td>'+r.n+'</td><td>'+mmss(r.det)+'</td>';
+    for(let p=1;p<=NPOS;p++)s+='<td>'+(r.pos[p]!=null?fmt(r.pos[p]):'<span class="kosong">-</span>')+'</td>';return s+'</tr>';}).join('')||'<tr><td colspan="12" class="note">Belum ada data.</td></tr>';
+}
+function rekapMhs(){
+  const by={};
+  for(const b of LAST.baris){const x=by[b.nim]=by[b.nim]||{nim:b.nim,user:b.user,sk:[],dt:[],p:{}};x.sk.push(b.skor);x.dt.push(b.detik);(x.p[b.pos]=x.p[b.pos]||[]).push(b.skor);}
+  return Object.values(by).map(x=>({nim:x.nim,user:x.user,rata:rata(x.sk),n:x.sk.length,det:rata(x.dt),pos:Object.fromEntries(Object.entries(x.p).map(([k,v])=>[k,rata(v)]))}))
+    .sort((a,b)=>(b.rata??-1)-(a.rata??-1));
+}
+const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+function unduh(nama,baris){
+  const b=new Blob(['﻿'+baris.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download=nama;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+$('b-csv-m').addEventListener('click',()=>{
+  if(!LAST)return;
+  const L=[['peringkat','username','nim','rata_skor','babak_tercatat','detik_rata',...[1,2,3,4,5,6].map(p=>'pos'+p)].join(',')];
+  rekapMhs().forEach((r,i)=>L.push([i+1,r.user,r.nim,r.rata==null?'':r.rata.toFixed(1),r.n,r.det==null?'':Math.round(r.det),...[1,2,3,4,5,6].map(p=>r.pos[p]==null?'':r.pos[p].toFixed(1))].map(q).join(',')));
+  unduh('integral-rekap-'+CUR.token+'.csv',L);
+});
+$('b-csv-b').addEventListener('click',()=>{
+  if(!LAST)return;
+  const L=[['username','nim','ruang','tim','pos','babak','skor','akurasi','detik','miskonsepsi','waktu_catat'].join(',')];
+  for(const b of LAST.baris)L.push([b.user,b.nim,b.ruang,namaTim(b.tim),b.pos,b.r,b.skor,b.a==null?'':b.a,b.detik,b.c.map(k=>labelKode(b.pos,k)).join(' ; '),b.dibuat].map(q).join(','));
+  unduh('integral-babak-'+CUR.token+'.csv',L);
+});
+$('b-login').addEventListener('click',login);
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+$('b-out').addEventListener('click',logout);
+window.__D={olah,render:()=>render(),set:(l)=>{LAST=l;CUR=CUR||{token:'UJI',nama:'Uji',id:'x'};$('login').hidden=true;$('app').hidden=false;$('detail').hidden=false;render();}};
+try{const a=JSON.parse(sessionStorage.getItem('kt-auth')||'null');if(a&&a.rt){Object.assign(AUTH,a);start();}}catch(e){}
+</script>
+</body>
+</html>

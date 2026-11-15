@@ -61,6 +61,8 @@ with sync_playwright() as p:
         pg.screenshot(path=f'/tmp/hp-{tag}-roda.png')
     # Pos 6 di pos jawaban
     pg.evaluate("__L.setArea(6);__L.tp(24,22)");pg.wait_for_timeout(1500)
+    try:pg.wait_for_selector('#pilih:not([hidden])',timeout=6000)
+    except Exception:pass
     bb=pg.locator('#pilih').bounding_box();cek('panel soal muat di layar',bb and bb['y']>=0,bb)
     pg.screenshot(path=f'/tmp/hp-{tag}-soal.png')
     cek('tanpa galat',not errs,errs[:3])
