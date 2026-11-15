@@ -43,14 +43,20 @@ export function skorRonde(r,c,w){
   const skor=Math.round(akurasi*(.88+.12*w/1000));
   return {luas,asli:luasAsli(r),selisih:luas-luasAsli(r),S,akurasi,skor};
 }
-/* tiga gudang dengan stok terbatas dan tidak mengisi ulang. Stok total = 1,5 kali kebutuhan balok babak itu, dibagi menurut jalur. */
+/* tiga gudang dengan stok terbatas dan tidak mengisi ulang. Stok total = 1,5 kali kebutuhan balok babak itu, dibagi menurut jalur.
+   Balok yang jatuh karena rintangan atau T-Rex hilang. Bila balok tidak lagi cukup, babak diulang (lihat habisBalok). */
 export const NDEP=3,GMAX=120,GBAGI=[.30,.40,.30];
+/* jumlah balok yang dibutuhkan agar semua kolom setinggi targetnya */
+export const butuhBabak=r=>r>=BABAK.length?0:targetH(r).reduce((a,h)=>a+Math.min(MAXBAG,Math.round(h/UBAG)),0);
 export function stokBabak(r){
   if(r>=BABAK.length)return [0,0,0];
-  const butuh=targetH(r).reduce((a,h)=>a+Math.min(MAXBAG,Math.round(h/UBAG)),0),tot=Math.ceil(butuh*1.5)+4;
+  const tot=Math.ceil(butuhBabak(r)*1.5)+4;
   const a=Math.floor(tot*GBAGI[0]),b=Math.floor(tot*GBAGI[1]);
   return [a,b,tot-a-b].map(v=>Math.min(GMAX,v));
 }
+/* game over babak: babak berjalan, stok semua kamp habis, tidak ada yang membawa balok, dan balok di kolom kurang dari kebutuhan.
+   Syarat terakhir mencegah tim yang sudah memasang semua balok dengan benar dianggap kalah sebelum sempat mengunci. */
+export const habisBalok=(st,dibawa)=>st.f===1&&st.r<BABAK.length&&jumlah(st.g)===0&&dibawa===0&&jumlah(st.c)<butuhBabak(st.r);
 export const stateBaru=()=>({r:0,c:Array(BABAK[0]).fill(0),sr:[],w:[],f:0,g:stokBabak(0)});
 export const selesai=st=>st.r>=BABAK.length;
 export function skorTim(st){
@@ -65,6 +71,7 @@ export function valid(s){
   if(!s||typeof s!=='object'||!bil(s.r,0,BABAK.length)||!Array.isArray(s.sr)||s.sr.length!==s.r)return false;
   if(!Array.isArray(s.w)||s.w.length!==s.r||!s.w.every(v=>bil(v,0,1000)))return false;
   if(s.f!==0&&s.f!==1)return false;
+  if(s.u!==undefined&&!bil(s.u,0,9999))return false;   // u = berapa kali babak ini diulang karena balok habis
   if(s.g!==undefined&&!(Array.isArray(s.g)&&s.g.length===NDEP&&s.g.every(v=>bil(v,0,GMAX))))return false;
   if(s.f===1&&!bil(s.m,-36000000,900000))return false;
   for(let i=0;i<s.r;i++)if(!cValid(i,s.sr[i]))return false;

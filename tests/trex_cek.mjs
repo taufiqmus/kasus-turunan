@@ -1,7 +1,7 @@
 /* Cek lintasan T-Rex Pos 1: rute tertutup dan kontinu, selalu di jalan, tidak masuk plaza/zona kolom, kecepatan wajar,
    deterministik (dua panggilan sama), seed berbeda memberi rute berbeda. Pakai: node tests/trex_cek.mjs */
 import {M1} from '../integral/medan.js';
-import {rute,posTrex,hashTeks,ZMIN,KEC,kampKembali} from '../integral/trex.js';
+import {rute,posTrex,hashTeks,ZMIN,KEC} from '../integral/trex.js';
 let gagal=0;const cek=(n,k,info='')=>{console.log((k?'OK  ':'GAGAL ')+n,info);if(!k)gagal++;};
 for(const s of ['ABC|merah','ABC|biru','KELAS7|hijau']){
   const seed=hashTeks(s),R=rute(M1,seed);
@@ -17,5 +17,14 @@ for(const s of ['ABC|merah','ABC|biru','KELAS7|hijau']){
   cek(s+': deterministik',JSON.stringify(posTrex(M1,seed,1234.5))===JSON.stringify(posTrex(M1,seed,1234.5)));
 }
 cek('seed berbeda, rute berbeda',rute(M1,hashTeks('A|merah')).T!==rute(M1,hashTeks('A|biru')).T||posTrex(M1,hashTeks('A|merah'),50).x!==posTrex(M1,hashTeks('A|biru'),50).x);
-cek('balok kembali ke kamp terdekat yang belum penuh',kampKembali(M1,-27,40,[5,5,5],120)===0&&kampKembali(M1,-27,40,[120,5,5],120)===1);
+/* aturan balok habis (pos1.js) */
+const P1=await import('../integral/pos1.js');
+const st0={r:0,f:1,c:[0,0,0],g:[0,0,0],sr:[],w:[]},butuh=P1.butuhBabak(0);
+cek('stok kembali 1,5 kali kebutuhan + 4',P1.jumlah(P1.stokBabak(0))===Math.ceil(butuh*1.5)+4,P1.stokBabak(0));
+cek('habis: stok 0, tidak membawa, kolom kurang -> game over',P1.habisBalok(st0,0)===true);
+cek('belum habis bila masih ada yang membawa',P1.habisBalok(st0,2)===false);
+cek('belum habis bila masih ada stok',P1.habisBalok({...st0,g:[0,1,0]},0)===false);
+cek('bukan game over bila kolom sudah cukup',P1.habisBalok({...st0,c:[butuh,0,0]},0)===false);
+cek('tidak berlaku sebelum babak dimulai',P1.habisBalok({...st0,f:0},0)===false);
+cek('st dengan penghitung ulang u sah',P1.valid({...P1.stateBaru(),u:3})&&!P1.valid({...P1.stateBaru(),u:-1}));
 console.log(gagal?'ADA YANG GAGAL':'SEMUA LULUS');process.exit(gagal?1:0);

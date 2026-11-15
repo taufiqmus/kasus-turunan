@@ -1,10 +1,10 @@
 /* Arena Pos 1 "Lembah Waduk": dunia umum dari dunia3d.js (tema hijau) ditambah bendungan berkurva,
    pelat kolom, balok, dan isi kamp (peti dan angka stok). Logika murni ada di medan.js dan pos1.js. */
 import * as THREE from './vendor/three.min.js';
-import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=36';
-import {M1} from './medan.js?v=36';
-import {buatDunia,TEMA_HIJAU,mat,uvMeter,buatPbr} from './dunia3d.js?v=36';
-export {uTembus} from './dunia3d.js?v=36';
+import {BABAK,UBAG,MAXBAG,XMAX} from './pos1.js?v=38';
+import {M1} from './medan.js?v=38';
+import {buatDunia,TEMA_HIJAU,mat,uvMeter,buatPbr} from './dunia3d.js?v=38';
+export {uTembus} from './dunia3d.js?v=38';
 
 export const SY=.9,UB=UBAG*SY,WX=9;
 export const ZONA={z0:.2,z1:4.6};

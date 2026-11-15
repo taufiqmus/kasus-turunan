@@ -168,5 +168,7 @@ Tingkat kelima di tombol Grafis. Berlaku hanya di Pos 1 (di lobi dan pos lain sa
 
 - Model: "T-Rex" CC0 oleh Quaternius (glTF ber-rig, 6 animasi), dimuat malas saat masuk Pos 1 (`integral/dino.js`, `integral/aset/trex.glb`, GLTFLoader r187 di `integral/vendor/`), sekitar 0,5 MB.
 - Gerak: fungsi murni jam dinding dan seed tim (`integral/trex.js`), sama bagi semua anggota tanpa pesan jaringan. Berjalan di jalan lebar (tidak lewat jembatan gantung dan batu pijakan), tidak pernah masuk plaza dan zona kolom, berhenti dan mengaum di kamp.
-- Efek: pemain yang membawa balok dan tersambar kehilangan semua balok bawaannya; balok kembali ke kamp terdekat yang belum penuh (lewat selisih stok biasa). Perisai menahan satu serangan. Peringatan "Awas T-Rex" saat jarak di bawah 10.
+- Empat T-Rex (tinggi 4,2), tiap ekor rute sendiri dari seed tim dan nomor ekor. Berhenti dan mengaum di tepi kamp, tidak masuk pusat kamp.
+- Efek: pemain yang membawa balok dan tersambar kehilangan semua balok bawaannya (hilang, sama seperti rintangan lain). Perisai menahan satu serangan. Peringatan "Awas T-Rex" saat jarak di bawah 9.
+- Balok habis: bila babak berjalan, stok semua kamp 0, tidak ada anggota yang membawa balok, dan balok di kolom kurang dari kebutuhan babak, babak diulang (kolom kosong, stok diisi ulang, tim kembali ke pad). Otoritas tim menyiarkan `st` dengan penghitung `u` yang naik; tidak ada jenis pesan baru.
 - Uji: `node tests/trex_cek.mjs`. Di uji Playwright (navigator.webdriver) T-Rex dimatikan kecuali `?dino=1`, agar uji lain tidak acak.

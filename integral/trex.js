@@ -64,7 +64,3 @@ export function jarakTrex(p,x,z){
   const hx=p.x+Math.sin(p.arah)*MAJU,hz=p.z+Math.cos(p.arah)*MAJU;
   return Math.min(Math.hypot(x-p.x,z-p.z),Math.hypot(x-hx,z-hz));
 }
-/* kamp terdekat yang masih bisa menampung balok kembali */
-export function kampKembali(W,x,z,g,gmax){
-  let best=-1,bd=1e9;W.KAMP.forEach((k,i)=>{const d=Math.hypot(k.x-x,k.z-z);if(g[i]<gmax&&d<bd){bd=d;best=i;}});return best;
-}

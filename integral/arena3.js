@@ -1,9 +1,9 @@
 /* Arena Pos 3 "Danau Beku": dunia umum (tema salju) ditambah Mesin Putar Balik dengan layar besar,
    corong masuk dan keluar di plaza, dan tiga stasiun: Tungku (naikkan pangkat), Gudang C, Pemotong (bagi koefisien). */
 import * as THREE from './vendor/three.min.js';
-import {M3} from './medan.js?v=36';
-import {buatDunia,TEMA_SALJU,mat,tulisanLantai} from './dunia3d.js?v=36';
-import {soal3,teksF,teksFTim,teksTurunanTim,NB3} from './pos3.js?v=36';
+import {M3} from './medan.js?v=38';
+import {buatDunia,TEMA_SALJU,mat,tulisanLantai} from './dunia3d.js?v=38';
+import {soal3,teksF,teksFTim,teksTurunanTim,NB3} from './pos3.js?v=38';
 
 export const CORONG={masuk:{x:-5.5,z:4.2,r:1.6},keluar:{x:5.5,z:4.2,r:1.6}};
 export const diCorong=(c,x,z)=>Math.hypot(x-CORONG[c].x,z-CORONG[c].z)<CORONG[c].r;

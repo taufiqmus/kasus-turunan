@@ -1,9 +1,9 @@
 /* Arena Pos 6 "Puncak Kalkulus": dunia umum (tema gunung) ditambah papan ringkasan soal di plaza,
    papan soal di tiap pos jawaban, dan bendera kamp yang berwarna sesuai pilihan tim. */
 import * as THREE from './vendor/three.min.js';
-import {M6} from './medan.js?v=36';
-import {buatDunia,TEMA_GUNUNG,mat,tulisanLantai} from './dunia3d.js?v=36';
-import {soal6,HURUF,NSTASIUN} from './pos6.js?v=36';
+import {M6} from './medan.js?v=38';
+import {buatDunia,TEMA_GUNUNG,mat,tulisanLantai} from './dunia3d.js?v=38';
+import {soal6,HURUF,NSTASIUN} from './pos6.js?v=38';
 
 const WARNA_OPSI=['#e5392b','#2f7fc1','#2f9e5b','#e0a200'];
 function bungkus(g,teks,maks){
