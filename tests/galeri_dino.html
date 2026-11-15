@@ -1,25 +1,26 @@
 <!DOCTYPE html><meta charset="utf-8"><title>Galeri dinosaurus</title>
-<body style="margin:0;background:#9fd4ee"><canvas id="c" style="width:100vw;height:100vh;display:block"></canvas>
+<body style="margin:0;background:#9fd4ee;font:14px sans-serif"><canvas id="c" style="width:100vw;height:100vh;display:block"></canvas>
+<div id="tb" style="position:fixed;left:8px;top:8px;display:flex;gap:6px;flex-wrap:wrap"></div>
 <script type="module">
 import * as THREE from '../integral/vendor/three.min.js';
-import {meshDino} from '../integral/dino.js';
+import {buatDino} from '../integral/dino.js';
 import {meshAvatar,acakAv} from '../integral/avatar.js';
 const c=document.getElementById('c'),r=new THREE.WebGLRenderer({canvas:c,antialias:true,preserveDrawingBuffer:true});r.setSize(innerWidth,innerHeight,false);
-r.shadowMap.enabled=true;
+r.shadowMap.enabled=true;r.shadowMap.type=THREE.PCFSoftShadowMap;r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=.95;
 const sc=new THREE.Scene();sc.background=new THREE.Color(0x9fd4ee);sc.fog=new THREE.Fog(0xa9d8ee,40,120);
-sc.add(new THREE.HemisphereLight(0xffffff,0x7aa860,1.5));
-const sun=new THREE.DirectionalLight(0xfff1d6,2);sun.position.set(10,20,14);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+sc.add(new THREE.HemisphereLight(0xfff0dc,0x9a8260,1.3));
+const sun=new THREE.DirectionalLight(0xffdca8,2.6);sun.position.set(10,20,14);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.radius=3;
 Object.assign(sun.shadow.camera,{left:-20,right:20,top:20,bottom:-20,near:1,far:80});sc.add(sun);
-const tanah=new THREE.Mesh(new THREE.CircleGeometry(60,40),new THREE.MeshLambertMaterial({color:0xb99c68,flatShading:true}));tanah.rotation.x=-Math.PI/2;tanah.receiveShadow=true;sc.add(tanah);
-const d=meshDino();sc.add(d.grup);
-/* orang sebagai pembanding ukuran */
+const tanah=new THREE.Mesh(new THREE.CircleGeometry(60,40),new THREE.MeshStandardMaterial({color:0xb99c68,roughness:.95}));tanah.rotation.x=-Math.PI/2;tanah.receiveShadow=true;sc.add(tanah);
 const orang=meshAvatar(acakAv());orang.position.set(-6,0,2);sc.add(orang);
 const cam=new THREE.PerspectiveCamera(35,innerWidth/innerHeight,.5,200);
-window.__pose=({az=40,el=12,jarak=26,t=0,v=0,raung=0,tengah=[0,3,0],orang:o=true}={})=>{
-  orang.visible=o;d.anim(t,{v,raung});
-  const a=az*Math.PI/180,e=el*Math.PI/180;
-  cam.position.set(tengah[0]+Math.sin(a)*Math.cos(e)*jarak,tengah[1]+Math.sin(e)*jarak,tengah[2]+Math.cos(a)*Math.cos(e)*jarak);cam.lookAt(...tengah);r.render(sc,cam);
-  return {tinggi:d.tinggi,draw:r.info.render.calls};
-};
-window.__pose();window.__siap=true;
+const d=await buatDino({tinggi:6.8});sc.add(d.grup);
+let az=40,el=10,jarak=30,tengah=[0,3.2,0];
+function kamera(){const a=az*Math.PI/180,e=el*Math.PI/180;cam.position.set(tengah[0]+Math.sin(a)*Math.cos(e)*jarak,tengah[1]+Math.sin(e)*jarak,tengah[2]+Math.cos(a)*Math.cos(e)*jarak);cam.lookAt(...tengah);}
+for(const n of d.nama){const b=document.createElement('button');b.textContent=n;b.onclick=()=>d.main(n);document.getElementById('tb').append(b);}
+/* uji: __pose({az,el,jarak,anim,t,orang}) memutar animasi tepat t detik lalu menggambar */
+window.__pose=(o={})=>{({az=40,el=10,jarak=30}=o);if(o.tengah)tengah=o.tengah;orang.visible=o.orang!==false;
+  if(o.anim){d.mixer.stopAllAction();d.main(o.anim,0);}d.perbarui(o.t||0);kamera();r.render(sc,cam);return {nama:d.nama,draw:r.info.render.calls};};
+window.__siap=true;
+let t0=performance.now();(function loop(t){if(!window.__diam){d.perbarui((t-t0)/1000);kamera();r.render(sc,cam);}t0=t;requestAnimationFrame(loop);})(t0);
 </script>
