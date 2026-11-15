@@ -11,7 +11,8 @@ const kunci=(x,z)=>Math.round(x*10)+','+Math.round(z*10);
 function graf(W){
   const S=new Map(),N=[];
   const id=(x,z)=>{const k=kunci(x,z);if(!S.has(k)){S.set(k,N.length);N.push({x,z,tetangga:[],kamp:W.KAMP.some(k=>Math.hypot(k.x-x,k.z-z)<1)});}return S.get(k);};
-  for(const [x0,z0,x1,z1] of W.JALUR){if(z0<ZMIN||z1<ZMIN)continue;const a=id(x0,z0),b=id(x1,z1);if(a!==b&&!N[a].tetangga.includes(b)){N[a].tetangga.push(b);N[b].tetangga.push(a);}}
+  /* lewati ruas sempit (jembatan gantung, batu pijakan): T-Rex terlalu besar dan akan menembus rangka palu */
+  for(const [x0,z0,x1,z1,lebar] of W.JALUR){if(z0<ZMIN||z1<ZMIN||lebar<2)continue;const a=id(x0,z0),b=id(x1,z1);if(a!==b&&!N[a].tetangga.includes(b)){N[a].tetangga.push(b);N[b].tetangga.push(a);}}
   return N;
 }
 /* jalur terpendek (BFS jumlah ruas) dari a ke b */
