@@ -16,7 +16,7 @@ const janji={},gltf={};
 export function muatFauna(id){
   const S=SPESIES[id];if(!S)return Promise.reject(new Error('spesies tidak dikenal: '+id));
   if(janji[id])return janji[id];
-  janji[id]=import('./vendor/GLTFLoader.js').then(({GLTFLoader})=>new Promise((ok,gagal)=>new GLTFLoader().load(URL_DIR+S.file+'?v=39',g=>{gltf[id]=g;ok(g);},undefined,gagal)));
+  janji[id]=import('./vendor/GLTFLoader.js').then(({GLTFLoader})=>new Promise((ok,gagal)=>new GLTFLoader().load(URL_DIR+S.file+'?v=40',g=>{gltf[id]=g;ok(g);},undefined,gagal)));
   janji[id].catch(()=>{delete janji[id];});
   return janji[id];
 }

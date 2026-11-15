@@ -52,8 +52,11 @@ with sync_playwright() as p:
     A.evaluate("__L.ALUR[4].tambah(0,2)")
     A.evaluate('__L.ALUR[4].flush()');B.evaluate('__L.ALUR[4].flush()');B.wait_for_timeout(1200);A.bring_to_front();A.wait_for_timeout(1200)
     cek('tambahan serentak dari dua pemain tidak hilang',A.evaluate('__L.ALUR[4].st.s[0]')==12 and B.evaluate('__L.ALUR[4].st.s[0]')==12,(A.evaluate('__L.ALUR[4].st.s'),B.evaluate('__L.ALUR[4].st.s')))
-    # kawanan lebah di jembatan tengah
-    B.bring_to_front();cek('kawanan lebah menyengat di jembatan',kena(B,0,27,8000));B.wait_for_timeout(1500)
+    # kawanan lebah menyapu semua rute (bergerak): berdiri tepat di posisi kawanan saat ini harus menyengat
+    B.bring_to_front();q=B.evaluate("(()=>{const W=__L.W,P=W.medanBabak(__L.ALUR[4].r()).patroli[0];return W.posPatroli(P,Date.now()/1000)})()")
+    cek('kawanan lebah bergerak (posisi berubah dalam 3 detik)',(lambda a,b:abs(a[0]-b[0])+abs(a[1]-b[1])>1)(q,(B.wait_for_timeout(3000),B.evaluate("(()=>{const W=__L.W,P=W.medanBabak(__L.ALUR[4].r()).patroli[0];return W.posPatroli(P,Date.now()/1000)})()"))[1]))
+    q=B.evaluate("(()=>{const W=__L.W,P=W.medanBabak(__L.ALUR[4].r()).patroli[0];return W.posPatroli(P,Date.now()/1000+.3)})()")
+    B.bring_to_front();cek('kawanan lebah menyengat di posisinya',kena(B,q[0],q[1],8000));B.wait_for_timeout(1500)
     # isi tepat lalu kunci
     def isi(pg):
         pg.evaluate("""()=>{const A=__L.ALUR[4],V=__L.P4.soal4(A.st.r).V;V.forEach((v,i)=>A.tambah(i,v-A.st.s[i]));A.flush();}""")

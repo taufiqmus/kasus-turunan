@@ -1,6 +1,7 @@
 /* Mesin dunia pos: geometri (jalur, kamp, tinggi tanah) dan rintangan. Satu definisi data per pos,
    buatMedan(D) mengembalikan semua fungsi murni untuk dunia itu. Rintangan bergantung pada jam dinding (detik)
    sehingga sama di semua perangkat tanpa pesan jaringan. Tidak memuat tampilan 3D. */
+import {rute as ruteJalan,posMusuh} from './musuh.js';
 const TAU=Math.PI*2;
 const fr=v=>v-Math.floor(v);
 export const ss=(a,b,v)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t);};
@@ -83,8 +84,18 @@ export function buatMedan(D){
   const acak=(c,i,k)=>fr(Math.sin(c*12.9898+i*78.233+k*37.719)*43758.5453);
   M.titikJatuh=(J,t)=>{const v=t/J.T+J.f,c=Math.floor(v),u=v-c,L=[];
     for(let i=0;i<J.n;i++){const ui=fr(u+i*.13);L.push({x:J.x0+(J.x1-J.x0)*acak(c,i,1),z:J.z0+(J.z1-J.z0)*acak(c,i,2),u:ui});}return L;};
-  /* kawanan berpatroli bolak-balik di sepanjang ruas (x0,z0)-(x1,z1) */
-  M.posPatroli=(P,t)=>{const u=fr(t/P.T+P.f),k=u<.5?ss(0,1,u*2):1-ss(0,1,(u-.5)*2);return [P.x0+(P.x1-P.x0)*k,P.z0+(P.z1-P.z0)*k];};
+  /* kawanan berpatroli. Dua jenis:
+     - bolak-balik di sepanjang satu ruas (x0,z0)-(x1,z1);
+     - P.rute: menyapu SEMUA ruas jalan (komponen jaringan nomor P.komp) dalam satu putaran tertutup dengan kecepatan tetap P.kec, melewati tepi
+       kamp, bukan pusatnya. Beberapa kawanan memakai rute yang sama dengan fase P.f (0..1) berbeda, jadi jarak antarkawanan tetap dan pemain bisa
+       menunggu atau memilih rute lain. */
+  const spekRute={};
+  const spek=P=>{const k=P.kec+'|'+(P.komp|0);return spekRute[k]||(spekRute[k]={kec:P.kec,lebar:0,semua:true,berhenti:false,komp:P.komp|0});};
+  M.periodeRute=P=>ruteJalan(M,0,spek(P)).T;
+  M.posPatroli=(P,t)=>{
+    if(P.rute){const S=spek(P),p=posMusuh(M,0,t+P.f*ruteJalan(M,0,S).T,S);return p?[p.x,p.z]:[-999,-999];}
+    const u=fr(t/P.T+P.f),k=u<.5?ss(0,1,u*2):1-ss(0,1,(u-.5)*2);return [P.x0+(P.x1-P.x0)*k,P.z0+(P.z1-P.z0)*k];
+  };
   /* pasang surut: zona kering, lalu air naik (peringatan), lalu tergenang (bahaya), lalu surut. h = tinggi air 0..1 */
   M.pasang=(Z,t)=>{const u=fr(t/Z.T+Z.f);if(u<.5)return {fase:0,h:0};if(u<.65)return {fase:1,h:(u-.5)/.15*.6};if(u<.85)return {fase:2,h:1};return {fase:3,h:1-(u-.85)/.15};};
   /* Apakah titik (x,z) terkena bahaya pada waktu t? udara = pemain sedang di puncak lompatan.
@@ -317,7 +328,8 @@ export const M4=buatMedan({
       duri:[{pts:lintang(-8,12,-8,8),f:0},{pts:lintang(-34,32,0,14),f:.4},{pts:lintang(17,7,6,6),f:.2},{pts:lintang(-7,50,14,4),f:.6},{pts:lintang(13,35,6,6),f:.8}].map(o=>({...o,T:Td})),
       ubin:[25,27,29].map((z,n)=>({x:24,z,w:4,d:1.9,f:fr(n*.37),T:[7,6,5][k]})),
       rakit:[{ax:'z',c:-20,a0:24,a1:30,len:2.6,lebar:1.5,T:[7,6,5][k],f:0}],
-      patroli:[{x0:0,z0:23.2,x1:0,z1:30.8,r:1.3,T:[6,5,4.2][k],f:0},{x0:-30,z0:10,x1:-34,z1:20,r:2,T:[7,6,5][k],f:.3}].concat(k===2?[{x0:14,z0:4,x1:20,z1:10,r:2.2,T:5,f:.6}]:[]),
+      /* kawanan lebah menyapu seluruh jaringan jalan (rute utama) dan satu rantai jalan kecil; makin banyak dan cepat tiap babak */
+      patroli:[...Array.from({length:[2,3,4][k]},(_,i)=>({rute:true,komp:0,kec:[2.2,2.6,3],r:1.2,f:i/[2,3,4][k]})).map(o=>({...o,kec:o.kec[k]})),{rute:true,komp:1,kec:[2.2,2.6,3][k],r:1.2,f:0}],
       jatuh:[{x0:-22,x1:-8,z0:42,z1:51,n:[3,4,5][k],T:4.5,f:0,r:1.2}]
     };
   }

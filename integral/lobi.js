@@ -1,33 +1,34 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung,sambungAmat} from './rt.js?v=39';
-import {NDEP,GMAX,stokBabak,habisBalok,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=39';
-import * as P1 from './pos1.js?v=39';
-import * as AR from './arena.js?v=39';
-import {buatArena,kolomDari,uTembus} from './arena.js?v=39';
-import {buatArena2,gambarSandi} from './arena2.js?v=39';
-import * as P2 from './pos2.js?v=39';
-import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=39';
-import * as P3 from './pos3.js?v=39';
-import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=39';
-import * as P4 from './pos4.js?v=39';
-import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=39';
-import * as P5 from './pos5.js?v=39';
-import {buatArena6,gambarFinal} from './arena6.js?v=39';
-import * as P6 from './pos6.js?v=39';
-import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=39';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=39';
-import {labelSprite,buangSprite,klem} from './util.js?v=39';
-import {muatUltra,ultraSiap,ultraAset} from './ultra.js?v=39';
-import {posMusuh,jarakMusuh,hashTeks} from './musuh.js?v=39';
-import {buatFauna,SPESIES} from './fauna.js?v=39';
-import {M1,M2,M3,M4,M5,M6} from './medan.js?v=39';
+import {sambung,sambungAmat} from './rt.js?v=40';
+import {NDEP,GMAX,stokBabak,habisBalok,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=40';
+import * as P1 from './pos1.js?v=40';
+import * as AR from './arena.js?v=40';
+import {buatArena,kolomDari,uTembus} from './arena.js?v=40';
+import {buatArena2,gambarSandi} from './arena2.js?v=40';
+import * as P2 from './pos2.js?v=40';
+import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=40';
+import * as P3 from './pos3.js?v=40';
+import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=40';
+import * as P4 from './pos4.js?v=40';
+import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=40';
+import * as P5 from './pos5.js?v=40';
+import {buatArena6,gambarFinal} from './arena6.js?v=40';
+import * as P6 from './pos6.js?v=40';
+import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=40';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=40';
+import {labelSprite,buangSprite,klem} from './util.js?v=40';
+import {muatUltra,ultraSiap,ultraAset} from './ultra.js?v=40';
+import {posMusuh,jarakMusuh,hashTeks} from './musuh.js?v=40';
+import {buatFauna,SPESIES} from './fauna.js?v=40';
+import {buatPapanPetunjuk} from './petunjuk.js?v=40';
+import {M1,M2,M3,M4,M5,M6} from './medan.js?v=40';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
 let W=M1;
 import {bacaSesi} from '../core/net.js';
-import * as CT from './catat.js?v=39';
-import * as AM from './amati.js?v=39';
+import * as CT from './catat.js?v=40';
+import * as AM from './amati.js?v=40';
 
 const $=id=>document.getElementById(id);
 const TIM=[['merah','Merah','#e5392b'],['biru','Biru','#2f7fc1'],['hijau','Hijau','#2f9e5b'],['kuning','Kuning','#e0a200'],
@@ -796,6 +797,8 @@ const CFG6={id:6,setSeed:P6.setSeed6,NB:P6.NB6,WAKTU:P6.WAKTU6,M:M6,mode:'set',g
   }
 };
 ALUR[6]=buatAlur(CFG6);
+/* papan petunjuk langkah di sudut kiri belakang plaza tiap pos */
+{const WD={1:M1,2:M2,3:M3,4:M4,5:M5,6:M6};for(const a in WD)arenaDi(+a).grup.add(buatPapanPetunjuk(+a,WD[a]));}
 function ambilBatu(kode){
   const A=ALUR[2];
   if(me.a!==2||A.st.f!==1||me.tiles.length>=capNow()||blok())return;
@@ -990,6 +993,11 @@ function petaArena(t){
   W.KAMP.forEach((d,i)=>{const [a,b,luar]=tepi(d.x,d.z,WKAMP[i],d.r*k*.8);if(!luar){X.fillStyle='#fff';X.fillText(me.a===2?['a d','f','b'][i]:String(st.g[i]|0),a,b+1);}});
   tepi(W.PAD.x,W.PAD.z,'#7bd38a',W.PAD.r*k);tepi(W.TUAS.x,W.TUAS.z,'#6fb7e9',W.TUAS.r*k);
   X.fillStyle='#2b6cff';for(const p of tim.values()){if(p.a!==1||p.bot)continue;const [a,b]=P(p.x,p.z);X.beginPath();X.arc(a,b,4,0,7);X.fill();}
+  /* penanda bahaya bergerak, supaya tim bisa menyusun strategi: kuning = kawanan lebah (patroli), merah = karakter pengganggu */
+  {const tS=Date.now()/1000;X.lineWidth=2;X.strokeStyle='#1c2230';X.fillStyle='#ffc400';
+   for(const Pt of W.medanBabak(rAktif()).patroli){const q=W.posPatroli(Pt,tS);const [a,b]=P(q[0],q[1]);X.beginPath();X.arc(a,b,5,0,7);X.fill();X.stroke();}
+   const L=musuh.ds[me.a],Sp=MUSUH_POS[me.a]&&SPESIES[MUSUH_POS[me.a][0]];
+   if(L&&Sp){X.fillStyle='#e5392b';X.strokeStyle='#fff';L.forEach((d,i)=>{const q=posMusuh(W,seedMusuh(me.a,i),tS,Sp);if(!q)return;const [a,b]=P(q.x,q.z);X.beginPath();X.arc(a,b,5.5,0,7);X.fill();X.stroke();});}}
   X.restore();
   X.fillStyle='#e8412c';X.beginPath();X.moveTo(cx,cy-7);X.lineTo(cx-6,cy+6);X.lineTo(cx+6,cy+6);X.fill();
   X.strokeStyle='#1c2230';X.lineWidth=2;X.beginPath();X.arc(cx,cy,WD/2-2,0,7);X.stroke();

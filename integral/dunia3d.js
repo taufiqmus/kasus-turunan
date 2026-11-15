@@ -2,7 +2,7 @@
    gerbang, koin, dan semua rintangan. Isi khusus tiap pos (bendungan, kuil, kolom, altar) ditambah oleh modul pos.
    W = dunia dari medan.js, T = tema warna dan tumbuhan. */
 import * as THREE from './vendor/three.min.js';
-import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=39';
+import {ss,dalam,derau,PAL_L,PAL_Y,PAL_A,BOLA_R,RINT_MAKS,DURI_MAKS} from './medan.js?v=40';
 
 export const mat=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
 /* ---------- bahan PBR untuk tingkat Ultra (Pos 1). Geometri dan jumlah draw call tidak berubah; hanya bahan yang ditukar ---------- */
@@ -400,7 +400,7 @@ export function buatDunia(W,T){
     MD.jatuh=MD.jatuh||[];MD.jatuh.push({es,bay});
   }
   /* kawanan lebah atau kepiting berpatroli: bola-bola kecil yang bergetar */
-  for(let i=0;i<4;i++){
+  for(let i=0;i<6;i++){
     const g=new THREE.Group();g.visible=false;grup.add(g);const bs=[];
     for(let j=0;j<10;j++){const b=new THREE.Mesh(new THREE.IcosahedronGeometry(.16,0),mat(j%2?0x1c2230:0xffc83d));g.add(b);bs.push(b);}
     MD.patroli=MD.patroli||[];MD.patroli.push({g,bs});

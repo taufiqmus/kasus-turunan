@@ -1,7 +1,8 @@
 /* Lintasan karakter pengganggu: fungsi murni dari waktu (detik jam dinding) dan seed, tanpa pesan jaringan, sama seperti rintangan di medan.js.
    Semua anggota tim melihat karakter di tempat yang sama. Karakter berjalan di jaringan jalan lebar (W.JALUR), tidak pernah turun ke plaza dan
    zona soal (z < zmin), tidak masuk pusat kamp (tempat mengambil barang), berhenti dan mengaum di tepi kamp, lalu mengulang rute tertutup
-   yang diundi dari seed. S = spesies dari fauna.js: {kec, kena, awas, maju}. */
+   yang diundi dari seed. S = spesies dari fauna.js: {kec, kena, awas, maju, lebar}. Opsi S.semua = rute menyapu SEMUA ruas jalan (kawanan lebah
+   Pos 4) dan S.berhenti===false = tanpa berhenti mengaum di kamp. */
 export const AUM=2.6,TEPI=6;
 function acak(s){let x=s|0;return ()=>{x=(x+0x6D2B79F5)|0;let t=Math.imul(x^(x>>>15),1|x);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
 export function hashTeks(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h|0;}
@@ -9,15 +10,34 @@ const kunci=(x,z)=>Math.round(x*10)+','+Math.round(z*10);
 export const zMin=W=>W.PLAZA.z1+2.5;
 /* graf jalan: simpul = ujung ruas JALUR yang lebar dan berada di luar plaza. Ruas sempit (jembatan, batu pijakan) dilewati: terlalu sempit
    dan penuh rintangan. */
-function graf(W,lebarMin){
+function graf(W,lebarMin,potong,pilihKomp){
   const S=new Map(),N=[],zm=zMin(W);
   /* simpul di dalam lingkaran kamp dihitung sebagai simpul kamp (jalan sering berujung di tepi, bukan di pusat) */
   const id=(x,z)=>{const k=kunci(x,z);if(!S.has(k)){S.set(k,N.length);N.push({x,z,tetangga:[],kamp:W.KAMP.find(c=>Math.hypot(c.x-x,c.z-z)<Math.max(1,c.r))||null});}return S.get(k);};
-  for(const [x0,z0,x1,z1,lebar] of W.JALUR){if(z0<zm||z1<zm||lebar<lebarMin)continue;const a=id(x0,z0),b=id(x1,z1);if(a!==b&&!N[a].tetangga.includes(b)){N[a].tetangga.push(b);N[b].tetangga.push(a);}}
+  const E=[];
+  for(let [x0,z0,x1,z1,lebar] of W.JALUR){
+    if(lebar<lebarMin)continue;
+    if(potong&&(z0<zm)!==(z1<zm)){   /* ruas yang keluar dari plaza dipotong di batas zona, supaya jalan di luar plaza ikut tercakup */
+      const u=((z0<zm?zm:z1)-z0)/(z1-z0)*0+(zm-z0)/(z1-z0);const cx=x0+(x1-x0)*u;
+      if(z0<zm){x0=cx;z0=zm;}else{x1=cx;z1=zm;}
+    }
+    if(z0<zm-1e-9||z1<zm-1e-9)continue;
+    const a=id(x0,z0),b=id(x1,z1);if(a!==b)E.push([a,b]);
+  }
+  /* persimpangan T: simpul yang jatuh di tengah ruas lain memecah ruas itu, supaya jaringan tersambung */
+  const E2=[];
+  for(const [a,b] of E){
+    const A=N[a],B=N[b],dx=B.x-A.x,dz=B.z-A.z,L2=dx*dx+dz*dz,tengah=[];
+    N.forEach((n,i)=>{if(i===a||i===b)return;const u=((n.x-A.x)*dx+(n.z-A.z)*dz)/L2;if(u<.02||u>.98)return;if(Math.hypot(n.x-A.x-dx*u,n.z-A.z-dz*u)<.9)tengah.push([u,i]);});
+    tengah.sort((p,q)=>p[0]-q[0]);let prev=a;for(const [,i] of tengah){E2.push([prev,i]);prev=i;}E2.push([prev,b]);
+  }
+  for(const [a,b] of E2)if(a!==b&&!N[a].tetangga.includes(b)){N[a].tetangga.push(b);N[b].tetangga.push(a);}
   /* simpan hanya komponen terhubung terbesar (jaringan jalan sebagian dunia terpecah di persimpangan di tengah ruas) */
   const komp=new Array(N.length).fill(-1),ukr=[];
   for(let i=0;i<N.length;i++){if(komp[i]>=0)continue;const c=ukr.length;let n=0;const q=[i];komp[i]=c;while(q.length){const u=q.pop();n++;for(const v of N[u].tetangga)if(komp[v]<0){komp[v]=c;q.push(v);}}ukr.push(n);}
-  const best=ukr.indexOf(Math.max(...ukr,0));N.forEach((n,i)=>{n.komp=komp[i];n.ok=komp[i]===best;});
+  /* komponen diurut dari terbesar; komp memilih urutan ke berapa (0 = terbesar) */
+  const urutKomp=ukr.map((n,i)=>[n,i]).sort((a,b)=>b[0]-a[0]).map(a=>a[1]),pilih=urutKomp[Math.min(pilihKomp|0,urutKomp.length-1)];
+  N.forEach((n,i)=>{n.komp=komp[i];n.ok=komp[i]===pilih;});
   return N;
 }
 function bfs(N,a,b){const asal=new Map([[a,-1]]),q=[a];while(q.length){const u=q.shift();if(u===b)break;for(const v of N[u].tetangga)if(!asal.has(v)){asal.set(v,u);q.push(v);}}
@@ -26,12 +46,25 @@ const cache=new WeakMap();
 /* rute tertutup: jalan acak 24 ruas dari simpul awal (kamp diutamakan), lalu jalan terpendek kembali. Bila graf kosong, rute kosong. */
 export function rute(W,seed,S){
   const kec=S.kec;let m=cache.get(W);if(!m)cache.set(W,m=new Map());
-  const k=seed+'|'+kec+'|'+S.lebar;if(m.has(k))return m.get(k);
-  const N=graf(W,S.lebar),rnd=acak(seed);
+  const k=seed+'|'+kec+'|'+S.lebar+'|'+(S.semua?1:0)+'|'+(S.berhenti===false?0:1)+'|'+(S.komp|0);if(m.has(k))return m.get(k);
+  const N=graf(W,S.lebar,!!S.semua,S.komp),rnd=acak(seed);
   if(!N.length){const R={L:[],T:1,N};m.set(k,R);return R;}
   let awal=N.findIndex(n=>n.ok&&n.kamp);if(awal<0)awal=N.findIndex(n=>n.ok);
   const urut=[awal];let u=awal,dari=-1;
-  for(let i=0;i<24;i++){
+  if(S.semua){   /* jalan tertutup yang melewati setiap ruas paling sedikit sekali: dari simpul sekarang, ke simpul terdekat yang masih punya ruas belum dilalui */
+    const sudah=new Set(),ek=(a,b)=>a<b?a+'-'+b:b+'-'+a;let sisa=0;
+    N.forEach((n,i)=>{if(!n.ok)return;for(const v of n.tetangga)if(i<v)sisa++;});
+    while(sisa>0){
+      const asal=new Map([[u,-1]]),q=[u];let tujuan=-1;
+      while(q.length){const x=q.shift();if(N[x].tetangga.some(v=>!sudah.has(ek(x,v)))){tujuan=x;break;}for(const v of N[x].tetangga)if(!asal.has(v)){asal.set(v,x);q.push(v);}}
+      if(tujuan<0)break;
+      const jalur=[];for(let x=tujuan;x!==-1;x=asal.get(x))jalur.unshift(x);
+      for(let i=1;i<jalur.length;i++){sudah.add(ek(jalur[i-1],jalur[i]));urut.push(jalur[i]);}
+      u=tujuan;const v=N[u].tetangga.find(v=>!sudah.has(ek(u,v)));sudah.add(ek(u,v));urut.push(v);u=v;sisa=0;
+      N.forEach((n,i)=>{if(!n.ok)return;for(const w of n.tetangga)if(i<w&&!sudah.has(ek(i,w)))sisa++;});
+    }
+  }
+  else for(let i=0;i<24;i++){
     let pil=N[u].tetangga.filter(v=>v!==dari);if(!pil.length)pil=N[u].tetangga;if(!pil.length)break;
     const bobot=pil.map(v=>N[v].kamp?3:1),tot=bobot.reduce((a,b)=>a+b,0);let r=rnd()*tot,j=0;while(r>bobot[j]){r-=bobot[j];j++;}
     dari=u;u=pil[Math.min(j,pil.length-1)];urut.push(u);
@@ -66,7 +99,7 @@ export function rute(W,seed,S){
   };
   ruas.forEach((r,i)=>{
     sambung(r.A,r.B);
-    if(r.kamp){L.push({t0:t,t1:t+AUM,a:r.B,b:r.B,aum:true,arah:Math.atan2(r.kamp.x-r.B.x,r.kamp.z-r.B.z)});t+=AUM;}
+    if(r.kamp&&S.berhenti!==false){L.push({t0:t,t1:t+AUM,a:r.B,b:r.B,aum:true,arah:Math.atan2(r.kamp.x-r.B.x,r.kamp.z-r.B.z)});t+=AUM;}
     sambung(r.B,ruas[(i+1)%ruas.length].A);
   });
   const R={L,T:Math.max(t,1),N};m.set(k,R);return R;

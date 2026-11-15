@@ -36,7 +36,8 @@ for(const W of DUNIA_LIST){
       for(const L of m.lengan)if(Math.hypot(x-L.x,z-L.z)<L.L+.35)return true;
       for(const R of m.rakit){const a=R.ax==='x'?x:z,c=R.ax==='x'?z:x;if(Math.abs(c-R.c)<R.lebar+.25&&a>R.a0&&a<R.a1)return true;}
       for(const J of m.jatuh)if(x>J.x0&&x<J.x1&&z>J.z0&&z<J.z1)return true;
-      for(const P of m.patroli){const dx=P.x1-P.x0,dz=P.z1-P.z0,L=dx*dx+dz*dz,u=L?Math.max(0,Math.min(1,((x-P.x0)*dx+(z-P.z0)*dz)/L)):0;if(Math.hypot(x-P.x0-dx*u,z-P.z0-dz*u)<P.r+.3)return true;}
+      /* kawanan berjenis rute bergerak menyapu seluruh jalan, jadi tidak menutup satu ruas selamanya: dicek terpisah di bawah */
+      for(const P of m.patroli.filter(P=>!P.rute)){const dx=P.x1-P.x0,dz=P.z1-P.z0,L=dx*dx+dz*dz,u=L?Math.max(0,Math.min(1,((x-P.x0)*dx+(z-P.z0)*dz)/L)):0;if(Math.hypot(x-P.x0-dx*u,z-P.z0-dz*u)<P.r+.3)return true;}
       for(const Z of m.pasang)if(x>Z.x0&&x<Z.x1&&z>Z.z0&&z<Z.z1)return true;
       return false;};
     f=bfs(jejak,true);const bebas=W.KAMP.filter(k=>f(k.x,k.z)).map(k=>k.nama);
@@ -58,10 +59,32 @@ for(const W of DUNIA_LIST){
     m.palu.forEach((p,i)=>{c+=garis('palu '+i,p.x,p.z,1,0,4,true);});
     m.penekan.forEach((p,i)=>{const cx=(p.x0+p.x1)/2,cz=(p.z0+p.z1)/2,lebar=p.x1-p.x0>p.z1-p.z0;c+=garis('penekan '+i,cx,cz,lebar?1:0,lebar?0:1,5,false);});
     m.lengan.forEach((L,i)=>{c+=garis('lengan '+i,L.x,L.z,1,0,L.L+.2,false);c+=garis('lengan '+i+' (z)',L.x,L.z,0,1,L.L+.2,false);});
-    m.patroli.forEach((P,i)=>{const dx=P.x1-P.x0,dz=P.z1-P.z0,L=Math.hypot(dx,dz);c+=garis('patroli '+i,(P.x0+P.x1)/2,(P.z0+P.z1)/2,-dz/L,dx/L,P.r+2,false);});
+    m.patroli.forEach((P,i)=>{if(P.rute)return;const dx=P.x1-P.x0,dz=P.z1-P.z0,L=Math.hypot(dx,dz);c+=garis('patroli '+i,(P.x0+P.x1)/2,(P.z0+P.z1)/2,-dz/L,dx/L,P.r+2,false);});
     m.pasang.forEach((Z,i)=>{const w=Z.x1-Z.x0,d=Z.z1-Z.z0;c+=garis('pasang '+i,(Z.x0+Z.x1)/2,(Z.z0+Z.z1)/2,w>=d?1:0,w>=d?0:1,Math.max(w,d)/2+2,false);});
     m.rakit.forEach((R,i)=>{const mid=(R.a0+R.a1)/2;c+=R.ax==='x'?garis('rakit '+i,mid,R.c,0,1,3,false):garis('rakit '+i,R.c,mid,1,0,3,false);});
     if(!c)cek(N+' babak '+(r+1)+': semua rintangan rapat selebar jalur',true);
+  }
+}
+/* kawanan berjenis rute (lebah Pos 4): menyapu semua jalan, tidak masuk plaza dan lingkaran kamp, lebih lambat dari pemain, banyaknya muat di tampilan */
+for(const W of DUNIA_LIST){
+  for(const r of [0,1,2]){
+    const R=W.medanBabak(r).patroli.filter(P=>P.rute);if(!R.length)continue;
+    const N=W.nama+' babak '+(r+1),zm=W.PLAZA.z1+2.5,kampR=Math.max(...W.KAMP.map(k=>k.r));
+    cek(N+': kawanan rute muat di tampilan (maks 6)',W.medanBabak(r).patroli.length<=6,W.medanBabak(r).patroli.length);
+    cek(N+': kawanan rute lebih lambat dari pemain (7 satuan per detik)',R.every(P=>P.kec<=4));
+    let zmin=1e9,kmin=1e9,maks=0;const pts=[];
+    for(const P of R){const T=W.periodeRute(P);let prev=W.posPatroli(P,0);for(let t=.3;t<T;t+=.3){const q=W.posPatroli(P,t);zmin=Math.min(zmin,q[1]);kmin=Math.min(kmin,Math.min(...W.KAMP.map(k=>Math.hypot(k.x-q[0],k.z-q[1]))));maks=Math.max(maks,Math.hypot(q[0]-prev[0],q[1]-prev[1])/.3);pts.push(q);prev=q;}}
+    cek(N+': kawanan tidak masuk plaza (dan penyangga 1,2 satuan)',zmin>=W.PLAZA.z1+1.2-1e-6,zmin.toFixed(1)+' >= '+(W.PLAZA.z1+1.2));
+    cek(N+': kawanan tidak masuk lingkaran kamp',kmin>=kampR+.1,kmin.toFixed(2));
+    cek(N+': kecepatan kawanan tidak melompat',maks<=Math.max(...R.map(P=>P.kec))*1.1,maks.toFixed(2));
+    /* cakupan: titik jalan di luar plaza dan radius kamp yang dilewati kawanan paling tidak sekali dalam satu putaran */
+    let tot=0,cov=0;
+    for(const [x0,z0,x1,z1] of W.JALUR){const L=Math.hypot(x1-x0,z1-z0),n=Math.max(2,Math.round(L));for(let i=0;i<=n;i++){const x=x0+(x1-x0)*i/n,z=z0+(z1-z0)*i/n;if(z<zm)continue;if(Math.min(...W.KAMP.map(k=>Math.hypot(k.x-x,k.z-z)))<=kampR+2.3)continue;tot++;if(pts.some(q=>Math.hypot(q[0]-x,q[1]-z)<1.8))cov++;}}
+    cek(N+': kawanan menyapu semua rute (cakupan jalan di luar plaza dan kamp)',cov/tot>=.98,(100*cov/tot).toFixed(1)+'%');
+    /* kawanan satu rute berfase berbeda merata (jarak antarkawanan tetap, bisa dipelajari pemain). Boleh berpapasan di jalan yang dilewati ulang. */
+    const sama=R.filter(P=>P.komp===0).map(P=>P.f).sort((x,y)=>x-y);
+    if(sama.length>1){const gap=sama.map((f,i)=>(i?f-sama[i-1]:0)).slice(1);gap.push(1-sama[sama.length-1]+sama[0]);
+      cek(N+': fase kawanan satu rute merata',Math.max(...gap)-Math.min(...gap)<1e-6,gap.map(v=>v.toFixed(2)).join(','));}
   }
 }
 console.log(gagal?'ADA YANG GAGAL':'SEMUA LULUS');process.exit(gagal?1:0);
