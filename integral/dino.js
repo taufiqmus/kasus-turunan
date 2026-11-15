@@ -3,7 +3,7 @@
    jadi tidak membebani masuk lobi. Sumber dan lisensi: aset/LISENSI.md.
    muatDino() -> Promise; buatDino({tinggi}) -> {grup, main(nama, lintas), perbarui(dt), nama[]}. Menghadap +z, kaki di y=0. */
 import * as THREE from './vendor/three.min.js';
-const URL_MODEL=new URL('./aset/trex.glb?v=33',import.meta.url).href;
+const URL_MODEL=new URL('./aset/trex.glb?v=34',import.meta.url).href;
 let janji=null,gltf=null;
 export function muatDino(){
   if(janji)return janji;
