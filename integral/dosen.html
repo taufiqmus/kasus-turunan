@@ -65,7 +65,7 @@ th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;
   <div class="row" style="justify-content:space-between"><span class="note" id="who"></span><button class="btn alt" id="b-out" type="button">Keluar</button></div>
 
   <section class="card">
-    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Pilih sesi</h2><button class="btn alt" id="b-segar" type="button" aria-label="Muat ulang daftar sesi dan data">Refresh</button></div>
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Pilih sesi</h2><span class="row" style="gap:12px"><label style="display:flex;align-items:center;gap:6px;margin:0"><input type="checkbox" id="c-auto" checked> Otomatis</label><button class="btn alt" id="b-segar" type="button" aria-label="Muat ulang daftar sesi dan data">Refresh</button></span></div>
     <p class="note">Buat sesi khusus Lobi Integral di sini, supaya peringkat Kasus Turunan tidak tercampur. Minta mahasiswa memakai token yang sama (juga jadi kode ruang, otomatis terisi).</p>
     <div class="row">
       <div style="flex:2 1 220px"><label for="n-nama">Nama sesi</label><input id="n-nama" placeholder="Matematika 1 kelas A, Lobi Integral"></div>
@@ -161,7 +161,7 @@ async function start(){
   await loadSesi();
   const q=new URLSearchParams(location.search).get('sesi');
   if(q){const s=SESI.find(x=>x.token===q.toUpperCase());if(s)pilih(s);}
-  clearInterval(timer);timer=setInterval(()=>{if(CUR&&!document.hidden)loadDetail(true);},8000);
+  clearInterval(timer);timer=setInterval(()=>{if(!$('c-auto').checked||document.hidden)return;sinkron();},8000);
 }
 function rand(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let t='INT-';for(let i=0;i<4;i++)t+=a[Math.floor(Math.random()*a.length)];return t;}
 async function newSesi(){
@@ -183,9 +183,13 @@ async function loadSesi(){
     d.addEventListener('click',()=>pilih(s));d.addEventListener('keydown',e=>{if(e.key==='Enter')pilih(s);});L.append(d);
   }
 }
+async function sinkron(){
+  await loadSesi();
+  if(CUR){const baru=SESI.find(x=>x.id===CUR.id);if(baru)CUR=baru;await loadDetail(true);}
+}
 async function segarkan(){
   const b=$('b-segar'),t=b.textContent;b.disabled=true;b.textContent='Memuat...';
-  try{await loadSesi();if(CUR){const baru=SESI.find(x=>x.id===CUR.id);if(baru)CUR=baru;await loadDetail(true);}}
+  try{await sinkron();}
   finally{b.disabled=false;b.textContent=t;}
 }
 function pilih(s){CUR=s;LAST=null;loadSesi();loadDetail();$('detail').hidden=false;$('detail').scrollIntoView({behavior:'smooth'});}
