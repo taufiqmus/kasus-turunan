@@ -19,6 +19,8 @@ import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,
 import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=33';
 import {labelSprite,buangSprite,klem} from './util.js?v=33';
 import {muatUltra,ultraSiap,ultraAset} from './ultra.js?v=33';
+import {posTrex,jarakTrex,kampKembali,hashTeks,R_KENA,R_AWAS} from './trex.js?v=33';
+import {buatDino} from './dino.js?v=33';
 import {M1,M2,M3,M4,M5,M6} from './medan.js?v=33';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
@@ -231,6 +233,12 @@ const papan={c:document.createElement('canvas')};
   const kaki=mat(0x1c2230),k1=new THREE.Mesh(new THREE.BoxGeometry(.5,6.5,.5),kaki),k2=k1.clone();k1.position.set(-5,3.2,-24.2);k2.position.set(5,3.2,-24.2);lobiGrup.add(k1,k2);
 }
 const arena=buatArena();scene.add(arena.grup);
+/* T-Rex Pos 1: posisi fungsi jam dinding dan seed tim (trex.js), sama bagi semua anggota tanpa pesan jaringan.
+   Tabrakan dinilai lokal: balok yang dibawa jatuh dan kembali ke kamp terdekat lewat selisih stok biasa.
+   Model dimuat malas saat masuk Pos 1. Mati di uji otomatis (navigator.webdriver) kecuali ?dino=1, agar uji lain tidak acak. */
+const TREX_ON=!navigator.webdriver||Q.get('dino')==='1';
+const trex={seed:0,d:null,muat:false,awas:0,serang:0};
+function siapkanTrex(){if(!TREX_ON||trex.muat)return;trex.muat=true;buatDino({tinggi:6.8}).then(d=>{trex.d=d;arena.grup.add(d.grup);}).catch(()=>{trex.muat=false;});}
 const arena2=buatArena2();scene.add(arena2.grup);
 const arena3=buatArena3();scene.add(arena3.grup);
 const arena4=buatArena4();scene.add(arena4.grup);
@@ -1030,7 +1038,7 @@ for(let i=0;i<6;i++){const b=$('m-pos').children[i];if(b){b.disabled=i>=POS_AKTI
 /* ---------- arena dan aksi ---------- */
 function setArea(a){
   if(AL()&&a!==me.a)AL().flush();
-  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;if(kual===4&&kualEf()!==keTerap){aud.lambat=0;terapKual();}
+  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;if(a===1)siapkanTrex();if(kual===4&&kualEf()!==keTerap){aud.lambat=0;terapKual();}
   arena.grup.visible=a===1;for(const k in ALUR)ALUR[k].P.arena.grup.visible=a===+k;lobiGrup.visible=a===0;rumput.position.y=a>=1?-9:0;
   $('arhud').hidden=a!==1;$('ar2').hidden=a<2;$('pilih').hidden=true;
   $('peta').hidden=false;$('peta').classList.toggle('ar',a>=1);$('stam').classList.toggle('ar',a>=1);$('c-koin').hidden=false;
@@ -1151,6 +1159,22 @@ function tabrak(now,h){
   const ada=me.carry;me.carry=0;me.tiles=[];stunTil=now+800;tabrakTil=now+1600;getar(90);
   kb=titikMundur(h.mundur||3);me.vx=me.vz=0;kotor=true;
   toast(h.msg+(ada?(me.a===2?' Batu sandi jatuh.':' Balok jatuh.'):'')+(h.j==='ubin'||h.j==='palu'||h.j==='pintu'?'':' Lompat untuk menghindar.'));
+}
+function trexTick(now,tSec,bisaKena){
+  const d=trex.d;if(!d)return;
+  const p=posTrex(W,trex.seed,tSec);d.grup.position.set(p.x,W.tinggiTanah(p.x,p.z),p.z);d.grup.rotation.y=p.arah;
+  d.main(now<trex.serang||p.aum?'Attack':'Walk');
+  const jr=jarakTrex(p,me.x,me.z);
+  if(bisaKena&&me.carry>0&&jr<R_KENA)trexKena(now);
+  else if(me.carry>0&&jr<R_AWAS&&now-trex.awas>6000){trex.awas=now;getar(40);toast('Awas T-Rex! Balok yang kamu bawa bisa jatuh.');}
+}
+function trexKena(now){
+  if(boostAktif==='p'){boostAktif=null;tabrakTil=now+1600;trex.serang=now+1200;toast('Perisai menahan serangan T-Rex!');boostUI();return;}
+  let n=me.carry,nama='';
+  while(n>0){const k=kampKembali(W,me.x,me.z,st.g,GMAX);if(k<0)break;const m=Math.min(n,GMAX-st.g[k]);ubahDepot(k,m);n-=m;if(!nama)nama=W.KAMP[k].nama;}
+  const jml=me.carry;me.carry=0;me.tiles=[];stunTil=now+900;tabrakTil=now+2500;trex.serang=now+1200;getar(120);
+  kb=titikMundur(3);me.vx=me.vz=0;kotor=true;
+  toast('T-Rex menyambar! '+jml+' balok jatuh dan kembali ke Kamp '+(nama||'terdekat')+'.');
 }
 function ubahDepot(k,d){
   st.g[k]=klem(st.g[k]+d,0,GMAX);const key=100+k;pend.set(key,(pend.get(key)||0)+d);
@@ -1405,7 +1429,7 @@ $('b-masuk').addEventListener('click',async()=>{
   if(prev.r){prev.on=false;prev.r.dispose();prev.r.forceContextLoss&&prev.r.forceContextLoss();}
   $('c-ruang').textContent='Ruang '+kode;
   const ct=$('c-tim');ct.textContent='';const sw=document.createElement('span');sw.className='sw';sw.style.background=t.warna;ct.append(sw,'Tim '+t.nama);
-  setSeed(kode+'|'+saya.tim);st.g=stokBabak(st.r);for(const k in ALUR){const P=ALUR[k].P;if(P.setSeed)P.setSeed(kode+'|'+saya.tim);ALUR[k].st=P.stateBaru();ALUR[k].atur();}arena.setWarna(t.warna);aturArena();
+  setSeed(kode+'|'+saya.tim);trex.seed=hashTeks(kode+'|'+saya.tim);st.g=stokBabak(st.r);for(const k in ALUR){const P=ALUR[k].P;if(P.setSeed)P.setSeed(kode+'|'+saya.tim);ALUR[k].st=P.stateBaru();ALUR[k].atur();}arena.setWarna(t.warna);aturArena();
   tGabung=performance.now();
   rt=sambung(kode,{id:saya.id,nama:saya.nama,tim:saya.tim,av:kodeAv(saya.av)},{
     status:s=>{
@@ -1473,7 +1497,7 @@ function mulaiAmat(kode){
 }
 /* hanya sisi tampilan area (tanpa interaksi pemain) */
 function areaAmat(a){
-  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;if(kual===4&&kualEf()!==keTerap){aud.lambat=0;terapKual();}
+  me.a=a;W=ALUR[a]?ALUR[a].P.M:M1;if(a===1)siapkanTrex();if(kual===4&&kualEf()!==keTerap){aud.lambat=0;terapKual();}
   arena.grup.visible=a===1;for(const k in ALUR)ALUR[k].P.arena.grup.visible=a===+k;lobiGrup.visible=a===0;rumput.position.y=a>=1?-9:0;
   $('arhud').hidden=a!==1;$('ar2').hidden=a<2;$('pilih').hidden=true;$('hitung').hidden=true;
   gerbangAmat=false;arena.setGerbang(false);for(const k in ALUR)ALUR[k].P.arena.setGerbang(false);
@@ -1490,7 +1514,7 @@ function pilihTimAmat(t){
   if(!AMAT||!saya||!TIM.some(x=>x.id===t))return;
   saya.tim=t;amatSigTim=t;
   for(const id of [...tim.keys()])hapusPemain(id);
-  setSeed(saya.kode+'|'+t);st=stateBaru();st.g=stokBabak(st.r);pend.clear();hitungMundur=0;endAt=0;
+  setSeed(saya.kode+'|'+t);trex.seed=hashTeks(saya.kode+'|'+t);st=stateBaru();st.g=stokBabak(st.r);pend.clear();hitungMundur=0;endAt=0;
   for(const k in ALUR){const A=ALUR[k],P=A.P;if(P.setSeed)P.setSeed(saya.kode+'|'+t);A.st=P.stateBaru();A.pend.clear();A.hitung=0;A.endAt=0;A.kotor=true;}
   amatMode='bebas';amatIkut=null;
   rt.pilih(t);areaAmat(me.a);
@@ -1715,6 +1739,7 @@ function frame(now){
         const udara=!!(me.emo&&me.emo.k===1&&Math.sin(((now-me.emo.t)/700)*Math.PI)*1.6>.7);
         const h=W.bahaya(r,me.x,me.z,tSec,udara);if(h)tabrak(now,h);
       }
+      if(me.a===1&&TREX_ON)trexTick(now,tSec,main&&!lontar&&!kb&&now>=stunTil&&now>=tabrakTil&&!blk);
       /* trampolin: melempar pemain melewati air */
       {
         const md=W.medanBabak(r);
@@ -1829,4 +1854,4 @@ document.fonts&&document.fonts.ready.then(gambarPapan);
 
 /* kait uji */
 window.__L={AMAT,amatPilih:t=>pilihTimAmat(t),amatArea:a=>keArea(a),amatIkuti:id=>{amatMode='ikuti';amatIkut=id;},get amatMode(){return amatMode;},get saya(){return saya;},catatBabak,P1,AR,arena,get endAt(){return endAt;},get stunTil(){return stunTil;},get me(){return me;},tim,luar,papanData,get st(){return st;},aud,get rt(){return rt;},gerbang,C,hit,
-  MED,M2,M3,M4,M5,M6,P2,P3,P4,P5,P6,arena2,arena3,arena4,arena5,arena6,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca,ke:kualEf(),siap:kualEf()!==4||ultraSiap()};},setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};
+  MED,M2,M3,M4,M5,M6,P2,P3,P4,P5,P6,arena2,arena3,arena4,arena5,arena6,ALUR,get st2(){return ALUR[2].st;},ambilBatu,pasangBatu,flush2:()=>ALUR[2].flush(),ubahSlot2:(i,k)=>ALUR[2].ubahSlot(i,k),get W(){return W;},tp:(x,z)=>{me.x=x;me.z=z;kb=null;resetJejak();},get kb(){return kb;},get gerbangBuka(){return gerbangBuka;},get grafis(){return {kual,gaya,pasca,ke:kualEf(),siap:kualEf()!==4||ultraSiap()};},trex,setGrafis,saldo,kirimPosisi,setArea,ubahKolom,flush,get pend(){return pend;},sim,jedaPos,jedaFlush,ntot,get tahan(){return tahan;},set tahan(v){tahan=v;}};

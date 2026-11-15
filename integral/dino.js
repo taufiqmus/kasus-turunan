@@ -37,7 +37,7 @@ export async function buatDino(opsi={}){
   function main(nama,lintas=.25){
     const c=klip[nama];if(!c)return false;const a=mixer.clipAction(c);if(a===aktif)return true;
     a.reset().setEffectiveWeight(1);
-    if(nama==='Death'||nama==='Jump'||nama==='Attack'){a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=nama==='Death';}
+    if(nama==='Death'||nama==='Jump'){a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=nama==='Death';}   // Attack berulang (mengaum) selama dipakai
     a.play();if(aktif)aktif.crossFadeTo(a,lintas,false);aktif=a;return true;
   }
   return {grup,main,perbarui:dt=>mixer.update(dt),nama:Object.keys(klip),mixer};
