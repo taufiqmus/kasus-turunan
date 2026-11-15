@@ -46,6 +46,21 @@ with sync_playwright() as p:
     with pg.expect_download() as d2:pg.click('#b-csv-m')
     csv2=open(d2.value.path(),encoding='utf-8-sig').read()
     cek('CSV rekap mahasiswa tersedia',len(csv2.strip().splitlines())==5,len(csv2.strip().splitlines()))
+    # buat sesi dari dosen.html
+    posted=[]
+    def rt(route):
+        rq=route.request
+        h={'access-control-allow-origin':'*','access-control-allow-headers':'authorization, apikey, content-type, x-client-info, prefer','access-control-allow-methods':'GET,POST,PATCH,OPTIONS'}
+        if rq.method=='OPTIONS':route.fulfill(status=204,headers=h);return
+        if rq.method=='POST':posted.append(json.loads(rq.post_data));route.fulfill(status=201,headers=h,body='');return
+        route.fulfill(status=200,headers=dict(h,**{'content-type':'application/json'}),body='[]')
+    pg.route('**/rest/v1/sesi*',rt)
+    pg.evaluate("document.getElementById('app').hidden=false")
+    pg.fill('#n-nama','Kelas A Integral');pg.fill('#n-token','int-a1');pg.click('#b-new');pg.wait_for_timeout(600)
+    cek('buat sesi: token huruf besar, semesta integral',posted and posted[0].get('token')=='INT-A1' and posted[0].get('semesta')=='integral' and posted[0].get('nama')=='Kelas A Integral',posted)
+    cek('buat sesi: pesan sukses memuat token','INT-A1' in pg.inner_text('#n-msg'),pg.inner_text('#n-msg'))
+    pg.fill('#n-nama','x');pg.fill('#n-token','ab');pg.click('#b-new');pg.wait_for_timeout(200)
+    cek('buat sesi: token terlalu pendek ditolak tanpa kirim',len(posted)==1,len(posted))
     pg.screenshot(path='/tmp/dosen.png',full_page=True)
     pg.set_viewport_size({'width':390,'height':844});pg.wait_for_timeout(200)
     cek('tampilan HP: tidak ada gulir mendatar halaman',pg.evaluate('document.documentElement.scrollWidth<=innerWidth+2'),pg.evaluate('document.documentElement.scrollWidth'))

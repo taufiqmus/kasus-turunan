@@ -66,7 +66,12 @@ th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;
 
   <section class="card">
     <h2>Pilih sesi</h2>
-    <p class="note">Buat sesi baru di dashboard Kasus Turunan. Saran: pakai satu token khusus untuk Lobi Integral, supaya peringkat Kasus Turunan tidak tercampur skor Integral. Minta mahasiswa memakai token yang sama sebagai kode ruang (otomatis terisi).</p>
+    <p class="note">Buat sesi khusus Lobi Integral di sini, supaya peringkat Kasus Turunan tidak tercampur. Minta mahasiswa memakai token yang sama (juga jadi kode ruang, otomatis terisi).</p>
+    <div class="row">
+      <div style="flex:2 1 220px"><label for="n-nama">Nama sesi</label><input id="n-nama" placeholder="Matematika 1 kelas A, Lobi Integral"></div>
+      <div style="flex:1 1 140px"><label for="n-token">Token (opsional)</label><input id="n-token" maxlength="20" placeholder="acak jika kosong" autocapitalize="characters"></div>
+      <button class="btn" id="b-new" type="button" style="margin-top:20px">Buat sesi</button>
+    </div>
     <p class="msg" id="n-msg"></p>
     <div class="grid" id="sesi-list"></div>
   </section>
@@ -158,10 +163,20 @@ async function start(){
   if(q){const s=SESI.find(x=>x.token===q.toUpperCase());if(s)pilih(s);}
   clearInterval(timer);timer=setInterval(()=>{if(CUR&&!document.hidden)loadDetail(true);},8000);
 }
+function rand(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let t='INT-';for(let i=0;i<4;i++)t+=a[Math.floor(Math.random()*a.length)];return t;}
+async function newSesi(){
+  const nama=$('n-nama').value.trim(),m=$('n-msg');m.textContent='';m.className='msg';
+  if(!nama){m.textContent='Isi nama sesi.';return;}
+  const tok=($('n-token').value.trim().toUpperCase())||rand();
+  if(!/^[A-Z0-9-]{4,20}$/.test(tok)){m.textContent='Token 4 sampai 20 huruf besar, angka, atau tanda hubung.';return;}
+  try{await req('/rest/v1/sesi',{method:'POST',body:{token:tok,nama,semesta:'integral'},headers:{'Prefer':'return=minimal'}});
+    $('n-nama').value='';$('n-token').value='';m.className='msg ok';m.textContent='Sesi dibuat. Token: '+tok;await loadSesi();}
+  catch(e){m.textContent=/duplicate|unique/i.test(e.message)?'Token itu sudah dipakai, pilih yang lain.':e.message;}
+}
 async function loadSesi(){
   try{SESI=await req('/rest/v1/sesi?select=*&order=dibuat.desc');}catch(e){$('n-msg').textContent=e.message;return;}
   const L=$('sesi-list');L.innerHTML='';
-  if(!SESI.length)L.innerHTML='<p class="note">Belum ada sesi. Buat di dashboard Kasus Turunan.</p>';
+  if(!SESI.length)L.innerHTML='<p class="note">Belum ada sesi. Buat yang pertama di atas.</p>';
   for(const s of SESI){
     const d=document.createElement('div');d.className='sesi'+(CUR&&CUR.id===s.id?' on':'');d.tabIndex=0;
     d.innerHTML='<b>'+esc(s.token)+'</b> <span class="pill '+esc(s.status)+'">'+(s.status==='open'?'terbuka':'ditutup')+'</span><br>'+esc(s.nama);
@@ -285,6 +300,7 @@ $('b-amat').addEventListener('click',()=>bukaAmat());
 $('d-tim').addEventListener('click',e=>{const b=e.target.closest('button[data-tim]');if(b)bukaAmat(b.dataset.ruang,b.dataset.tim);});
 $('b-login').addEventListener('click',login);
 $('pw').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+$('b-new').addEventListener('click',newSesi);
 $('b-out').addEventListener('click',logout);
 window.__D={olah,render:()=>render(),set:(l)=>{LAST=l;CUR=CUR||{token:'UJI',nama:'Uji',id:'x'};$('login').hidden=true;$('app').hidden=false;$('detail').hidden=false;render();}};
 try{const a=JSON.parse(sessionStorage.getItem('kt-auth')||'null');if(a&&a.rt){Object.assign(AUTH,a);start();}}catch(e){}
