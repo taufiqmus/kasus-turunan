@@ -2,7 +2,7 @@
    sama seperti rintangan di medan.js. Semua anggota tim melihat T-Rex di tempat yang sama.
    T-Rex berjalan di jaringan jalan (W.JALUR), tidak pernah turun ke plaza dan zona kolom (z < ZMIN),
    berhenti dan mengaum di simpul kamp, lalu mengulang rute tertutup yang diundi dari seed. */
-export const KEC=2.4,ZMIN=9,AUM=2.6,R_KENA=2.1,R_AWAS=10,MAJU=2.6;
+export const KEC=2.4,ZMIN=9,AUM=2.6,R_KENA=1.5,R_AWAS=9,MAJU=1.6,TEPI=6;   // jarak sambar untuk T-Rex setinggi 4,2
 /* acak deterministik dari bilangan bulat */
 function acak(s){let x=s|0;return ()=>{x=(x+0x6D2B79F5)|0;let t=Math.imul(x^(x>>>15),1|x);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
 export function hashTeks(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h|0;}
@@ -31,13 +31,23 @@ export function rute(W,seed){
     dari=u;u=pil[Math.min(j,pil.length-1)];urut.push(u);
   }
   urut.push(...bfs(N,u,awal).slice(1));
-  /* garis waktu: tiap ruas berjalan, tiap kamp berhenti mengaum */
+  /* garis waktu. Simpul kamp tidak didatangi sampai pusat (tempat pemain mengambil balok): ruas berhenti di tepi kamp
+     (TEPI dari pusat), T-Rex mengaum di sana menghadap kamp, lalu berjalan melingkar di tepi kamp ke ujung ruas berikutnya. */
+  const tepi=(k,lain)=>{const d=Math.hypot(lain.x-k.x,lain.z-k.z)||1;return {x:k.x+(lain.x-k.x)/d*TEPI,z:k.z+(lain.z-k.z)/d*TEPI};};
+  const ruas=[];
+  for(let i=0;i<urut.length-1;i++){const a=N[urut[i]],b=N[urut[i+1]];ruas.push({A:a.kamp?tepi(a,b):a,B:b.kamp?tepi(b,a):b,kamp:b.kamp?b:null});}
   const L=[];let t=0;
-  for(let i=0;i<urut.length-1;i++){
-    const a=N[urut[i]],b=N[urut[i+1]],d=Math.hypot(b.x-a.x,b.z-a.z);
-    if(a.kamp){L.push({t0:t,t1:t+AUM,a,b:a,aum:true,arah:Math.atan2(b.x-a.x,b.z-a.z)});t+=AUM;}
-    L.push({t0:t,t1:t+d/KEC,a,b,aum:false,arah:Math.atan2(b.x-a.x,b.z-a.z)});t+=d/KEC;
-  }
+  const jalan=(a,b)=>{const d=Math.hypot(b.x-a.x,b.z-a.z);if(d<1e-6)return;L.push({t0:t,t1:t+d/KEC,a,b,aum:false,arah:Math.atan2(b.x-a.x,b.z-a.z)});t+=d/KEC;};
+  ruas.forEach((r,i)=>{
+    jalan(r.A,r.B);
+    const n=ruas[(i+1)%ruas.length];
+    if(r.kamp){L.push({t0:t,t1:t+AUM,a:r.B,b:r.B,aum:true,arah:Math.atan2(r.kamp.x-r.B.x,r.kamp.z-r.B.z)});t+=AUM;}
+    if(r.kamp){   /* busur lingkaran berjari-jari TEPI, arah putar terpendek */
+      const c=r.kamp,a0=Math.atan2(r.B.z-c.z,r.B.x-c.x);let da=Math.atan2(n.A.z-c.z,n.A.x-c.x)-a0;
+      da=((da+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;const d=Math.abs(da)*TEPI;
+      if(d>1e-6){L.push({t0:t,t1:t+d/KEC,a:r.B,b:n.A,c,a0,da,aum:false});t+=d/KEC;}
+    }else jalan(r.B,n.A);
+  });
   const R={L,T:t,N};cache.set(k,R);return R;
 }
 /* keadaan T-Rex pada waktu t: {x,z,arah,aum} */
@@ -45,6 +55,8 @@ export function posTrex(W,seed,t){
   const R=rute(W,seed),tt=((t%R.T)+R.T)%R.T;
   let lo=0,hi=R.L.length-1;while(lo<hi){const m=(lo+hi+1)>>1;if(R.L[m].t0<=tt)lo=m;else hi=m-1;}
   const s=R.L[lo],u=s.t1>s.t0?(tt-s.t0)/(s.t1-s.t0):0;
+  if(s.c){const a=s.a0+s.da*u,x=s.c.x+Math.cos(a)*TEPI,z=s.c.z+Math.sin(a)*TEPI,sg=Math.sign(s.da);
+    return {x,z,arah:Math.atan2(-Math.sin(a)*sg,Math.cos(a)*sg),aum:false};}   // arah = garis singgung busur
   return {x:s.a.x+(s.b.x-s.a.x)*u,z:s.a.z+(s.b.z-s.a.z)*u,arah:s.arah,aum:s.aum};
 }
 /* jarak pemain ke badan T-Rex (dua lingkaran: badan dan kepala di depan) */

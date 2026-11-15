@@ -1,7 +1,7 @@
 /* Tingkat grafis Ultra (hanya Pos 1): pemuat aset malas. Tekstur PBR 512 px WebP, langit LDR 1k sebagai peta lingkungan.
    Tidak dimuat sebelum pemain memilih Ultra dan masuk Pos 1, jadi tidak membebani masuk lobi. Sumber dan lisensi: aset/LISENSI.md. */
 import * as THREE from './vendor/three.min.js';
-const DIR=new URL('./aset/',import.meta.url).href,V='?v=34';
+const DIR=new URL('./aset/',import.meta.url).href,V='?v=36';
 let janji=null,hasil=null;
 export const ultraSiap=()=>!!hasil;
 export const ultraAset=()=>hasil;

@@ -3,7 +3,7 @@
    jadi tidak membebani masuk lobi. Sumber dan lisensi: aset/LISENSI.md.
    muatDino() -> Promise; buatDino({tinggi}) -> {grup, main(nama, lintas), perbarui(dt), nama[]}. Menghadap +z, kaki di y=0. */
 import * as THREE from './vendor/three.min.js';
-const URL_MODEL=new URL('./aset/trex.glb?v=34',import.meta.url).href;
+const URL_MODEL=new URL('./aset/trex.glb?v=36',import.meta.url).href;
 let janji=null,gltf=null;
 export function muatDino(){
   if(janji)return janji;
@@ -40,5 +40,8 @@ export async function buatDino(opsi={}){
     if(nama==='Death'||nama==='Jump'){a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=nama==='Death';}   // Attack berulang (mengaum) selama dipakai
     a.play();if(aktif)aktif.crossFadeTo(a,lintas,false);aktif=a;return true;
   }
-  return {grup,main,perbarui:dt=>mixer.update(dt),nama:Object.keys(klip),mixer};
+  /* irama langkah: satu siklus Walk menempuh kira-kira 1,2 kali tinggi badan; timeScale disamakan dengan kecepatan v (satuan/detik) */
+  const tinggi=opsi.tinggi||6.8;
+  function langkah(v){if(!klip.Walk)return;const a=mixer.existingAction(klip.Walk);if(a)a.timeScale=klip.Walk.duration*v/(tinggi*1.2);}
+  return {grup,main,langkah,perbarui:dt=>mixer.update(Math.min(dt,.1)),nama:Object.keys(klip),mixer};
 }

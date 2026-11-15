@@ -1,33 +1,33 @@
 /* Lobi Integral v2: karakter kustom, kamera bebas, Pos 1 fisik (membawa balok), jaringan per tim. */
 import * as THREE from './vendor/three.min.js';
-import {sambung,sambungAmat} from './rt.js?v=34';
-import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=34';
-import * as P1 from './pos1.js?v=34';
-import * as AR from './arena.js?v=34';
-import {buatArena,kolomDari,uTembus} from './arena.js?v=34';
-import {buatArena2,gambarSandi} from './arena2.js?v=34';
-import * as P2 from './pos2.js?v=34';
-import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=34';
-import * as P3 from './pos3.js?v=34';
-import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=34';
-import * as P4 from './pos4.js?v=34';
-import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=34';
-import * as P5 from './pos5.js?v=34';
-import {buatArena6,gambarFinal} from './arena6.js?v=34';
-import * as P6 from './pos6.js?v=34';
-import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=34';
-import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=34';
-import {labelSprite,buangSprite,klem} from './util.js?v=34';
-import {muatUltra,ultraSiap,ultraAset} from './ultra.js?v=34';
-import {posTrex,jarakTrex,kampKembali,hashTeks,R_KENA,R_AWAS} from './trex.js?v=34';
-import {buatDino} from './dino.js?v=34';
-import {M1,M2,M3,M4,M5,M6} from './medan.js?v=34';
+import {sambung,sambungAmat} from './rt.js?v=36';
+import {NDEP,GMAX,stokBabak,BABAK,CAP,MAXBAG,WAKTU,KURVA,RENCANA,setSeed,stateBaru,valid,cValid,skorRonde,skorTim,selesai,jumlah,gambarMini,kurvaBabak,aturanBabak,titikX} from './pos1.js?v=36';
+import * as P1 from './pos1.js?v=36';
+import * as AR from './arena.js?v=36';
+import {buatArena,kolomDari,uTembus} from './arena.js?v=36';
+import {buatArena2,gambarSandi} from './arena2.js?v=36';
+import * as P2 from './pos2.js?v=36';
+import {buatArena3,gambarMesin,diCorong} from './arena3.js?v=36';
+import * as P3 from './pos3.js?v=36';
+import {buatArena4,gambarDebit,tangkiDi} from './arena4.js?v=36';
+import * as P4 from './pos4.js?v=36';
+import {buatArena5,gambarBrankas,piringDi} from './arena5.js?v=36';
+import * as P5 from './pos5.js?v=36';
+import {buatArena6,gambarFinal} from './arena6.js?v=36';
+import * as P6 from './pos6.js?v=36';
+import {NB2,CAP2,WAKTU2,KAMP_JENIS,setSeed2,stateBaru2,valid2,sValid,skorRonde2,skorTim2,selesai2,soal,nSlot,batuKamp,teksBatu,slotDi,PESAN,notasi,notasiBenar} from './pos2.js?v=36';
+import {TIPE,WARNA,KULIT,TOPI,KACAMATA,AKS,parseAv,kodeAv,acakAv,meshAvatar,topY} from './avatar.js?v=36';
+import {labelSprite,buangSprite,klem} from './util.js?v=36';
+import {muatUltra,ultraSiap,ultraAset} from './ultra.js?v=36';
+import {posTrex,jarakTrex,kampKembali,hashTeks,R_KENA,R_AWAS,KEC as KEC_TREX} from './trex.js?v=36';
+import {buatDino} from './dino.js?v=36';
+import {M1,M2,M3,M4,M5,M6} from './medan.js?v=36';
 const MED=M1;
 /* dunia aktif: M1 (Pos 1) atau M2 (Pos 2) */
 let W=M1;
 import {bacaSesi} from '../core/net.js';
-import * as CT from './catat.js?v=34';
-import * as AM from './amati.js?v=34';
+import * as CT from './catat.js?v=36';
+import * as AM from './amati.js?v=36';
 
 const $=id=>document.getElementById(id);
 const TIM=[['merah','Merah','#e5392b'],['biru','Biru','#2f7fc1'],['hijau','Hijau','#2f9e5b'],['kuning','Kuning','#e0a200'],
@@ -238,7 +238,7 @@ const arena=buatArena();scene.add(arena.grup);
    Model dimuat malas saat masuk Pos 1. Mati di uji otomatis (navigator.webdriver) kecuali ?dino=1, agar uji lain tidak acak. */
 const TREX_ON=!navigator.webdriver||Q.get('dino')==='1';
 const trex={seed:0,d:null,muat:false,awas:0,serang:0};
-function siapkanTrex(){if(!TREX_ON||trex.muat)return;trex.muat=true;buatDino({tinggi:6.8}).then(d=>{trex.d=d;arena.grup.add(d.grup);}).catch(()=>{trex.muat=false;});}
+function siapkanTrex(){if(!TREX_ON||trex.muat)return;trex.muat=true;buatDino({tinggi:4.2}).then(d=>{trex.d=d;arena.grup.add(d.grup);}).catch(()=>{trex.muat=false;});}
 const arena2=buatArena2();scene.add(arena2.grup);
 const arena3=buatArena3();scene.add(arena3.grup);
 const arena4=buatArena4();scene.add(arena4.grup);
@@ -1160,10 +1160,10 @@ function tabrak(now,h){
   kb=titikMundur(h.mundur||3);me.vx=me.vz=0;kotor=true;
   toast(h.msg+(ada?(me.a===2?' Batu sandi jatuh.':' Balok jatuh.'):'')+(h.j==='ubin'||h.j==='palu'||h.j==='pintu'?'':' Lompat untuk menghindar.'));
 }
-function trexTick(now,tSec,bisaKena){
+function trexTick(now,tSec,dt,bisaKena){
   const d=trex.d;if(!d)return;
   const p=posTrex(W,trex.seed,tSec);d.grup.position.set(p.x,W.tinggiTanah(p.x,p.z),p.z);d.grup.rotation.y=p.arah;
-  d.main(now<trex.serang||p.aum?'Attack':'Walk');
+  d.main(now<trex.serang||p.aum?'Attack':'Walk');d.langkah(KEC_TREX);d.perbarui(dt);   // kaki bergerak sesuai kecepatan
   const jr=jarakTrex(p,me.x,me.z);
   if(bisaKena&&me.carry>0&&jr<R_KENA)trexKena(now);
   else if(me.carry>0&&jr<R_AWAS&&now-trex.awas>6000){trex.awas=now;getar(40);toast('Awas T-Rex! Balok yang kamu bawa bisa jatuh.');}
@@ -1739,7 +1739,7 @@ function frame(now){
         const udara=!!(me.emo&&me.emo.k===1&&Math.sin(((now-me.emo.t)/700)*Math.PI)*1.6>.7);
         const h=W.bahaya(r,me.x,me.z,tSec,udara);if(h)tabrak(now,h);
       }
-      if(me.a===1&&TREX_ON)trexTick(now,tSec,main&&!lontar&&!kb&&now>=stunTil&&now>=tabrakTil&&!blk);
+      if(me.a===1&&TREX_ON)trexTick(now,tSec,dt,main&&!lontar&&!kb&&now>=stunTil&&now>=tabrakTil&&!blk);
       /* trampolin: melempar pemain melewati air */
       {
         const md=W.medanBabak(r);
