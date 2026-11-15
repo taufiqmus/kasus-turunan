@@ -73,14 +73,18 @@ export function buatArena(){
   const pelat=[];let ultraOn=false;
   function bangunPelat(n,xs){
     for(const p of pelat){grup.remove(p);p.geometry.dispose();if(p.material.map)p.material.map.dispose();p.material.dispose();}
-    pelat.length=0;const w=2*WX/n;
+    pelat.length=0;const w=2*WX/n,terpanjang=xs.map(v=>String(Math.round(v*100)/100)).reduce((m,t)=>t.length>m.length?t:m,'');
     for(let i=0;i<n;i++){
       const c=document.createElement('canvas');c.width=128;c.height=Math.round(128*(ZONA.z1-ZONA.z0)/(w-.06));
       c.height=Math.max(64,Math.min(512,c.height));
       const g=c.getContext('2d');g.fillStyle=i%2?'#e8d3a6':'#f7e8c8';g.fillRect(0,0,c.width,c.height);
       g.fillStyle='#1c2230';g.textAlign='center';g.textBaseline='middle';
-      const fs=n>8?22:30;g.font='800 '+fs+'px "Chakra Petch",sans-serif';
-      g.fillText('x = '+(Math.round(xs[i]*100)/100),c.width/2,c.height/2);
+      const nilai=String(Math.round(xs[i]*100)/100);
+      if(n>8){   /* kolom sempit: dua baris ("x =" di atas nilai) supaya huruf jauh lebih besar dan tetap terbaca di HP */
+        let fs=64;g.font='800 '+fs+'px "Chakra Petch",sans-serif';
+        while(fs>18&&Math.max(g.measureText('x =').width,g.measureText(terpanjang).width)>c.width*.86){fs-=2;g.font='800 '+fs+'px "Chakra Petch",sans-serif';}
+        g.fillText('x =',c.width/2,c.height/2-fs*.6);g.fillText(nilai,c.width/2,c.height/2+fs*.6);
+      }else{const fs=30;g.font='800 '+fs+'px "Chakra Petch",sans-serif';g.fillText('x = '+nilai,c.width/2,c.height/2);}
       const tx2=new THREE.CanvasTexture(c);tx2.colorSpace=THREE.SRGBColorSpace;
       const p=new THREE.Mesh(new THREE.PlaneGeometry(w-.06,ZONA.z1-ZONA.z0),new THREE.MeshBasicMaterial({map:tx2,toneMapped:!ultraOn}));
       p.rotation.x=-Math.PI/2;p.rotation.z=0;p.position.set(kolX(n,i),.03,(ZONA.z0+ZONA.z1)/2);p.userData.i=i;grup.add(p);pelat.push(p);
