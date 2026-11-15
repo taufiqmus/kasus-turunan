@@ -77,3 +77,65 @@ export function sambung(kode,saya,on,paksaLokal){
   }catch(e){clearTimeout(timer);turun();}
   return api;
 }
+
+/* ---------- mode pengamat (dosen) ----------
+   Pengamat hanya mendengarkan: tidak memakai track() sehingga tidak muncul di daftar hadir tim, dan satu-satunya pesan yang
+   boleh dikirim adalah 'minta' (meminta keadaan terbaru dari tim yang dipilih). Kanal tim hanya dibuka untuk satu tim pada
+   satu waktu agar beban pesan tidak berlipat. Kanal papan (laporan jarang semua tim) selalu terbuka. */
+function amatLokal(kode,on){
+  const bc=new BroadcastChannel('ki-'+kode),peers=new Map(),terkirim=[];let tim=null;
+  const emit=()=>on.hadir([...peers.values()].map(p=>({id:p.id,nama:p.nama,tim:p.tim,av:p.av})));
+  bc.onmessage=e=>{
+    const m=e.data;
+    if(m.k==='hi'){
+      if(!tim||m.d.tim!==tim)return;
+      const baru=!peers.has(m.d.id);peers.set(m.d.id,{...m.d,t:Date.now()});if(baru)emit();
+    }else if(m.k==='bye'){if(peers.delete(m.id))emit();}
+    else if(m.k==='ev'&&(m.c==='b'||(tim&&m.c==='t:'+tim)))on.pesan(m.ev,m.p);
+  };
+  const iv=setInterval(()=>{
+    const now=Date.now();let ch=false;
+    for(const [id,p] of peers)if(now-p.t>6000){peers.delete(id);ch=true;}
+    if(ch)emit();
+  },2000);
+  setTimeout(()=>on.status('luring'),0);
+  const api={mode:'luring',terkirim,
+    pilih(t){tim=t;peers.clear();emit();if(t)setTimeout(()=>api.kirim('minta',{id:'amat'}),400);},
+    kirim(ev,p){if(ev!=='minta'||!tim)return;terkirim.push(ev);bc.postMessage({k:'ev',c:'t:'+tim,ev,p});},
+    ping:async()=>null,
+    tutup(){clearInterval(iv);bc.close();}};
+  return api;
+}
+function amatDaring(kode,on){
+  const cl=window.supabase.createClient(SB.url,SB.key,{auth:{persistSession:false,autoRefreshToken:false},realtime:{params:{eventsPerSecond:5}}});
+  const terkirim=[];let ch=null;
+  const pap=cl.channel('ki-'+kode+'-b',{config:{broadcast:{self:false,ack:false}}});
+  for(const ev of EV_PAPAN)pap.on('broadcast',{event:ev},m=>on.pesan(ev,m.payload));
+  pap.subscribe(s=>{
+    if(s==='SUBSCRIBED')on.status('daring');
+    else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')on.status('gagal');
+    else if(s==='CLOSED')on.status('putus');
+  });
+  const api={mode:'daring',terkirim,
+    pilih(t){
+      if(ch){try{cl.removeChannel(ch);}catch(e){}ch=null;}
+      on.hadir([]);if(!t)return;
+      const c=cl.channel('ki-'+kode+'-'+t,{config:{broadcast:{self:false,ack:false}}});ch=c;
+      for(const ev of EV_TIM)c.on('broadcast',{event:ev},m=>{if(ch===c)on.pesan(ev,m.payload);});
+      c.on('presence',{event:'sync'},()=>{
+        if(ch!==c)return;
+        const st=c.presenceState(),L=[];
+        for(const k in st){const v=st[k][0];if(v&&v.id)L.push({id:v.id,nama:v.nama,tim:v.tim,av:v.av});}
+        on.hadir(L);
+      });
+      c.subscribe(s=>{if(s==='SUBSCRIBED')setTimeout(()=>{if(ch===c)api.kirim('minta',{id:'amat'});},700);});
+    },
+    kirim(ev,p){if(ev!=='minta'||!ch)return;terkirim.push(ev);ch.send({type:'broadcast',event:ev,payload:p}).catch(()=>{});},
+    ping:async()=>null,
+    tutup(){try{if(ch)cl.removeChannel(ch);cl.removeChannel(pap);}catch(e){}}};
+  return api;
+}
+export function sambungAmat(kode,on,paksaLokal){
+  if(paksaLokal||!window.supabase){setTimeout(()=>{},0);return amatLokal(kode,on);}
+  try{return amatDaring(kode,on);}catch(e){return amatLokal(kode,on);}
+}

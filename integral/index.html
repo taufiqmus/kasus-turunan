@@ -38,6 +38,16 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 #rev-t{margin:8px 0;text-align:left}
 #rev-t .r{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed #cdbf9c;font-weight:700}
 .kecil{font-size:12px;margin:6px 0}
+#amat{position:fixed;z-index:3;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:min(96vw,780px);max-height:42vh;overflow:auto;background:var(--paper);border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.am-baris{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px}
+.am-baris>span:not(.lb){display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.am-baris .lb{font-weight:700;opacity:.75;min-width:34px}
+.am-baris .btn{font-size:12px;padding:4px 9px;box-shadow:0 2px 0 var(--ink)}
+.am-baris .btn[aria-pressed=true]{background:var(--sun)}
+.am-baris .btn .sw{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);margin-right:5px;vertical-align:-1px}
+body.amat #ltoast{top:calc(env(safe-area-inset-top,0px) + 56px);bottom:auto;z-index:4}
+#amat.lipat .am-baris:not(:first-child),#amat.lipat #am-info{display:none}
+body.amat #aksi,body.amat #boost,body.amat #pilih,body.amat #b-lompat,body.amat #peta,body.amat #stam,body.amat #b-lari,body.amat #b-pos,body.amat #b-keluar,body.amat #c-koin,body.amat #joy-tips,body.amat #m-pos{display:none!important}
 #kls{margin-top:10px;border:2px dashed rgba(28,34,48,.35);border-radius:10px;padding:6px 10px}
 #kls summary{cursor:pointer;font-weight:700;font-size:13px}
 #hitung{position:fixed;z-index:4;left:50%;top:38%;transform:translate(-50%,-50%);font-family:var(--display);font-size:120px;color:#fff6e4;-webkit-text-stroke:6px var(--ink);paint-order:stroke fill;pointer-events:none}
@@ -175,7 +185,23 @@ body.hp #boost .btn{padding:8px}
       <h1>Lobi Integral</h1>
       <p class="lede">Pilih karakter, masuk lobi 3D, lalu kerjakan Pos 1 bersama timmu dengan membawa balok untuk menambal waduk.</p>
     </div>
-    <div class="card">
+    <div class="card" id="kartu-amat" hidden>
+      <h2>Masuk sebagai pengamat</h2>
+      <p class="kecil">Untuk dosen. Memantau lobi dan pos tiap tim tanpa ikut bermain. Tidak mengubah apa pun di permainan mahasiswa.</p>
+      <label class="f" for="am-token">Token sesi</label>
+      <input type="text" id="am-token" maxlength="20" spellcheck="false" autocapitalize="characters" autocomplete="off">
+      <label class="f" for="am-ruang">Kode ruang (bawaan: sama dengan token)</label>
+      <input type="text" id="am-ruang" maxlength="20" spellcheck="false" autocapitalize="characters" autocomplete="off">
+      <div id="am-login">
+        <label class="f" for="am-em">Email dosen</label>
+        <input type="email" id="am-em" autocomplete="username">
+        <label class="f" for="am-pw">Kata sandi</label>
+        <input type="password" id="am-pw" autocomplete="current-password">
+      </div>
+      <button class="btn big" id="b-amat" type="button" style="margin-top:14px;width:100%">Masuk sebagai pengamat</button>
+      <p class="fmsg" id="am-msg" role="alert"></p>
+    </div>
+    <div class="card" id="kartu-main">
       <h2>Masuk lobi</h2>
       <label class="f" for="in-nama">Nama panggilan</label>
       <input type="text" id="in-nama" maxlength="12" spellcheck="false" autocomplete="off">
@@ -200,6 +226,14 @@ body.hp #boost .btn{padding:8px}
     </div>
   </div>
 </section>
+
+<div id="amat" hidden>
+  <div class="am-baris"><b>Pengamat</b><button class="btn alt" id="am-lipat" type="button" aria-expanded="true">Ciutkan panel</button></div>
+  <div class="am-baris"><span class="lb">Tim</span><span id="am-tim"></span></div>
+  <div class="am-baris"><span class="lb">Lihat</span><span id="am-ang"></span></div>
+  <div class="am-baris"><span class="lb">Area</span><span id="am-area"></span></div>
+  <p class="kecil" id="am-info"></p>
+</div>
 
 <div id="lhud" hidden>
   <span class="lchip" id="c-ruang"></span>

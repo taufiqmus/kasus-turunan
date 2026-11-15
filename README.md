@@ -129,3 +129,21 @@ Semua pos berbasis slot memakai satu pengendali umum `buatAlur(CFG)` di `lobi.js
 | 6 Puncak Final | Puncak Kalkulus (gunung) | rangkuman semua pos | estafet pendakian: tiga pos jawaban (Lembah, Tebing, Puncak) di ketinggian berbeda; pilihan A sampai D bisa diganti sampai dikunci; tiap pengecoh punya umpan balik; hasil akhir memuat rapor P1 sampai P6 |
 
 Rintangan baru (semua fungsi murni jam dinding, tanpa pesan jaringan): penekan, lengan putar, rakit/perahu, benda jatuh, kawanan berpatroli (lebah, kepiting, kambing), ombak pasang. Uji: `node tests/medan_cek.mjs`, `python3 tests/pos3.py` sampai `tests/pos6.py`, atau semuanya lewat `sh tests/semua.sh` (server lokal di port 8077).
+
+### Kenyamanan HP (v=30)
+Mode HP otomatis pada layar sentuh (atau `?hp=1`): kartu HUD ringkas yang bisa diketuk, panel boost terlipat, tombol Menu dan Layar penuh, kamera lebih dekat, petunjuk joystick sekali tampil, getar saat tertabrak, layar tetap menyala, modal dua kolom saat mendatar. Uji: `python3 tests/hp.py [lebar tinggi tag]`.
+
+### Pencatatan hasil dan dashboard dosen (v=31)
+Memakai sistem sesi yang sudah ada (token sesi, NIM, tabel `hasil`, fungsi `masuk` dan `simpan_hasil`), tanpa skema baru.
+- Formulir masuk punya bagian opsional "Sesi kelas dari dosen": token + NIM. Dari portal Kasus Turunan (sudah punya kunci), NIM tidak diminta lagi. Kosongkan token untuk bermain tanpa pencatatan. Kode ruang otomatis memakai token.
+- Tiap anggota tim yang online mencatat satu baris per babak: `kasus = int-p<pos>-b<babak>`, `skor` 0 sampai 100, `detik` terpakai, `rincian` berisi tim, ruang, jawaban tim, akurasi, dan kode miskonsepsi (`catat.js`). Pencatatan tidak pernah memblokir permainan: jaringan putus diulang, penolakan server hanya memunculkan pesan.
+- `integral/dosen.html`: masuk dengan akun dosen yang sama dengan `dashboard.html`. Ringkasan per pos, peta panas per babak, peta miskonsepsi (dihitung per tim-babak), tabel tim dan mahasiswa, CSV rekap dan per babak. `dashboard.html` lama tidak lagi menghitung baris `int-*`.
+- Saran: buat satu token sesi khusus Lobi Integral supaya fungsi `ranking` Kasus Turunan tidak tercampur skor Integral.
+- Uji: `tests/catat.py` (RPC dicegat) dan `tests/dosen.py` (data buatan, escape HTML, CSV).
+
+### Mode Pengamat (v=31)
+Dosen memantau lobi dan pos tiap tim tanpa ikut bermain: dari dashboard tekan "Pantau langsung" (atau "Pantau" per tim), atau buka `integral/index.html?amati=1&token=TOKEN`.
+- Gerbang: harus masuk dengan akun dosen pemilik token (aturan RLS tabel `sesi`). Ini pembatas kenyamanan, bukan keamanan sejati, karena kanal siaran pada dasarnya terbuka bagi yang tahu kode ruang.
+- Hanya mendengar: tidak memakai `track()` sehingga tidak muncul di daftar hadir, bukan otoritas dan bukan pemimpin kunci, dan satu-satunya pesan yang boleh dikirim adalah `minta` (meminta keadaan terbaru). Kanal tim hanya dibuka untuk satu tim pada satu waktu. Kode: `sambungAmat` di `rt.js`, bagian "mode pengamat" di `lobi.js`.
+- Panel bawah: pilih tim, ikuti anggota (area dan kamera menyusul), kamera bebas (WASD, Q/E, Shift), atau pindah area (Lobi, Pos 1 sampai 6). HUD pos menampilkan keadaan tim yang dipantau; jendela ulasan tidak menghalangi.
+- Uji: `tests/amati.py`.

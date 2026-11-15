@@ -76,6 +76,7 @@ th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;
       <div class="row" style="justify-content:space-between">
         <h2 id="d-title" style="margin:0"></h2>
         <div class="row">
+          <button class="btn" id="b-amat" type="button">Pantau langsung</button>
           <button class="btn alt" id="b-csv-m" type="button">CSV rekap mahasiswa</button>
           <button class="btn alt" id="b-csv-b" type="button">CSV per babak</button>
         </div>
@@ -99,7 +100,7 @@ th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;
 
     <section class="card">
       <h2>Tim</h2>
-      <div class="wrapt"><table><thead><tr><th>Tim</th><th>Ruang</th><th>Anggota</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr></thead><tbody id="d-tim"></tbody></table></div>
+      <div class="wrapt"><table><thead><tr><th>Tim</th><th>Ruang</th><th>Anggota</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th><th>Pantau</th></tr></thead><tbody id="d-tim"></tbody></table></div>
     </section>
 
     <section class="card">
@@ -248,7 +249,7 @@ function render(){
   $('d-tim').innerHTML=[...T.values()].sort((a,b)=>a.ruang.localeCompare(b.ruang)||a.tim.localeCompare(b.tim)).map(x=>{
     const w=(TIMW[x.tim]||[x.tim,'#888']);let r='<tr><td><span class="sw" style="background:'+esc(w[1])+'"></span>'+esc(w[0])+'</td><td>'+esc(x.ruang)+'</td><td>'+esc([...x.ang].join(', '))+'</td>';
     for(let p=1;p<=NPOS;p++){const a=x.pos[p];r+='<td>'+(a?'<span class="hm" style="background:'+warnaSel(rata(a))+'">'+fmt(rata(a))+'</span>':'<span class="kosong">-</span>')+'</td>';}
-    return r+'</tr>';}).join('')||'<tr><td colspan="9" class="note">Belum ada data.</td></tr>';
+    return r+'<td><button class="btn alt" type="button" data-ruang="'+esc(x.ruang)+'" data-tim="'+esc(x.tim)+'">Pantau</button></td></tr>';}).join('')||'<tr><td colspan="10" class="note">Belum ada data.</td></tr>';
 
   /* mahasiswa */
   const rows=rekapMhs();
@@ -278,6 +279,10 @@ $('b-csv-b').addEventListener('click',()=>{
   for(const b of LAST.baris)L.push([b.user,b.nim,b.ruang,namaTim(b.tim),b.pos,b.r,b.skor,b.a==null?'':b.a,b.detik,b.c.map(k=>labelKode(b.pos,k)).join(' ; '),b.dibuat].map(q).join(','));
   unduh('integral-babak-'+CUR.token+'.csv',L);
 });
+/* mode pengamat dibuka di tab baru; window.open tanpa noopener agar login dosen ikut terbawa lewat sessionStorage */
+const bukaAmat=(kode,tim)=>{if(!CUR)return;window.open('index.html?amati=1&token='+encodeURIComponent(CUR.token)+'&kode='+encodeURIComponent(kode||CUR.token)+(tim?'&tim='+encodeURIComponent(tim):''),'_blank');};
+$('b-amat').addEventListener('click',()=>bukaAmat());
+$('d-tim').addEventListener('click',e=>{const b=e.target.closest('button[data-tim]');if(b)bukaAmat(b.dataset.ruang,b.dataset.tim);});
 $('b-login').addEventListener('click',login);
 $('pw').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
 $('b-out').addEventListener('click',logout);
