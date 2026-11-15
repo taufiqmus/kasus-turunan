@@ -1,3 +1,5 @@
 
 # catatan kerja pribadi
 CATATAN_KERJA.md
+__pycache__/
+*.pyc
