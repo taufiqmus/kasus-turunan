@@ -65,7 +65,7 @@ th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;position:sticky;
   <div class="row" style="justify-content:space-between"><span class="note" id="who"></span><button class="btn alt" id="b-out" type="button">Keluar</button></div>
 
   <section class="card">
-    <h2>Pilih sesi</h2>
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Pilih sesi</h2><button class="btn alt" id="b-segar" type="button" aria-label="Muat ulang daftar sesi dan data">Refresh</button></div>
     <p class="note">Buat sesi khusus Lobi Integral di sini, supaya peringkat Kasus Turunan tidak tercampur. Minta mahasiswa memakai token yang sama (juga jadi kode ruang, otomatis terisi).</p>
     <div class="row">
       <div style="flex:2 1 220px"><label for="n-nama">Nama sesi</label><input id="n-nama" placeholder="Matematika 1 kelas A, Lobi Integral"></div>
@@ -182,6 +182,11 @@ async function loadSesi(){
     d.innerHTML='<b>'+esc(s.token)+'</b> <span class="pill '+esc(s.status)+'">'+(s.status==='open'?'terbuka':'ditutup')+'</span><br>'+esc(s.nama);
     d.addEventListener('click',()=>pilih(s));d.addEventListener('keydown',e=>{if(e.key==='Enter')pilih(s);});L.append(d);
   }
+}
+async function segarkan(){
+  const b=$('b-segar'),t=b.textContent;b.disabled=true;b.textContent='Memuat...';
+  try{await loadSesi();if(CUR){const baru=SESI.find(x=>x.id===CUR.id);if(baru)CUR=baru;await loadDetail(true);}}
+  finally{b.disabled=false;b.textContent=t;}
 }
 function pilih(s){CUR=s;LAST=null;loadSesi();loadDetail();$('detail').hidden=false;$('detail').scrollIntoView({behavior:'smooth'});}
 
@@ -301,6 +306,7 @@ $('d-tim').addEventListener('click',e=>{const b=e.target.closest('button[data-ti
 $('b-login').addEventListener('click',login);
 $('pw').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
 $('b-new').addEventListener('click',newSesi);
+$('b-segar').addEventListener('click',segarkan);
 $('b-out').addEventListener('click',logout);
 window.__D={olah,render:()=>render(),set:(l)=>{LAST=l;CUR=CUR||{token:'UJI',nama:'Uji',id:'x'};$('login').hidden=true;$('app').hidden=false;$('detail').hidden=false;render();}};
 try{const a=JSON.parse(sessionStorage.getItem('kt-auth')||'null');if(a&&a.rt){Object.assign(AUTH,a);start();}}catch(e){}

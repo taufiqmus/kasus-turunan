@@ -61,6 +61,8 @@ with sync_playwright() as p:
     cek('buat sesi: pesan sukses memuat token','INT-A1' in pg.inner_text('#n-msg'),pg.inner_text('#n-msg'))
     pg.fill('#n-nama','x');pg.fill('#n-token','ab');pg.click('#b-new');pg.wait_for_timeout(200)
     cek('buat sesi: token terlalu pendek ditolak tanpa kirim',len(posted)==1,len(posted))
+    n0=len(posted);pg.click('#b-segar');pg.wait_for_timeout(500)
+    cek('tombol Refresh aktif kembali dan tanpa galat',pg.is_enabled('#b-segar') and pg.inner_text('#b-segar')=='Refresh' and len(posted)==n0,pg.inner_text('#b-segar'))
     pg.screenshot(path='/tmp/dosen.png',full_page=True)
     pg.set_viewport_size({'width':390,'height':844});pg.wait_for_timeout(200)
     cek('tampilan HP: tidak ada gulir mendatar halaman',pg.evaluate('document.documentElement.scrollWidth<=innerWidth+2'),pg.evaluate('document.documentElement.scrollWidth'))
